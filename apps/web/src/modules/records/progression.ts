@@ -1,7 +1,7 @@
 import { isInitialPosition } from '../finances/initialPosition';
 import type { Mission, MissionCategory } from '../missions/types';
 import type { EffortActivity } from '../evolution/scoring';
-import { sessionActivities } from '../evolution/scoring';
+import { isDate } from './dates';
 import type { LifeRecords } from './types';
 import { daysBetween, shiftDate } from './dates';
 
@@ -54,56 +54,68 @@ export function recordEfforts(records: LifeRecords): DailyEffort[] {
   for (const entry of records.readings) add(entry.date, 'Conhecimento', 1);
   return [...days.values()];
 }
-/** As missões originais mantêm seus prêmios. Só a parcela nova não coberta é somada. */
+/** Junta declarações reais datadas e registros, com um prêmio por área/dia. */
+export function realEfforts(
+  records: LifeRecords,
+  missions: readonly Mission[],
+): DailyEffort[] {
+  const days = new Map(
+    recordEfforts(records).map((day) => [`${day.area}:${day.date}`, day]),
+  );
+  const missionDays = new Map<string, DailyEffort>();
+  for (const mission of missions) {
+    if (
+      !mission.completed ||
+      mission.source !== 'user' ||
+      !isDate(mission.completedOn)
+    )
+      continue;
+    const key = `${mission.category}:${mission.completedOn}`;
+    const previous = missionDays.get(key);
+    missionDays.set(key, {
+      area: mission.category,
+      date: mission.completedOn,
+      effort: Math.min(
+        1,
+        (previous?.effort ?? 0) + (mission.category === 'Descanso' ? 0.5 : 1),
+      ),
+      qualifies: true,
+    });
+  }
+  for (const [key, day] of missionDays) {
+    const previous = days.get(key);
+    days.set(key, {
+      ...day,
+      effort: Math.max(previous?.effort ?? 0, day.effort),
+      qualifies: true,
+    });
+  }
+  return [...days.values()];
+}
 export function recordReward(
   records: LifeRecords,
   missions: readonly Mission[],
   today: string,
 ) {
-  return recordEfforts(records)
+  return realEfforts(records, missions)
     .filter((day) => day.qualifies && day.date <= today)
-    .reduce((sum, day) => {
-      const covered =
-        day.date === legacyReferenceDate
-          ? missions
-              .filter(
-                (mission) => mission.completed && mission.category === day.area,
-              )
-              .reduce((value, mission) => value + mission.xp, 0)
-          : 0;
-      return sum + Math.max(0, dailyRewards[day.area] - covered);
-    }, 0);
+    .reduce((sum, day) => sum + dailyRewards[day.area], 0);
 }
+/** O histórico opaco anterior é ignorado: o Radar usa somente origens verificáveis. */
 export function projectEffortActivities(
-  history: readonly EffortActivity[],
+  _history: readonly EffortActivity[],
   missions: readonly Mission[],
   records: LifeRecords,
   today: string,
 ): EffortActivity[] {
-  const result = new Map<string, EffortActivity>();
-  // Migra apenas a coordenada temporal do histórico, sem reescrever registros antigos.
-  for (const entry of sessionActivities(history, missions)) {
-    const date = shiftDate(legacyReferenceDate, -entry.daysAgo);
-    const key = `${entry.area}:${date}`;
-    const previous = result.get(key);
-    result.set(key, {
-      id: key,
-      area: entry.area,
-      daysAgo: daysBetween(today, date),
-      effort: Math.min(1, entry.effort + (previous?.effort ?? 0)),
-    });
-  }
-  for (const day of recordEfforts(records)) {
-    const key = `${day.area}:${day.date}`;
-    const previous = result.get(key);
-    result.set(key, {
-      id: key,
+  return realEfforts(records, missions)
+    .filter((day) => day.date <= today)
+    .map((day) => ({
+      id: `${day.area}:${day.date}`,
       area: day.area,
       daysAgo: daysBetween(today, day.date),
-      effort: Math.max(day.effort, previous?.effort ?? 0),
-    });
-  }
-  return [...result.values()];
+      effort: day.effort,
+    }));
 }
 
 /** XP das ações datadas; o saldo inicial do personagem não é atividade da semana. */
@@ -116,12 +128,7 @@ export function weeklyRecordXP(
     const date = shiftDate(today, index - 6);
     const xp =
       recordReward(records, missions, date) -
-      recordReward(records, missions, shiftDate(date, -1)) +
-      (date === legacyReferenceDate
-        ? missions
-            .filter((mission) => mission.completed)
-            .reduce((sum, mission) => sum + mission.xp, 0)
-        : 0);
+      recordReward(records, missions, shiftDate(date, -1));
     return {
       date,
       day: new Date(`${date}T12:00:00`).toLocaleDateString('pt-BR', {

@@ -36,22 +36,19 @@ describe('Armazenamento local versionado', () => {
     const state = createDemoPlayerState();
     state.profile.name = 'Jogadora';
     state.profile.title = 'Guardiã';
-    state.missionCompletion = state.missionCompletion.map((mission) => ({
-      ...mission,
-      completed: true,
-    }));
-    state.unlockedAchievementIds.push('reader');
-    state.activityHistory.push({
-      id: 'test',
-      area: 'Conhecimento',
-      daysAgo: 3,
-      effort: 1,
-    });
+    state.missionEvents = [
+      {
+        missionId: 'read',
+        date: '2026-11-13',
+        completed: true,
+        source: 'user',
+      },
+    ];
     state.preferences = { missionFilter: 'done', radarPeriod: 90 };
     expect(store.save(state)).toBe(true);
     expect(store.load()).toEqual({ status: 'loaded', data: state });
     const envelope = JSON.parse(content()!);
-    expect(envelope.version).toBe(2);
+    expect(envelope.version).toBe(PLAYER_STORAGE_VERSION);
     expect(envelope.data).not.toHaveProperty('dedication');
     expect(envelope.data).not.toHaveProperty('progress');
     expect(envelope.data).not.toHaveProperty('xp');
@@ -61,8 +58,8 @@ describe('Armazenamento local versionado', () => {
     'null',
     '[]',
     '42',
-    '{"version":2}',
-    '{"version":2,"data":{}}',
+    '{"version":3}',
+    '{"version":3,"data":{}}',
   ])('recupera com segurança o conteúdo inválido %s', (raw) => {
     const { store, content } = fixture(raw);
     expect(store.load().status).toBe('invalid');
@@ -118,7 +115,7 @@ describe('Validação do estado do jogador', () => {
     const state = createDemoPlayerState();
     const other = createDemoPlayerState();
     state.profile.name = 'Novo';
-    expect(other.profile.name).toBe('Allan');
+    expect(other.profile.name).toBe('Jogador');
     expect(isPlayerState(state)).toBe(true);
     expect(
       isPlayerState({ ...state, profile: { ...state.profile, name: '' } }),

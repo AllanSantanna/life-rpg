@@ -6,7 +6,7 @@ export function AttributesPanel({ attributes }: { attributes: Attribute[] }) {
   return (
     <section aria-label="Atributos do jogador" className="mb-9">
       <SectionHeading title="Seus atributos" eyebrow="Cada ação constrói você">
-        <span className="text-xs text-muted">Potencial em evolução</span>
+        <span className="text-xs text-muted">Dedicação real · 7 dias</span>
       </SectionHeading>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {attributes.map((attribute) => (

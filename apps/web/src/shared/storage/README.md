@@ -1,75 +1,93 @@
-# Persistência local automática
+# Persistência local e evolução real
 
-Chave: `life-rpg:player-state`. Envelope JSON: `{ version: 2, data: PlayerState }`.
-`localStateStorage.ts` concentra leitura, serialização, gravação e tratamento de
-exceções. O contrato `StateStorage<T>` não depende de React nem dos dados demo.
-A montagem desse adaptador e sua política de inicialização ficam em
-`app/usePlayerState.ts`; a estrutura e validação de domínio em `app/playerState.ts`.
-Uma API futura poderá substituir o adaptador com hidratação assíncrona nesse
-hook, mantendo os componentes e as funções de cálculo.
+Chave `life-rpg:player-state`, envelope `{ version: 3, data: PlayerState }`.
+O adaptador `localStateStorage.ts` isola leitura, validação, serialização e escrita;
+`app/usePlayerState.ts` hidrata o estado e salva alterações automaticamente.
 
-## Fonte de verdade
+## Fontes de verdade
 
-- Perfil completo, incluindo nome e classe.
-- `progressOrigin`: nível, XP e limiar iniciais da projeção existente.
-- Conclusão de cada missão por ID, incluindo pendentes.
-- IDs das conquistas desbloqueadas (nenhuma regra nova de desbloqueio).
-- Histórico de atividades usado pelo radar, inclusive o histórico fictício inicial.
-- `records`: movimentações, carteira/operações, treino, sono/meta e biblioteca/leituras.
-- Filtros existentes: período do radar detalhado e filtro da lista de missões.
+- Perfil pessoal e preferências de navegação/filtros.
+- `records`: todos os dados reais dos quatro pilares, inclusive contas,
+  investimentos, cotações, caixinhas, livros, leituras, treinos e sono.
+- `missionEvents`: confirmações explícitas do usuário, com ID da missão, data
+  civil, estado concluído/desfeito e `source: 'user'`. Uma entrada por missão/data.
 
-Não gravamos o XP atual, nível atual, radar, métricas de dedicação ou atividades
-recriadas a partir das missões. O XP atual continua sendo
-`projectProgress(progressOrigin, recompensasAtuais - recompensasIniciais + recompensasRegistros)`.
-Missões usam IDs canônicos e nunca acumulam eventos de recompensa a cada clique.
-O radar usa `projectEffortActivities(activityHistory, missions, records, today)`.
-Os catálogos de missões, conquistas e regras ficam no código. Ao modificar esse
-contrato ou o significado desses catálogos, aumentar a versão e adicionar uma
-migração explícita. Não existe migração implícita entre versões desconhecidas.
+XP, nível, atributos, conquistas, Radar e gráficos de XP são projeções recalculadas.
+Não existem depósitos cumulativos de recompensa. `progressOrigin` é normalizado
+para nível 1/0 XP e limiar de 2.000 XP; os campos legados `activityHistory` e
+`unlockedAchievementIds` ficam vazios. `missionCompletion` conserva apenas o
+formato de catálogo, com todos pendentes; conclusões reais ficam em `missionEvents`.
+O aplicativo não lê valores de progresso ou atributos dos arquivos de mocks.
 
-## Inicialização e falhas
+## Migração v1/v2 → v3
 
-A leitura validada ocorre no inicializador do estado, antes da primeira renderização.
-Sem chave, usa o demo. Dados malformados, campos inválidos ou versões desconhecidas
-não são usados. O fallback não é salvo na montagem, inclusive com React StrictMode.
-Uma alteração relevante grava o estado inteiro em um único `setItem`, sem debounce;
-nenhuma parte do progresso é salva separadamente.
+A leitura valida a estrutura antiga antes de migrar. V2 preserva integralmente
+`records`; v1 não possuía registros dos pilares e recebe a estrutura vazia, como
+na migração anterior. Perfil e preferências são copiados sem redefinição.
 
-Conteúdo inválido da versão atual pode ser substituído depois de uma ação do
-jogador. Versões desconhecidas permanecem intactas, inclusive após interações.
-Falha de leitura impede a gravação para não sobrescrever dados que não puderam
-ser lidos. Exceções de acesso e falta de espaço são capturadas. O estado React
-continua operando; o rodapé informa que as mudanças ficam na sessão. A próxima
-alteração tenta salvar novamente. Nenhuma operação apaga a chave ou usa `clear`.
+Remove-se a origem de XP/nível fictícia, o histórico sintético e os desbloqueios
+artificiais. Registros reais não são apagados, somados novamente ou reescritos.
+O XP legítimo é recalculado a partir desses registros e das missões verificáveis.
 
-A validação exige tipos corretos, XP finito e normalizado, limiar de XP existente,
-IDs conhecidos e únicos de missões/conquistas, histórico de atividades sem IDs
-duplicados e preferências válidas. O validador não concede XP nem desbloqueios.
+No catálogo antigo `water` já vinha concluída automaticamente. Essa marcação não
+comprova ação do usuário e é descartada. Missões que vinham pendentes e foram
+salvas como concluídas comprovam uma marcação explícita e são preservadas. O
+formato antigo não registrava a hora/data do clique: essas conclusões conservam
+13/11/2026, a data fixa à qual o aplicativo antigo já as associava. Não se presume
+que tenham ocorrido na data da atualização. Os novos eventos usam a data civil
+real da confirmação. Histórico opaco sem origem verificável não é usado no Radar.
 
-## Limites existentes
+A migração acontece em memória e retorna `migrated: true`. Após hidratação válida,
+o hook salva v3 em um `setItem`; em StrictMode essa gravação não se duplica. Na
+próxima carga v3 é validada diretamente: nenhuma recompensa ou migração é repetida.
+Uma falha de escrita mantém o conteúdo antigo intacto; a sessão usa a projeção real
+e o rodapé avisa que não foi possível salvar. Versões desconhecidas e dados de
+versões antigas que não possam ser migrados não são sobrescritos.
 
-O histórico demonstrativo permanece ancorado em 13/11/2026, e os registros reais usam datas civis locais. O radar usa o dia atual. Missões legadas não são renovadas automaticamente.
-Os dados pertencem ao mesmo navegador/perfil e origem (protocolo, host e porta).
-Limpar os dados do site remove o progresso. Em navegação privada, a retenção segue
-as regras do navegador. Não há sincronização ou resolução de alterações simultâneas
-entre abas. Não há backup manual nem dependências novas.
+## Progressão e missões
+
+Novo jogador: nível 1, 0 XP, sem conquistas desbloqueadas, sem atividade no Radar.
+A fórmula continua `nível = 1 + floor(XP_total/2000)` e `XP_da_barra = XP_total%2000`.
+Teto por área/data: Finanças 80, Treinos 150, Descanso 120 e Conhecimento 100.
+Registros e missões confirmadas na mesma área/data compartilham esse teto.
+As duas missões de Descanso também compartilham os 120 XP diários.
+
+As missões continuam disponíveis como modelos de ações reais. Nenhuma começa
+concluída: confirmar é uma declaração do usuário de que realizou aquela ação,
+registrada com data e origem. Desmarcar reverte essa declaração. Missões de hoje
+ficam pendentes em um novo dia; conclusões anteriores mantêm seu XP histórico,
+sem renovação automática de recompensas. Um registro real e sua missão não
+multiplicam XP. Remover o registro com missão ainda confirmada mantém a recompensa
+da declaração independente; desfazer ambas remove a recompensa daquele dia.
+
+Atributos usam dedicação real de 7 dias; conquistas são derivadas de atividades,
+constância, livros concluídos e metas. Elas não dão XP extra. Veja
+[quatro pilares](../../../../../docs/four-pillars.md) e `gamification/realProgress.ts`.
+
+## Falhas e limites
+
+Sem chave, usa-se estado inicial vazio, sem gravá-lo na montagem. Dados malformados
+da versão atual podem ser substituídos após uma ação do usuário, como antes;
+versões desconhecidas permanecem intactas. Falhas de acesso/leitura ou quota são
+capturadas. Não se usa `localStorage.clear()` nem se removem chaves de outros módulos.
+O adaptador pode ser substituído futuramente por backend sem mudar as projeções.
+
+Os dados pertencem ao navegador e endereço (protocolo, host, porta) usados.
+Limpar os dados do site remove o progresso. Não há sincronização entre dispositivos
+ou resolução de alterações simultâneas entre abas.
 
 ## Verificação manual
 
-1. Execute `nvm use` e `npm run dev:web`; abra o endereço indicado pelo Vite.
-2. Conclua uma missão e anote XP, nível e dedicação da categoria.
-3. Recarregue: a missão e os valores devem ser mantidos.
-4. Desmarque a missão e recarregue: os valores recalculados também permanecem.
-5. Mude os filtros em Missões e Estatísticas; recarregue e retorne a essas telas.
-6. Em DevTools → Application → Local Storage, confira a chave acima e `version: 2`.
-7. Feche e reabra o navegador no mesmo endereço para verificar a continuidade.
+1. Abra no mesmo endereço usado anteriormente. O progresso deve refletir apenas
+   seus registros e missões confirmadas, mantendo o perfil e os quatro pilares.
+2. Em DevTools → Application → Local Storage, confira a versão 3. Recarregue:
+   XP/nível devem permanecer iguais, sem novo crédito ou migração.
+3. Em uma origem/navegador sem dados, confira nível 1/0 XP, Radar zero e conquistas
+   bloqueadas. Registre um treino: 150 XP. Confirme sua missão: continua 150 XP.
+4. Desfaça a missão e o treino: o XP correspondente desaparece. Edite sono/meta,
+   despesas ou leituras e confira o recálculo, sem acumuladores.
+5. Use os filtros de missões e Radar e recarregue; preferências são preservadas.
 
-## Migração v1 → v2
-
-A validação anterior é preservada em `isLegacyPlayerState`. Uma leitura v1 válida acrescenta `records` vazio sem alterar os campos anteriores. O adaptador retorna `migrated: true`; o hook persiste v2 após hidratar o estado validado. Falha na gravação mantém o payload v1 intacto. Versões desconhecidas continuam bloqueadas para gravação. Detalhes em `docs/four-pillars.md`.
-
-O módulo financeiro estende a versão 2 com `records.finance` opcional (contas,
-transferências, avaliações e cotações). A ausência desse campo representa o
-formato anterior e não invalida nem reinicia os dados. Referências de conta
-omitidas pertencem à conta principal; o usuário informa o saldo inicial.
-Veja [Finanças](../../modules/finances/README.md) para as regras e limitações.
+Os novos campos financeiros das versões anteriores continuam opcionais e
+compatíveis; suas operações e valores são preservados pela migração v3.
+Veja [Finanças](../../modules/finances/README.md) para as regras monetárias.

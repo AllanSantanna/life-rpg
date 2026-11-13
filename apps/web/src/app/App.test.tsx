@@ -24,7 +24,7 @@ describe('Dashboard do jogador', () => {
       screen.getByRole('heading', { name: 'Visão geral' }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('img', { name: 'Avatar de Allan' }),
+      screen.getByRole('img', { name: 'Avatar de Jogador' }),
     ).toBeInTheDocument();
     for (const name of ['Força', 'Disciplina', 'Conhecimento', 'Riqueza']) {
       expect(screen.getByRole('progressbar', { name })).toBeInTheDocument();
@@ -41,7 +41,7 @@ describe('Dashboard do jogador', () => {
     ).toBeInTheDocument();
     expect(
       screen.getByRole('progressbar', { name: 'Experiência do jogador' }),
-    ).toHaveAttribute('aria-valuenow', '1640');
+    ).toHaveAttribute('aria-valuenow', '0');
   });
   it('conclui e desfaz missões sem acumular XP duplicado', () => {
     render(<App />);
@@ -53,13 +53,13 @@ describe('Dashboard do jogador', () => {
     });
     fireEvent.click(mission);
     expect(mission).toBeChecked();
-    expect(xp).toHaveAttribute('aria-valuenow', '1790');
+    expect(xp).toHaveAttribute('aria-valuenow', '150');
     expect(screen.getByRole('status')).toHaveTextContent('Você ganhou 150 XP');
     fireEvent.click(mission);
     expect(mission).not.toBeChecked();
-    expect(xp).toHaveAttribute('aria-valuenow', '1640');
+    expect(xp).toHaveAttribute('aria-valuenow', '0');
     fireEvent.click(mission);
-    expect(xp).toHaveAttribute('aria-valuenow', '1790');
+    expect(xp).toHaveAttribute('aria-valuenow', '150');
   });
   it('navega, filtra missões e mantém o progresso ao trocar de seção', () => {
     render(<App />);
@@ -68,15 +68,15 @@ describe('Dashboard do jogador', () => {
       screen.getByRole('heading', { name: 'Suas missões' }),
     ).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Pendentes' }));
-    expect(screen.getAllByRole('checkbox')).toHaveLength(4);
+    expect(screen.getAllByRole('checkbox')).toHaveLength(5);
     fireEvent.click(
       screen.getByRole('checkbox', {
         name: 'Concluir missão: Um passo mais forte',
       }),
     );
-    expect(screen.getAllByRole('checkbox')).toHaveLength(3);
+    expect(screen.getAllByRole('checkbox')).toHaveLength(4);
     fireEvent.click(screen.getByRole('button', { name: 'Concluídas' }));
-    expect(screen.getAllByRole('checkbox')).toHaveLength(2);
+    expect(screen.getAllByRole('checkbox')).toHaveLength(1);
     navigate('Início');
     expect(
       screen.getByRole('checkbox', {
@@ -85,7 +85,7 @@ describe('Dashboard do jogador', () => {
     ).toBeChecked();
     expect(
       screen.getByRole('progressbar', { name: 'Experiência do jogador' }),
-    ).toHaveAttribute('aria-valuenow', '1790');
+    ).toHaveAttribute('aria-valuenow', '150');
     navigate('Estatísticas');
     expect(
       screen.getByRole('heading', { name: 'Sua evolução' }),
@@ -99,17 +99,17 @@ describe('Dashboard do jogador', () => {
       'page',
     );
   });
-  it('projeta mudança de nível e permite revertê-la nesta demonstração', () => {
+  it('mantém o nível real com as missões e permite desfazer sem duplicação', () => {
     render(<App />);
     for (const mission of screen.getAllByRole('checkbox')) {
       if (!(mission as HTMLInputElement).checked) fireEvent.click(mission);
     }
     expect(screen.getByText('Explorador', { exact: false })).toHaveTextContent(
-      'Nível 13',
+      'Nível 1',
     );
     expect(
       screen.getByRole('progressbar', { name: 'Experiência do jogador' }),
-    ).toHaveAttribute('aria-valuenow', '90');
+    ).toHaveAttribute('aria-valuenow', '450');
     expect(screen.getByText(/Todas as missões concluídas/)).toBeInTheDocument();
     fireEvent.click(
       screen.getByRole('checkbox', {
@@ -117,11 +117,11 @@ describe('Dashboard do jogador', () => {
       }),
     );
     expect(screen.getByText('Explorador', { exact: false })).toHaveTextContent(
-      'Nível 12',
+      'Nível 1',
     );
     expect(
       screen.getByRole('progressbar', { name: 'Experiência do jogador' }),
-    ).toHaveAttribute('aria-valuenow', '1940');
+    ).toHaveAttribute('aria-valuenow', '300');
   });
   it('preserva os dados quando a aplicação é recarregada', () => {
     const { unmount } = render(<App />);

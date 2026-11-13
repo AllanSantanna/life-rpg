@@ -1,3 +1,12 @@
+import {
+  startingProgress,
+  realAttributes,
+  realAchievements,
+} from '../modules/gamification/realProgress';
+import {
+  missionsForDay,
+  realMissionHistory,
+} from '../modules/missions/catalog';
 import { useUsdQuote } from '../modules/finances/useUsdQuote';
 import { useBitcoinQuote } from '../modules/finances/useBitcoinQuote';
 import { applyRecordCommand } from '../modules/records/commands';
@@ -22,11 +31,6 @@ import { useEffect, useRef, useState } from 'react';
 import { useUrlNavigation } from './useUrlNavigation';
 import { Navigation, type View } from './Navigation';
 import { pillarViews } from './views';
-import {
-  attributes,
-  initialMissions,
-  achievements as achievementCatalog,
-} from './mocks/dashboard';
 import { PlayerHeader } from '../modules/profile/PlayerHeader';
 import { AttributesPanel } from '../modules/gamification/AttributesPanel';
 import { AchievementsPanel } from '../modules/gamification/AchievementsPanel';
@@ -54,46 +58,41 @@ export function App() {
   const recordsRef = useRef(state.records);
   recordsRef.current = state.records;
   const player = state.profile;
-  const missions = initialMissions.map((mission) => ({
-    ...mission,
-    completed:
-      state.missionCompletion.find((item) => item.id === mission.id)
-        ?.completed ?? mission.completed,
-  }));
-  const achievements = achievementCatalog.map((item) => {
-    const unlocked = state.unlockedAchievementIds.includes(item.id);
-    return {
-      ...item,
-      unlocked,
-      progress: unlocked
-        ? 'Conquistada'
-        : item.unlocked
-          ? 'Bloqueada'
-          : item.progress,
-    };
-  });
+  const missions = missionsForDay(state.missionEvents, today);
+  const realMissions = realMissionHistory(state.missionEvents);
   const [announcement, setAnnouncement] = useState('');
   const heading = useRef<HTMLHeadingElement>(null);
-  const initialReward = initialMissions
-    .filter((mission) => mission.completed)
-    .reduce((sum, mission) => sum + mission.xp, 0);
-  const currentReward = missions
-    .filter((mission) => mission.completed)
-    .reduce((sum, mission) => sum + mission.xp, 0);
+  const currentReward = recordReward(
+    {
+      ...state.records,
+      movements: [],
+      investmentEntries: [],
+      workouts: [],
+      sleep: [],
+      readings: [],
+    },
+    missions,
+    today,
+  );
   const progress = projectProgress(
-    state.progressOrigin,
-    currentReward -
-      initialReward +
-      recordReward(state.records, missions, today),
+    startingProgress,
+    recordReward(state.records, realMissions, today),
   );
   const activities = projectEffortActivities(
-    state.activityHistory,
-    missions,
+    [],
+    realMissions,
     state.records,
     today,
   );
   const dedication = scorePeriod(activities, 7);
-  const weeklyActivity = weeklyRecordXP(state.records, missions, today);
+  const attributes = realAttributes(dedication);
+  const achievements = realAchievements(
+    state.records,
+    realMissions,
+    today,
+    activities,
+  );
+  const weeklyActivity = weeklyRecordXP(state.records, realMissions, today);
   const maxWeeklyXP = Math.max(100, ...weeklyActivity.map((day) => day.xp));
   const currentMetrics = recordMetrics(state.records, today, dedication);
   function changeRecords(command: RecordCommand): string | null {
@@ -123,23 +122,22 @@ export function App() {
   function toggleMission(id: string) {
     const mission = missions.find((item) => item.id === id);
     if (!mission) return;
-    setState((previous) => ({
-      ...previous,
-      missionCompletion: previous.missionCompletion.map((item) =>
-        item.id === id ? { ...item, completed: !item.completed } : item,
+    const event = {
+      missionId: id,
+      date: today,
+      source: 'user' as const,
+      completed: !mission.completed,
+    };
+    const events = [
+      ...state.missionEvents.filter(
+        (item) => item.missionId !== id || item.date !== today,
       ),
-    }));
-    const nextMissions = missions.map((item) =>
-      item.id === id ? { ...item, completed: !item.completed } : item,
-    );
-    const nextReward = nextMissions
-      .filter((item) => item.completed)
-      .reduce((sum, item) => sum + item.xp, 0);
+      event,
+    ];
+    setState((previous) => ({ ...previous, missionEvents: events }));
     const delta =
-      nextReward -
-      currentReward +
-      recordReward(state.records, nextMissions, today) -
-      recordReward(state.records, missions, today);
+      recordReward(state.records, realMissionHistory(events), today) -
+      recordReward(state.records, realMissions, today);
     setAnnouncement(
       delta === 0
         ? `${mission.title}: atividade já contabilizada nos registros do dia.`
@@ -378,7 +376,7 @@ export function App() {
                 <section className="panel p-6">
                   <SectionHeading
                     title="Sua ficha de jogador"
-                    eyebrow="Perfil de demonstração"
+                    eyebrow="Seu perfil"
                   />
                   <dl className="divide-y divide-white/[0.06]">
                     {[
@@ -398,8 +396,9 @@ export function App() {
                     ))}
                   </dl>
                   <p className="mt-5 rounded-lg border border-white/10 p-4 text-xs leading-relaxed text-muted">
-                    Este é um personagem fictício. A edição de perfil e a
-                    autenticação serão desenvolvidas em uma próxima etapa.
+                    Seu progresso é calculado somente a partir de atividades
+                    reais. As informações do perfil são mantidas neste
+                    navegador.
                   </p>
                 </section>
                 <AchievementsPanel achievements={achievements} />
@@ -413,7 +412,7 @@ export function App() {
             </span>
             <span>
               {storageAvailable
-                ? 'Registros salvos neste navegador · legado demonstrativo preservado'
+                ? 'Registros salvos neste navegador · evolução real'
                 : 'Salvamento local indisponível · alterações apenas nesta sessão'}
             </span>
           </footer>

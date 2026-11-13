@@ -120,7 +120,7 @@ describe('Navegação baseada na URL', () => {
     );
     expect(
       screen.getByRole('progressbar', { name: 'Experiência do jogador' }),
-    ).toHaveAttribute('aria-valuenow', '1790');
+    ).toHaveAttribute('aria-valuenow', '150');
     act(() => window.history.forward());
     await waitFor(() =>
       expect(

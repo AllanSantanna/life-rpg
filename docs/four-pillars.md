@@ -46,7 +46,7 @@ com dados fictícios. Os indicadores absolutos do dashboard usam somente registr
 ## XP sem duplicação
 
 As fórmulas de nível e os prêmios das missões existentes continuam iguais.
-O saldo inicial do personagem é mantido. Novos registros têm teto por **área/dia**:
+Todo jogador começa no nível 1/0 XP; a origem fictícia anterior é removida pela migração v3. Novos registros têm teto por **área/dia**:
 
 | Área         | XP por dia qualificado | Condição                                             |
 | ------------ | ---------------------: | ---------------------------------------------------- |
@@ -59,18 +59,16 @@ Valores financeiros, páginas adicionais e várias entradas no mesmo dia não
 multiplicam XP. Cadastrar um investimento sem operação ou um livro sem leitura
 não dá XP. Dia Não e sono abaixo da meta não dão XP de registros.
 
-As missões já salvas permanecem associadas ao dia legado **13/11/2026**, com
-identificação na lista. Não há renovação diária de missões nesta entrega.
-Para cada área/dia, novos registros somam apenas
-`max(0, prêmio diário − XP das missões concluídas da área naquela data)`.
-Assim, um treino e sua missão não rendem duas vezes. Desmarcar a missão com o
-registro ainda presente mantém a parcela do registro; remover ambos desfaz a
-recompensa. As duas missões legadas de Descanso mantêm seus prêmios originais.
+Missões confirmadas pelo usuário são datadas e compartilham o limite de área/dia
+com os registros reais. Nenhuma missão começa concluída. Marcar/desmarcar não
+acumula recompensas: a projeção calcula uma única recompensa por área/data
+qualificada. As duas missões de Descanso compartilham o teto de 120 XP.
 
-XP atual = `projectProgress(origem, XP_missões_atual − XP_missões_inicial + XP_registros)`.
-Tudo é recalculado do estado canônico, sem eventos cumulativos de recompensa.
-Editar, excluir, alternar Sim/Não ou mudar uma meta não permite acumular XP.
-O gráfico semanal exibe XP das ações datadas e missões; não inclui o saldo inicial.
+XP total = soma dos prêmios dos dias qualificados reais. O nível permanece
+`1 + floor(XP_total / 2000)` e a barra usa `XP_total % 2000`. Editar, excluir,
+alternar Sim/Não ou mudar a meta recalcula as fontes. Posições iniciais, cotações,
+avaliações e transferências entre contas não geram XP. O gráfico semanal usa
+somente ações e missões reais datadas, sem saldo inicial ou demonstração.
 
 ## Radar e dados legados
 
@@ -84,27 +82,26 @@ Há no máximo 1 unidade por área/dia. Sono parcial contribui proporcionalmente
 o radar, mas só dá XP quando a meta é atingida. Várias atividades financeiras ou
 leituras no mesmo dia não somam pontos extras.
 
-O histórico fictício já salvo não é apagado nem convertido em movimentações,
-sono, treinos ou livros reais. Seu referencial de 13/11/2026 é convertido em datas
-civis e envelhece naturalmente nas janelas atuais. Missões e histórico antigos são
-consolidados por área/dia com o limite anterior. Quando um registro real coincide
-com esse dia, usa-se o **maior esforço**, sem somar a mesma dedicação duas vezes.
-A tela de Estatísticas identifica a presença de dados demonstrativos preservados.
-XP histórico não expira; dedicação recente pode diminuir com o passar do tempo.
+O histórico fictício não participa das projeções e é retirado pela migração v3.
+As missões efetivamente marcadas pelo usuário no catálogo antigo são preservadas
+quando eram inicialmente pendentes; a missão já concluída por padrão é descartada.
+A data fixa antiga 13/11/2026 é conservada para essas conclusões porque o formato
+anterior não armazenava a data do clique. Novas confirmações usam a data real.
+XP histórico real não expira; dedicação recente diminui conforme o tempo passa.
+
+Atributos Força/Conhecimento/Riqueza usam os escores reais de Treinos/Conhecimento/
+Finanças em 7 dias; Disciplina usa a média dos quatro pilares. Conquistas derivam
+primeira atividade qualificada, sete dias consecutivos, três livros concluídos e
+metas dos quatro pilares em 7 dias. Não há desbloqueios iniciais nem bônus de XP.
 
 ## Persistência e migração
 
-Mesma chave `life-rpg:player-state`, envelope atualizado para **versão 2**.
-A migração v1→v2 valida a estrutura anterior, copia todos os campos e acrescenta
-`records` vazio (incluindo meta de sono 8). Não recria perfil, prêmios, conquistas,
-atividades ou filtros. A leitura migra em memória; após hidratação válida, o hook
-persiste v2 com um único `setItem`. Se a gravação falhar, v1 continua intacta no
-disco e a sessão pode usar o estado migrado. Versões desconhecidas não são apagadas.
-Sem dados ou com dados inválidos da versão atual, mantém o fallback seguro anterior.
-
-XP atual, nível, médias, totais de carteira, conclusão de livros e radar não são
-armazenados em duplicidade. O estado canônico inclui somente fontes necessárias.
-Os formulários usam comandos tipados e puros; armazenamento é independente da UI.
+Mesma chave `life-rpg:player-state`, versão **3**. V1/v2 válidas são migradas uma
+única vez, normalizando a origem de progresso e retirando dados demonstrativos.
+O perfil pessoal, preferências e todos os registros reais são preservados. Falhas
+de gravação mantêm o original; versões desconhecidas não são sobrescritas.
+[Contrato completo de persistência](../apps/web/src/shared/storage/README.md).
+As projeções não são salvas como acumuladores ou valores financeiros novos.
 
 ## Verificar no navegador
 

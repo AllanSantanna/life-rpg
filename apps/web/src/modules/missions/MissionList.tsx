@@ -37,7 +37,8 @@ export function MissionList({
           )}
         </SectionHeading>
         <p className="mb-3 text-xs text-muted">
-          Missões demonstrativas de 13/11/2026 · recompensas preservadas.
+          Confirme somente ações que você realizou hoje. Registros e missões da
+          mesma área compartilham o limite diário de XP.
         </p>
         <div className="mb-5 flex items-center gap-3">
           <ProgressBar

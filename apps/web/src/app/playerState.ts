@@ -1,12 +1,9 @@
+import { startingProgress } from '../modules/gamification/realProgress';
+import { missionCatalog, type MissionEvent } from '../modules/missions/catalog';
+import { isDate } from '../modules/records/dates';
 import { emptyRecords, type LifeRecords } from '../modules/records/types';
 import { isLifeRecords } from '../modules/records/commands';
-import {
-  player,
-  initialProgress,
-  initialMissions,
-  achievements,
-} from './mocks/dashboard';
-import { effortHistory } from './mocks/effort';
+import { legacyMissions, legacyAchievementIds } from './legacyPlayerCatalog';
 import {
   areas,
   type EffortActivity,
@@ -27,26 +24,38 @@ export interface LegacyPlayerState {
 }
 export interface PlayerState extends LegacyPlayerState {
   records: LifeRecords;
+  missionEvents: MissionEvent[];
 }
 export const PLAYER_STORAGE_KEY = 'life-rpg:player-state';
-export const PLAYER_STORAGE_VERSION = 2;
+export const PLAYER_STORAGE_VERSION = 3;
 
-export function createDemoPlayerState(): PlayerState {
+export function createInitialPlayerState(): PlayerState {
   return {
     records: emptyRecords(),
-    profile: { ...player },
-    progressOrigin: { ...initialProgress },
-    missionCompletion: initialMissions.map(({ id, completed }) => ({
+    missionEvents: [],
+    profile: {
+      name: 'Jogador',
+      initials: 'JO',
+      title: 'Explorador',
+      journey: 'O caminho da constância',
+      joined: new Date().toLocaleDateString('pt-BR', {
+        month: 'long',
+        year: 'numeric',
+      }),
+      focus: 'Evoluir um pouco, todos os dias.',
+    },
+    progressOrigin: { ...startingProgress },
+    missionCompletion: missionCatalog.map(({ id }) => ({
       id,
-      completed,
+      completed: false,
     })),
-    unlockedAchievementIds: achievements
-      .filter((item) => item.unlocked)
-      .map((item) => item.id),
-    activityHistory: effortHistory.map((item) => ({ ...item })),
+    unlockedAchievementIds: [],
+    activityHistory: [],
     preferences: { radarPeriod: 7, missionFilter: 'all' },
   };
 }
+/** Alias de compatibilidade para consumidores anteriores; não cria mais demonstração. */
+export const createDemoPlayerState = createInitialPlayerState;
 function record(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
@@ -96,18 +105,18 @@ export function isLegacyPlayerState(
   if (
     !integer(origin.level, 1) ||
     !integer(origin.xp) ||
-    origin.xpPerLevel !== initialProgress.xpPerLevel ||
+    origin.xpPerLevel !== startingProgress.xpPerLevel ||
     origin.xp >= origin.xpPerLevel
   )
     return false;
   const missions = value.missionCompletion;
   if (
     !Array.isArray(missions) ||
-    missions.length !== initialMissions.length ||
+    missions.length !== legacyMissions.length ||
     !missions.every(
       (item: unknown) =>
         record(item) &&
-        initialMissions.some((mission) => mission.id === item.id) &&
+        legacyMissions.some((mission) => mission.id === item.id) &&
         typeof item.completed === 'boolean',
     ) ||
     new Set(missions.map((item: { id: string }) => item.id)).size !==
@@ -117,8 +126,9 @@ export function isLegacyPlayerState(
   const unlocked = value.unlockedAchievementIds;
   if (
     !Array.isArray(unlocked) ||
-    !unlocked.every((id: unknown) =>
-      achievements.some((item) => item.id === id),
+    !unlocked.every(
+      (id: unknown) =>
+        typeof id === 'string' && legacyAchievementIds.includes(id),
     ) ||
     new Set(unlocked).size !== unlocked.length
   )
@@ -142,14 +152,74 @@ export function isLegacyPlayerState(
 }
 
 export function isPlayerState(value: unknown): value is PlayerState {
+  if (
+    !record(value) ||
+    !isLegacyPlayerState(value) ||
+    !isLifeRecords(value.records)
+  )
+    return false;
+  if (
+    value.progressOrigin.level !== 1 ||
+    value.progressOrigin.xp !== 0 ||
+    value.activityHistory.length ||
+    value.unlockedAchievementIds.length ||
+    value.missionCompletion.some((m) => m.completed)
+  )
+    return false;
+  const events = value.missionEvents;
   return (
-    record(value) && isLegacyPlayerState(value) && isLifeRecords(value.records)
+    Array.isArray(events) &&
+    events.length <= 10000 &&
+    events.every(
+      (event: unknown) =>
+        record(event) &&
+        missionCatalog.some((m) => m.id === event.missionId) &&
+        isDate(event.date) &&
+        typeof event.completed === 'boolean' &&
+        event.source === 'user',
+    ) &&
+    new Set(
+      events.map((event: MissionEvent) => `${event.missionId}:${event.date}`),
+    ).size === events.length
   );
 }
 export function migratePlayerState(
   version: number,
   value: unknown,
 ): PlayerState | null {
-  if (version !== 1 || !isLegacyPlayerState(value)) return null;
-  return { ...value, records: emptyRecords() };
+  if ((version !== 1 && version !== 2) || !isLegacyPlayerState(value))
+    return null;
+  if (version === 2 && (!record(value) || !isLifeRecords(value.records)))
+    return null;
+  const records =
+    version === 2 ? (value as unknown as PlayerState).records : emptyRecords();
+  // No catálogo antigo, somente os itens inicialmente pendentes permitem comprovar
+  // uma marcação do usuário. A missão water já vinha marcada pelo demonstrativo.
+  const missionEvents: MissionEvent[] = value.missionCompletion.flatMap(
+    (item) => {
+      const old = legacyMissions.find((m) => m.id === item.id);
+      return item.completed && old && !old.completed
+        ? [
+            {
+              missionId: item.id,
+              date: '2026-11-13',
+              completed: true,
+              source: 'user' as const,
+            },
+          ]
+        : [];
+    },
+  );
+  return {
+    ...value,
+    records,
+    progressOrigin: { ...startingProgress },
+    missionCompletion: missionCatalog.map(({ id }) => ({
+      id,
+      completed: false,
+    })),
+    unlockedAchievementIds: [],
+    activityHistory: [],
+    missionEvents,
+  };
 }

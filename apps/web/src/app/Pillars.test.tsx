@@ -83,7 +83,7 @@ describe('Fluxos reais dos quatro pilares', () => {
     home();
     expect(
       screen.getByRole('progressbar', { name: 'Experiência do jogador' }),
-    ).toHaveAttribute('aria-valuenow', '1720');
+    ).toHaveAttribute('aria-valuenow', '80');
   });
   it('registra investimentos por quantidade/preço, aportes e retiradas sem duplicar consumo', () => {
     open('/financas');
@@ -115,7 +115,7 @@ describe('Fluxos reais dos quatro pilares', () => {
     home();
     expect(
       screen.getByRole('progressbar', { name: 'Experiência do jogador' }),
-    ).toHaveAttribute('aria-valuenow', '1720');
+    ).toHaveAttribute('aria-valuenow', '80');
   });
   it('mantém treino único e sincroniza XP/radar, recarga, missão associada e reversão', () => {
     let app = open('/treinos');
@@ -128,7 +128,7 @@ describe('Fluxos reais dos quatro pilares', () => {
     home();
     expect(
       screen.getByRole('progressbar', { name: 'Experiência do jogador' }),
-    ).toHaveAttribute('aria-valuenow', '1790');
+    ).toHaveAttribute('aria-valuenow', '150');
     const score = screen
       .getByRole('progressbar', { name: 'Treinos: Dedicação · 7 dias' })
       .getAttribute('aria-valuenow');
@@ -139,7 +139,7 @@ describe('Fluxos reais dos quatro pilares', () => {
     );
     expect(
       screen.getByRole('progressbar', { name: 'Experiência do jogador' }),
-    ).toHaveAttribute('aria-valuenow', '1790');
+    ).toHaveAttribute('aria-valuenow', '150');
     fireEvent.click(
       screen.getByRole('checkbox', {
         name: 'Concluir missão: Um passo mais forte',
@@ -163,7 +163,7 @@ describe('Fluxos reais dos quatro pilares', () => {
     app = render(<App />);
     expect(
       screen.getByRole('progressbar', { name: 'Experiência do jogador' }),
-    ).toHaveAttribute('aria-valuenow', '1790');
+    ).toHaveAttribute('aria-valuenow', '150');
     expect(
       screen.getByRole('progressbar', { name: 'Treinos: Dedicação · 7 dias' }),
     ).toHaveAttribute('aria-valuenow', score);
@@ -172,7 +172,7 @@ describe('Fluxos reais dos quatro pilares', () => {
     home();
     expect(
       screen.getByRole('progressbar', { name: 'Experiência do jogador' }),
-    ).toHaveAttribute('aria-valuenow', '1640');
+    ).toHaveAttribute('aria-valuenow', '0');
   });
   it('aceita sono decimal, corrige dias anteriores e recalcula a meta com persistência', () => {
     const app = open('/descanso');
@@ -249,7 +249,7 @@ describe('Fluxos reais dos quatro pilares', () => {
     home();
     expect(
       screen.getByRole('progressbar', { name: 'Experiência do jogador' }),
-    ).toHaveAttribute('aria-valuenow', '1740');
+    ).toHaveAttribute('aria-valuenow', '100');
   });
   it('acessa os pilares pela navegação inferior/lateral e pelo dashboard com URLs próprias', () => {
     render(<App />);

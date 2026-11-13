@@ -62,3 +62,13 @@ Interface responsiva com identidade dark/vermelho, avatar em iniciais, nível e 
 Dados de demonstração centralizados em mocks tipados. Concluir ou desmarcar missões atualiza uma projeção visual de XP e níveis, sem recompensar repetidamente a mesma conclusão. O estado é preservado no localStorage após navegar e recarregar. Não há autenticação ou acesso ao banco. O armazenamento v2 contém os registros reais dos quatro pilares e migra o legado anterior.
 
 A regra de demonstração considera 2.000 XP por nível; não define a progressão definitiva do produto. Atributos e conquistas permanecem demonstrativos. Indicadores, radar e gráfico semanal refletem os registros e missões datados. Regras dos novos registros em [quatro pilares](four-pillars.md).
+
+## Evolução real e armazenamento v3
+
+A origem do jogador é nível 1/0 XP com limiar preservado de 2.000 XP. As projeções
+usam registros reais e confirmações datadas em `missionEvents`. Atributos e
+conquistas são derivados, sem desbloqueios artificiais. V1/v2 migram para v3 uma
+única vez, preservando perfil, preferências e todos os pilares, retirando apenas
+origem de XP, histórico e recompensas demonstrativos.
+O contrato atual está em [Persistência](../apps/web/src/shared/storage/README.md).
+As descrições históricas de mocks/Sprint 1 acima não são mais a origem dos cálculos.

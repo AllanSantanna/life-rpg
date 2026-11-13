@@ -11,7 +11,8 @@ import {
   weeklyRecordXP,
 } from './progression';
 import { scorePeriod } from '../evolution/scoring';
-import { initialMissions } from '../../app/mocks/dashboard';
+import { missionCatalog } from '../missions/catalog';
+const initialMissions = missionCatalog;
 import { isDate, localDate, monthDates, daysBetween } from './dates';
 
 const today = '2026-11-13';
@@ -394,9 +395,16 @@ describe('Recompensas e radar dos registros', () => {
     });
     expect(recordReward(state, initialMissions, today)).toBe(150);
     const completed = initialMissions.map((mission) =>
-      mission.id === 'workout' ? { ...mission, completed: true } : mission,
+      mission.id === 'workout'
+        ? {
+            ...mission,
+            completed: true,
+            source: 'user' as const,
+            completedOn: today,
+          }
+        : mission,
     );
-    expect(recordReward(state, completed, today)).toBe(0);
+    expect(recordReward(state, completed, today)).toBe(150);
     expect(
       scorePeriod(projectEffortActivities([], completed, state, today), 7)
         .Treinos,
@@ -469,11 +477,18 @@ describe('Tempo e gráficos de XP', () => {
     });
     const weekly = weeklyRecordXP(state, initialMissions, today);
     expect(weekly).toHaveLength(7);
-    expect(weekly.at(-1)?.xp).toBe(270);
+    expect(weekly.at(-1)?.xp).toBe(150);
     const completed = initialMissions.map((mission) =>
-      mission.id === 'workout' ? { ...mission, completed: true } : mission,
+      mission.id === 'workout'
+        ? {
+            ...mission,
+            completed: true,
+            source: 'user' as const,
+            completedOn: today,
+          }
+        : mission,
     );
-    expect(weeklyRecordXP(state, completed, today).at(-1)?.xp).toBe(270);
+    expect(weeklyRecordXP(state, completed, today).at(-1)?.xp).toBe(150);
     expect(weekly.slice(0, 6).every((day) => day.xp === 0)).toBe(true);
   });
   it('desloca apenas a dedicação recente ao passar dos dias, preservando o XP acumulado', () => {

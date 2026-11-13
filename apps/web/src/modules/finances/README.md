@@ -1,5 +1,9 @@
 # Finanças
 
+O armazenamento atual é v3: a migração de progressão real preserva integralmente
+os registros financeiros e o perfil. Referências a v2 abaixo documentam a
+introdução das extensões financeiras, que continuam compatíveis em v3.
+
 O módulo separa fluxo mensal, saldos líquidos, custo de aquisição e avaliação dos
 investimentos. Valores monetários são centavos inteiros; BTC usa satoshis
 (8 casas decimais), com multiplicação e rateio do custo em `BigInt` e

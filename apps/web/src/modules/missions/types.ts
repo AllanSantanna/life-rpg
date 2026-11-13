@@ -9,5 +9,7 @@ export interface Mission {
   icon: IconName;
   xp: number;
   completed: boolean;
+  completedOn?: string;
+  source?: 'user';
 }
 export type MissionFilter = 'all' | 'pending' | 'done';

@@ -1,6 +1,6 @@
 import type { PlayerProgress } from './types';
 
-// Projeção visual da sessão; não representa as regras definitivas de progressão.
+// Projeção pura: conserva a fórmula de nível e o XP excedente, sem gravar recompensas.
 export function projectProgress(
   initial: PlayerProgress,
   xpDelta: number,

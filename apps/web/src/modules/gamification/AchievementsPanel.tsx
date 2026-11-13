@@ -24,7 +24,8 @@ export function AchievementsPanel({
         ))}
       </div>
       <p className="mt-4 text-[11px] text-muted">
-        Coleção ilustrativa · sem desbloqueios nesta versão.
+        Conquistas calculadas a partir das suas atividades reais, sem bônus de
+        XP.
       </p>
     </section>
   );

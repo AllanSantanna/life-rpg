@@ -24,16 +24,18 @@ atuais. O projeto também contém uma base de API para evoluções futuras.
   recompensa por área/dia e prevenção de duplicação com missões associadas.
 - **Estatísticas:** radar dinâmico de 7/30/90 dias, comparação com o período anterior
   e gráfico semanal de XP das ações datadas.
-- **Persistência:** formato versionado, validação e migração automática de v1 para
-  v2, preservando o progresso anterior no mesmo navegador e endereço.
+- **Persistência:** formato versionado, validação e migração automática de v1/v2 para
+  v3, preservando os registros reais e corrigindo o progresso demonstrativo no mesmo navegador e endereço.
 - **Navegação:** URLs próprias, acesso direto, recarga e Voltar/Avançar.
 - **Acessibilidade/PWA:** foco de teclado, formulários rotulados, respeito a
   movimento reduzido, manifesto e cache de arquivos estáticos no build.
 
-O perfil inicial, os atributos, as conquistas e o histórico legado são
-**demonstrativos**, identificados na interface. Os novos registros reais começam
-vazios. Não há renovação diária automática das missões legadas nem sincronização
-entre dispositivos. Limpar os dados do navegador remove o progresso local.
+Todo jogador novo começa no **nível 1, com 0 XP**. XP e níveis usam somente
+atividades reais e missões confirmadas pelo usuário, sem recompensas demonstrativas.
+Atributos, conquistas, Radar e estatísticas são derivados dessas fontes. A migração
+v3 conserva perfil, preferências e todos os registros dos pilares, retirando apenas
+progresso fictício. Não há sincronização entre dispositivos; limpar os dados do
+navegador remove o progresso local.
 
 ## Tecnologias
 

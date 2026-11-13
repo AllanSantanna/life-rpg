@@ -52,3 +52,13 @@ Vitest no frontend e backend; Testing Library com jsdom para componentes; Supert
 `modules/profile` contém o resumo do jogador, `modules/missions` a lista com filtros e `modules/gamification` atributos, conquistas e projeção visual de XP. O delta de XP vem das missões marcadas em relação ao estado inicial, evitando acumulação por marcar/desmarcar. Nenhuma regra é implementada nos módulos backend.
 
 Os cartões de indicadores usam `shared/components/MetricCard`; ícones SVG, barras e títulos também são reutilizados. Conhecimento inclui biblioteca e registros de leitura. Testes cobrem navegação, filtros, CRUD, recarga, migração, deduplicação de XP, radar e limites de níveis. Consulte [quatro pilares](four-pillars.md) para o contrato e as regras adicionais.
+
+## Evolução real e armazenamento v3
+
+A origem do jogador é nível 1/0 XP com limiar preservado de 2.000 XP. As projeções
+usam registros reais e confirmações datadas em `missionEvents`. Atributos e
+conquistas são derivados, sem desbloqueios artificiais. V1/v2 migram para v3 uma
+única vez, preservando perfil, preferências e todos os pilares, retirando apenas
+origem de XP, histórico e recompensas demonstrativos.
+O contrato atual está em [Persistência](../apps/web/src/shared/storage/README.md).
+As descrições históricas de mocks/Sprint 1 acima não são mais a origem dos cálculos.

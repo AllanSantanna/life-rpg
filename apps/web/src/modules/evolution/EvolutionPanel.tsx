@@ -43,9 +43,15 @@ export function EvolutionPanel({
         </div>
       </div>
       <p className="mt-3 text-xs leading-relaxed text-muted">
-        Registros reais + histórico demonstrativo preservado. Referência:{' '}
-        {referenceDate}. Últimos {period} dias versus os {period} anteriores.
+        Somente registros e missões reais datados. Referência: {referenceDate}.
+        Últimos {period} dias versus os {period} anteriores.
       </p>
+      {activities.length === 0 && (
+        <p className="mt-3 text-sm text-muted">
+          Seu histórico começa com a primeira atividade real. Nenhum dado
+          demonstrativo é utilizado.
+        </p>
+      )}
       <div className="evolution-detail-layout">
         <div>
           <EvolutionRadar scores={current} previous={previous} />
@@ -91,8 +97,9 @@ export function EvolutionPanel({
         <p>
           Missões de finanças, treino e leitura valem 1 unidade; hidratação e
           desconexão, 0,5 cada. Desfazer remove a contribuição. XP e patrimônio
-          não entram no cálculo. Registros reais e missões da mesma área/dia
-          compartilham o limite diário. Sono usa a proporção da meta pessoal.
+          não entram no cálculo. Registros e missões confirmadas da mesma
+          área/dia compartilham o limite diário. Sono usa a proporção da meta
+          pessoal.
         </p>
       </details>
     </section>

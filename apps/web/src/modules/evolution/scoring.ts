@@ -12,7 +12,7 @@ export interface EffortActivity {
   /** Mesmo identificador para a atividade e sua eventual missão de origem. */
   id: string;
   area: MissionCategory;
-  /** Dias anteriores à data de referência da demonstração; zero = hoje. */
+  /** Dias anteriores à data atual da projeção; zero = hoje. */
   daysAgo: number;
   effort: number;
 }

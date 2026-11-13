@@ -7,18 +7,12 @@ import {
 } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { App } from '../../app/App';
-import { effortHistory } from '../../app/mocks/effort';
-import { initialMissions } from '../../app/mocks/dashboard';
-import { comparePeriods, sessionActivities } from './scoring';
 
 afterEach(cleanup);
 describe('Radar sincronizado na sessão', () => {
   it('sincroniza missão, XP, cartão e os dois radares; desfaz e preserva filtros independentes', () => {
     render(<App />);
-    const baseline = comparePeriods(
-      sessionActivities(effortHistory, initialMissions),
-      7,
-    ).current.Treinos;
+    const baseline = 0;
     const mission = screen.getByRole('checkbox', {
       name: 'Concluir missão: Um passo mais forte',
     });
@@ -36,7 +30,7 @@ describe('Radar sincronizado na sessão', () => {
     expect(score).toBeGreaterThan(baseline);
     expect(
       screen.getByRole('progressbar', { name: 'Experiência do jogador' }),
-    ).toHaveAttribute('aria-valuenow', '1790');
+    ).toHaveAttribute('aria-valuenow', '150');
     expect(within(compact).getByRole('img')).toHaveAccessibleDescription(
       expect.stringContaining(`Treinos: ${score} de 100`),
     );
@@ -81,7 +75,7 @@ describe('Radar sincronizado na sessão', () => {
     ).toHaveAttribute('aria-valuenow', `${baseline}`);
     expect(
       screen.getByRole('progressbar', { name: 'Experiência do jogador' }),
-    ).toHaveAttribute('aria-valuenow', '1640');
+    ).toHaveAttribute('aria-valuenow', '0');
     expect(
       screen.getByRole('figure', { name: 'Radar de Evolução · 7 dias' }),
     ).toHaveTextContent(`${baseline}`);

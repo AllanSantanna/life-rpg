@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createLocalStateStorage } from '../shared/storage/localStateStorage';
 import {
-  createDemoPlayerState,
+  createInitialPlayerState,
   isPlayerState,
   migratePlayerState,
   PLAYER_STORAGE_KEY,
@@ -20,7 +20,8 @@ export function usePlayerState() {
   const [initial] = useState(() => {
     const loaded = storage.load();
     return {
-      data: loaded.status === 'loaded' ? loaded.data : createDemoPlayerState(),
+      data:
+        loaded.status === 'loaded' ? loaded.data : createInitialPlayerState(),
       needsMigration: loaded.status === 'loaded' && loaded.migrated === true,
       available:
         loaded.status !== 'unavailable' && loaded.status !== 'incompatible',
