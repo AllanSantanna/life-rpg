@@ -30,7 +30,8 @@ O build gera manifesto, ícones PNG e service worker com precache dos arquivos e
 
 ## Camada de integrações externas — futura
 
-Quando houver necessidade, criar `apps/api/src/integrations/` com adaptadores por provedor e contratos internos para investimentos, cotações e saúde. Não criar dependências externas agora.
+Quando houver necessidade, criar `apps/api/src/integrations/` com adaptadores por provedor e contratos internos para investimentos, cotações e saúde. A cotação pública BTC/BRL já usa um cliente HTTP isolado no frontend, sem SDK ou chave.
+A integração está descrita no [módulo financeiro](../apps/web/src/modules/finances/README.md).
 
 - Finances poderá consultar posições e cotações por interfaces internas; workouts/rest poderão consumir dados de saúde autorizados.
 - Serviços de domínio recebem interfaces; adaptadores traduzem autenticação, formatos e falhas dos provedores.
@@ -46,7 +47,7 @@ Vitest no frontend e backend; Testing Library com jsdom para componentes; Supert
 
 ## Composição do dashboard — Sprint 1
 
-`web/src/app/App.tsx` compõe as páginas e mantém um estado canônico persistido por `usePlayerState`. Os quatro pilares têm módulos independentes; `modules/records` centraliza comandos puros, datas e projeções comuns. `app/mocks/dashboard.ts` centraliza o legado demonstrativo. A History API nativa controla a navegação pela URL; nenhum módulo chama a API. A versão 2 do armazenamento migra dados v1, preservando o jogador anterior.
+`web/src/app/App.tsx` compõe as páginas e mantém um estado canônico persistido por `usePlayerState`. Os quatro pilares têm módulos independentes; `modules/records` centraliza comandos puros, datas e projeções comuns. `app/mocks/dashboard.ts` centraliza o legado demonstrativo. A History API nativa controla a navegação pela URL; os pilares não chamam o backend; Finanças consulta somente a cotação pública BTC/BRL. A versão 2 do armazenamento migra dados v1, preservando o jogador anterior.
 
 `modules/profile` contém o resumo do jogador, `modules/missions` a lista com filtros e `modules/gamification` atributos, conquistas e projeção visual de XP. O delta de XP vem das missões marcadas em relação ao estado inicial, evitando acumulação por marcar/desmarcar. Nenhuma regra é implementada nos módulos backend.
 

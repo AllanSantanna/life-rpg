@@ -1,3 +1,4 @@
+import { isInitialPosition } from '../finances/initialPosition';
 import type { Mission, MissionCategory } from '../missions/types';
 import type { EffortActivity } from '../evolution/scoring';
 import { sessionActivities } from '../evolution/scoring';
@@ -35,7 +36,10 @@ export function recordEfforts(records: LifeRecords): DailyEffort[] {
       qualifies: qualifies || (previous?.qualifies ?? false),
     });
   }
-  for (const entry of [...records.movements, ...records.investmentEntries])
+  for (const entry of [
+    ...records.movements,
+    ...records.investmentEntries.filter((entry) => !isInitialPosition(entry)),
+  ])
     add(entry.date, 'Finanças', 1);
   for (const entry of records.workouts)
     if (entry.trained) add(entry.date, 'Treinos', 1);

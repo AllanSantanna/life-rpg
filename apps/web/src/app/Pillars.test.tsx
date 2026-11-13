@@ -15,7 +15,14 @@ function open(path: string) {
   return render(<App />);
 }
 function input(form: HTMLElement, label: string, value: string) {
-  fireEvent.change(within(form).getByLabelText(label), { target: { value } });
+  fireEvent.change(within(form).getByLabelText(label), {
+    target: {
+      value:
+        /Valor|Saldo inicial|Preço|Custo/.test(label) && /^-?\d+$/.test(value)
+          ? value + ',00'
+          : value,
+    },
+  });
 }
 function click(form: HTMLElement, name: string) {
   fireEvent.click(within(form).getByRole('button', { name }));
@@ -82,6 +89,7 @@ describe('Fluxos reais dos quatro pilares', () => {
     open('/financas');
     let form = screen.getByRole('form', { name: 'Cadastrar investimento' });
     input(form, 'Nome do investimento', 'Carteira pessoal');
+    input(form, 'Tipo de registro do investimento', 'purchase');
     input(form, 'Quantidade (opcional)', '3');
     input(form, 'Preço de compra por unidade (R$, opcional)', '100,50');
     click(form, 'Adicionar investimento');

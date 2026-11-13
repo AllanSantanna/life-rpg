@@ -1,3 +1,4 @@
+import { decimalToUnits } from '../finances/monetary';
 export function formText(data: FormData, name: string) {
   return String(data.get(name) ?? '').trim();
 }
@@ -11,7 +12,7 @@ export function formCents(data: FormData, name: string) {
   const value = formText(data, name).replace(',', '.');
   if (!/^\d+(\.\d{1,2})?$/.test(value))
     throw new Error('Informe um valor com até duas casas decimais.');
-  return Math.round(Number(value) * 100);
+  return decimalToUnits(value, 2);
 }
 export function newId() {
   return crypto.randomUUID();

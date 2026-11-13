@@ -1,6 +1,13 @@
 import type { CSSProperties } from 'react';
 
 const paths = {
+  dollar: 'M12 2v20M18 6H9a4 4 0 0 0 0 8h6a3 3 0 0 1 0 6H5',
+  edit: 'm15 4 5 5M4 20l5-1L21 7l-5-5L4 14Zm0 0 1-6',
+  trash: 'M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7m4-7v7',
+  building: 'M4 22V3h16v19M8 7h2m4 0h2M8 11h2m4 0h2M8 15h2m4 0h2M10 22v-3h4v3',
+  safe: 'M3 4h18v16H3ZM8 20v2m8-2v2M17 8v8M12 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z',
+  bitcoin:
+    'M8 5h6a3 3 0 0 1 0 6H8m0 0h7a3 3 0 0 1 0 6H8M9 5v12M11 2v3m3-3v3m-3 12v4m3-4v4',
   mountain: 'm2 20 6-8 3 3 5-9 6 14-6-5-3 3-4-3-7 5M16 6V2l5 1-5 2',
   home: 'm3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z',
   sword: 'm14 3 7 0 0 7-12 12-7-7Zm0 0 7 7M4 16l-2 2m4 0-3 3m-1-9 10 10',

@@ -1,4 +1,9 @@
+import { isInitialPosition } from '../finances/initialPosition';
+import { removeAccount, resetFinances } from '../finances/management';
+import { localQuoteDate, valuationBasis } from '../finances/ledger';
 import type { LifeRecords, RecordCommand } from './types';
+import { position } from '../finances/position';
+import { emptyLedger } from '../finances/types';
 import { investmentCategories } from '../finances/types';
 import { bookProgress } from '../knowledge/calculations';
 import { isDate } from './dates';
@@ -55,28 +60,97 @@ export function isLifeRecords(value: unknown): value is LifeRecords {
       (item) =>
         text(item.id) &&
         text(item.name) &&
+        (item.institution === undefined ||
+          (item.category === 'Caixinhas bancárias' &&
+            text(item.institution))) &&
+        (item.cdiPercentBasisPoints === undefined ||
+          (item.category === 'Caixinhas bancárias' &&
+            Number.isSafeInteger(item.cdiPercentBasisPoints) &&
+            Number(item.cdiPercentBasisPoints) >= 0 &&
+            Number(item.cdiPercentBasisPoints) <= 100000)) &&
         investmentCategories.some((category) => category === item.category),
     )
   )
     return false;
   const investments = value.investments;
   if (
-    !list(
-      value.investmentEntries,
-      (item) =>
-        text(item.id) &&
-        investments.some((investment) => investment.id === item.investmentId) &&
-        (item.kind === 'contribution' || item.kind === 'withdrawal') &&
-        cents(item.amountCents) &&
-        isDate(item.date) &&
-        ((item.quantity === undefined &&
+    !list(value.investmentEntries, (item) => {
+      const asset = investments.find(
+        (investment) => investment.id === item.investmentId,
+      );
+      if (
+        !text(item.id) ||
+        !asset ||
+        (item.kind !== 'contribution' && item.kind !== 'withdrawal') ||
+        !isDate(item.date)
+      )
+        return false;
+      if (
+        item.positionInitial !== undefined &&
+        typeof item.positionInitial !== 'boolean'
+      )
+        return false;
+      if (item.positionInitial === true && item.kind !== 'contribution')
+        return false;
+      if (
+        item.acquisitionDateUnknown !== undefined &&
+        (typeof item.acquisitionDateUnknown !== 'boolean' ||
+          item.positionInitial !== true)
+      )
+        return false;
+      const unknown = item.costUnknown === true;
+      if (
+        item.costUnknown !== undefined &&
+        typeof item.costUnknown !== 'boolean'
+      )
+        return false;
+      if (
+        unknown
+          ? !(
+              ((asset.category === 'Dólar (USD)' &&
+                item.positionInitial !== false) ||
+                item.positionInitial === true) &&
+              item.kind === 'contribution' &&
+              item.amountCents === 0
+            )
+          : !cents(item.amountCents)
+      )
+        return false;
+      if (
+        item.costBasisCents !== undefined &&
+        !(
+          item.kind === 'withdrawal' &&
+          Number.isSafeInteger(item.costBasisCents) &&
+          Number(item.costBasisCents) >= 0 &&
+          Number(item.costBasisCents) <= 1e12
+        )
+      )
+        return false;
+      if (asset.category === 'Bitcoin' || asset.category === 'Dólar (USD)') {
+        const scale = asset.category === 'Bitcoin' ? 1e8 : 100;
+        return (
+          positive(item.quantity) &&
+          Number.isSafeInteger(Math.round(item.quantity * scale)) &&
+          Math.round(item.quantity * scale) > 0 &&
+          Math.abs(item.quantity * scale - Math.round(item.quantity * scale)) <
+            0.00001 &&
+          (item.purchasePriceCents === undefined ||
+            cents(item.purchasePriceCents))
+        );
+      }
+      return (
+        (item.quantity === undefined &&
           item.purchasePriceCents === undefined) ||
-          (item.kind === 'contribution' &&
-            positive(item.quantity) &&
-            cents(item.purchasePriceCents) &&
-            Math.round(item.quantity * item.purchasePriceCents) ===
-              item.amountCents)),
-    )
+        (item.positionInitial === true &&
+          positive(item.quantity) &&
+          item.purchasePriceCents === undefined) ||
+        (item.kind === 'contribution' &&
+          positive(item.quantity) &&
+          cents(item.purchasePriceCents) &&
+          Math.round(item.quantity * item.purchasePriceCents) ===
+            item.amountCents)
+      );
+    })
   )
     return false;
   const entries = value.investmentEntries;
@@ -85,18 +159,136 @@ export function isLifeRecords(value: unknown): value is LifeRecords {
     0,
   );
   if (!Number.isSafeInteger(gross)) return false;
-  for (const investment of investments) {
-    let balance = 0;
-    for (const entry of [...entries]
-      .filter((item) => item.investmentId === investment.id)
-      .sort((a, b) => String(a.date).localeCompare(String(b.date)))) {
-      balance +=
-        entry.kind === 'contribution'
-          ? Number(entry.amountCents)
-          : -Number(entry.amountCents);
-      if (balance < 0 || !Number.isSafeInteger(balance)) return false;
+  try {
+    for (const investment of investments) {
+      const selected = entries.filter(
+        (item) => item.investmentId === investment.id,
+      );
+      if (
+        investment.category === 'Bitcoin' &&
+        selected.some((item) => !positive(item.quantity))
+      )
+        return false;
+      position(
+        selected as unknown as import('../finances/types').InvestmentEntry[],
+        investment.category === 'Bitcoin'
+          ? true
+          : investment.category === 'Dólar (USD)'
+            ? 'USD'
+            : false,
+      );
     }
+  } catch {
+    return false;
   }
+  if (value.finance !== undefined) {
+    const ledger = value.finance;
+    if (
+      !record(ledger) ||
+      !list(
+        ledger.accounts,
+        (item) =>
+          text(item.id) &&
+          text(item.name) &&
+          Number.isSafeInteger(item.initialCents) &&
+          Math.abs(Number(item.initialCents)) <= 1e12 &&
+          isDate(item.date),
+      )
+    )
+      return false;
+    const accounts = ledger.accounts;
+    const accountExists = (id: unknown) =>
+      accounts.some((account) => account.id === id);
+    if (
+      !list(
+        ledger.transfers,
+        (item) =>
+          accountExists(item.fromId) &&
+          accountExists(item.toId) &&
+          item.fromId !== item.toId &&
+          text(item.id) &&
+          cents(item.amountCents) &&
+          isDate(item.date) &&
+          accounts
+            .filter(
+              (account) =>
+                account.id === item.fromId || account.id === item.toId,
+            )
+            .every((account) => String(account.date) <= String(item.date)),
+      )
+    )
+      return false;
+    if (
+      !list(
+        ledger.valuations,
+        (item) =>
+          text(item.id) &&
+          (item.movementsComplete === undefined ||
+            typeof item.movementsComplete === 'boolean') &&
+          (item.basis === undefined ||
+            (typeof item.basis === 'string' && item.basis.length <= 5000000)) &&
+          investments.some(
+            (investment) =>
+              investment.id === item.investmentId &&
+              investment.category !== 'Bitcoin' &&
+              investment.category !== 'Dólar (USD)',
+          ) &&
+          Number.isSafeInteger(item.amountCents) &&
+          Number(item.amountCents) >= 0 &&
+          Number(item.amountCents) <= 1e12 &&
+          isDate(item.date),
+      )
+    )
+      return false;
+    if (
+      !Array.isArray(ledger.quotes) ||
+      ledger.quotes.length > 10000 ||
+      !ledger.quotes.every(
+        (quote: unknown) =>
+          record(quote) &&
+          cents(quote.priceCents) &&
+          positive(quote.updatedAt) &&
+          positive(quote.observedAt) &&
+          quote.updatedAt <= quote.observedAt + 60000,
+      )
+    )
+      return false;
+    if (
+      ledger.usdQuotes !== undefined &&
+      (!Array.isArray(ledger.usdQuotes) ||
+        ledger.usdQuotes.length > 10000 ||
+        !ledger.usdQuotes.every(
+          (q: unknown) =>
+            record(q) &&
+            positive(q.rateUnits) &&
+            Number.isSafeInteger(q.rateUnits) &&
+            q.rateUnits <= 1e9 &&
+            positive(q.updatedAt) &&
+            positive(q.observedAt) &&
+            q.updatedAt <= q.observedAt + 60000,
+        ))
+    )
+      return false;
+    if (
+      [...value.movements, ...entries].some(
+        (item) =>
+          item.accountId !== undefined &&
+          !accountExists(item.accountId) &&
+          !(
+            'investmentId' in item &&
+            isInitialPosition(
+              item as unknown as import('../finances/types').InvestmentEntry,
+            )
+          ),
+      )
+    )
+      return false;
+  } else if (
+    [...value.movements, ...entries].some(
+      (item) => item.accountId !== undefined,
+    )
+  )
+    return false;
   if (
     !list(
       value.workouts,
@@ -171,7 +363,133 @@ export function applyRecordCommand(
       'Informe uma data válida até hoje.',
     );
   let next: LifeRecords = records;
+  const finance = records.finance ?? emptyLedger();
   switch (command.type) {
+    case 'deleteAccount':
+      assert(
+        command.confirmed === true,
+        'Confirme explicitamente a exclusão da conta e dos registros vinculados.',
+      );
+      assert(
+        finance.accounts.some((item) => item.id === command.id),
+        'Conta não encontrada.',
+      );
+      next = removeAccount(records, command.id);
+      break;
+    case 'resetFinances':
+      assert(command.confirmation === 'ZERAR', 'Digite ZERAR para confirmar.');
+      next = resetFinances(records);
+      break;
+    case 'saveAccount':
+      next = {
+        ...records,
+        finance: {
+          ...finance,
+          accounts: upsert(finance.accounts, command.value, 'id'),
+        },
+      };
+      break;
+    case 'saveTransfer':
+      next = {
+        ...records,
+        finance: {
+          ...finance,
+          transfers: upsert(finance.transfers, command.value, 'id'),
+        },
+      };
+      break;
+    case 'deleteTransfer':
+      next = {
+        ...records,
+        finance: {
+          ...finance,
+          transfers: finance.transfers.filter((item) => item.id !== command.id),
+        },
+      };
+      break;
+    case 'saveValuation':
+      if (
+        records.investments.some(
+          (item) =>
+            item.id === command.value.investmentId &&
+            item.category === 'Caixinhas bancárias',
+        )
+      )
+        assert(
+          records.investmentEntries.some(
+            (item) =>
+              item.investmentId === command.value.investmentId &&
+              item.date <= command.value.date,
+          ),
+          'A data do saldo deve ser igual ou posterior ao registro da caixinha.',
+        );
+      next = {
+        ...records,
+        finance: {
+          ...finance,
+          valuations: upsert(
+            finance.valuations,
+            {
+              ...command.value,
+              basis: valuationBasis(
+                records.investmentEntries,
+                command.value.investmentId,
+                command.value.date,
+              ),
+            },
+            'id',
+          ),
+        },
+      };
+      break;
+    case 'deleteValuation':
+      next = {
+        ...records,
+        finance: {
+          ...finance,
+          valuations: finance.valuations.filter(
+            (item) => item.id !== command.id,
+          ),
+        },
+      };
+      break;
+    case 'saveUsdQuote':
+      if (!records.investments.some((item) => item.category === 'Dólar (USD)'))
+        return records;
+      next = {
+        ...records,
+        finance: {
+          ...finance,
+          usdQuotes: [
+            ...(finance.usdQuotes ?? []).filter(
+              (q) =>
+                localQuoteDate(q.observedAt) !==
+                localQuoteDate(command.value.observedAt),
+            ),
+            command.value,
+          ].sort((a, b) => a.observedAt - b.observedAt),
+        },
+      };
+      break;
+    case 'saveQuote':
+      if (!records.investments.some((item) => item.category === 'Bitcoin'))
+        return records;
+      next = {
+        ...records,
+        finance: {
+          ...finance,
+          quotes: [
+            ...finance.quotes.filter(
+              (item) =>
+                localQuoteDate(item.observedAt) !==
+                localQuoteDate(command.value.observedAt),
+            ),
+            command.value,
+          ].sort((a, b) => a.observedAt - b.observedAt),
+        },
+      };
+      break;
+
     case 'saveMovement':
       next = {
         ...records,
@@ -199,10 +517,48 @@ export function applyRecordCommand(
           ? upsert(records.investmentEntries, command.initialEntry, 'id')
           : records.investmentEntries,
       };
+      if (command.initialValuation) {
+        const v = command.initialValuation;
+        assert(
+          command.value.category === 'Caixinhas bancárias' &&
+            v.investmentId === command.value.id &&
+            isDate(v.date) &&
+            v.date <= today &&
+            next.investmentEntries.some(
+              (item) =>
+                item.investmentId === v.investmentId && item.date <= v.date,
+            ),
+          'Informe um saldo de caixinha com data válida após a aplicação.',
+        );
+        next = {
+          ...next,
+          finance: {
+            ...(next.finance ?? emptyLedger()),
+            valuations: upsert(
+              next.finance?.valuations ?? [],
+              {
+                ...v,
+                basis: valuationBasis(
+                  next.investmentEntries,
+                  v.investmentId,
+                  v.date,
+                ),
+              },
+              'id',
+            ),
+          },
+        };
+      }
       break;
     case 'deleteInvestment':
       next = {
         ...records,
+        finance: {
+          ...finance,
+          valuations: finance.valuations.filter(
+            (item) => item.investmentId !== command.id,
+          ),
+        },
         investments: records.investments.filter(
           (item) => item.id !== command.id,
         ),
@@ -211,7 +567,35 @@ export function applyRecordCommand(
         ),
       };
       break;
+    case 'convertToInitialPosition': {
+      const entry = records.investmentEntries.find(
+        (item) => item.id === command.id,
+      );
+      assert(
+        command.confirmed === true,
+        'Confirme a conversão em posição inicial.',
+      );
+      assert(
+        entry && entry.kind === 'contribution',
+        'Selecione uma compra ou aporte existente.',
+      );
+      next = {
+        ...records,
+        investmentEntries: records.investmentEntries.map((item) =>
+          item.id === command.id ? { ...item, positionInitial: true } : item,
+        ),
+      };
+      break;
+    }
     case 'saveInvestmentEntry':
+      assert(
+        !(
+          records.investmentEntries.some(
+            (item) => item.id === command.value.id && !isInitialPosition(item),
+          ) && isInitialPosition(command.value)
+        ) || command.confirmInitial === true,
+        'Confirme a conversão em posição inicial.',
+      );
       next = {
         ...records,
         investmentEntries: upsert(

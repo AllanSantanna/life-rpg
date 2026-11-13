@@ -1,3 +1,5 @@
+import { useUsdQuote } from '../modules/finances/useUsdQuote';
+import { useBitcoinQuote } from '../modules/finances/useBitcoinQuote';
 import { applyRecordCommand } from '../modules/records/commands';
 import type { RecordCommand } from '../modules/records/types';
 import {
@@ -49,6 +51,8 @@ export function App() {
   const today = useToday();
   const { view, navigate } = useUrlNavigation();
   const { state, setState, storageAvailable } = usePlayerState();
+  const recordsRef = useRef(state.records);
+  recordsRef.current = state.records;
   const player = state.profile;
   const missions = initialMissions.map((mission) => ({
     ...mission,
@@ -94,7 +98,8 @@ export function App() {
   const currentMetrics = recordMetrics(state.records, today, dedication);
   function changeRecords(command: RecordCommand): string | null {
     try {
-      const records = applyRecordCommand(state.records, command, today);
+      const records = applyRecordCommand(recordsRef.current, command, today);
+      recordsRef.current = records;
       setState((previous) => ({ ...previous, records }));
       return null;
     } catch (error) {
@@ -108,6 +113,8 @@ export function App() {
     today,
     onCommand: changeRecords,
   };
+  const bitcoin = useBitcoinQuote(recordProps);
+  const usd = useUsdQuote(recordProps);
   const completed = missions.filter((mission) => mission.completed).length;
   useEffect(() => {
     const frame = requestAnimationFrame(() => heading.current?.focus());
@@ -277,7 +284,15 @@ export function App() {
             {pillarViews.includes(view) && (
               <PillarLinks current={view} navigate={navigate} />
             )}
-            {view === 'finances' && <FinancesPage {...recordProps} />}
+            {view === 'finances' && (
+              <FinancesPage
+                {...recordProps}
+                quoteError={bitcoin.error}
+                quoteStale={bitcoin.stale}
+                usdError={usd.error}
+                usdStale={usd.stale}
+              />
+            )}
             {view === 'workouts' && <WorkoutsPage {...recordProps} />}
             {view === 'rest' && <RestPage {...recordProps} />}
             {view === 'knowledge' && <KnowledgePage {...recordProps} />}

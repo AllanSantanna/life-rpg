@@ -34,7 +34,7 @@ export function recordMetrics(
       unit: 'saldo no mês',
       details: [
         { label: 'Receitas', value: money(balance.income) },
-        { label: 'Patrimônio aplicado', value: money(invested.total) },
+        { label: 'Custo investido', value: money(invested.total) },
       ],
     },
     {

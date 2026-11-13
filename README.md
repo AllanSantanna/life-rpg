@@ -13,8 +13,10 @@ atuais. O projeto também contém uma base de API para evoluções futuras.
 - **Dashboard:** personagem, classe, nível, XP, indicadores dos quatro pilares,
   missões e medalhas, com layout dark/vermelho e navegação responsiva.
 - **Finanças:** receitas e despesas com edição/exclusão, histórico mensal e saldo;
-  carteira manual com categorias, aplicações, aportes e retiradas. Sem cotações
-  ou rentabilidade automática; investimentos não duplicam despesas de consumo.
+  contas com saldo inicial, transferências, posições preexistentes sem débito e compras reais de investimentos; correção confirmada de compras antigas e avaliações manuais;
+  Bitcoin em BTC/sats e Dólar (USD), com cotações de referência, custo médio e vendas parciais. Campos monetários com máscara durante a digitação. Caixinhas por instituição,
+  contrato CDI informativo e atualização manual do saldo/rendimento, sem juros automáticos. Gráficos distinguem
+  fluxo mensal, dinheiro disponível, investimentos e patrimônio sem duplicação.
 - **Treinos:** um registro Sim/Não por dia, calendário, frequência e consistência.
 - **Descanso:** registro diário de horas, valores decimais, meta pessoal e médias.
 - **Conhecimento:** biblioteca, leituras por data, progresso e livros concluídos.
@@ -47,7 +49,9 @@ entre dispositivos. Limpar os dados do navegador remove o progresso local.
 | Organização               | Monorepo com npm workspaces                              |
 
 A API atual fornece infraestrutura e health check. Não existem autenticação,
-modelos de negócio no banco, integrações financeiras ou dispositivos de saúde.
+modelos de negócio no banco, integrações com corretoras ou dispositivos de saúde.
+A cotação pública de Bitcoin é consultada no frontend e pode ficar indisponível;
+a carteira continua funcionando com a última cotação conhecida ou referência pelo custo.
 
 ## Requisitos
 
@@ -185,6 +189,7 @@ docs/                       Produto, arquitetura e regras implementadas
 - [Visão do produto](docs/product.md)
 - [Arquitetura e integrações futuras](docs/architecture.md)
 - [Quatro pilares: regras, migração e verificação manual](docs/four-pillars.md)
+- [Finanças: contas, Bitcoin, gráficos e verificação manual](apps/web/src/modules/finances/README.md)
 - [Persistência local](apps/web/src/shared/storage/README.md)
 - [Radar de Evolução](apps/web/src/modules/evolution/README.md)
 

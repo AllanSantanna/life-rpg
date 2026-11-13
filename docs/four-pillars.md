@@ -2,7 +2,8 @@
 
 Os módulos são acessíveis pelos cartões do dashboard, pela aba **Pilares** e
 pelas URLs `/financas`, `/treinos`, `/descanso` e `/conhecimento`.
-Nenhuma requisição à API, autenticação, cotação ou dependência foi adicionada.
+Os registros continuam locais, sem autenticação. Finanças consulta a cotação
+pública BTC/BRL; os demais pilares não dependem dessa integração.
 
 ## Registros e cálculos
 
@@ -12,7 +13,11 @@ Nenhuma requisição à API, autenticação, cotação ou dependência foi adici
   gravada junto ao cadastro, atomicamente. Quantidade × preço determina o custo
   quando os dois são informados. Retiradas não podem deixar saldo aplicado negativo
   em nenhuma data; editar/excluir um aporte também respeita essa validação.
-  A carteira mostra **custo líquido cadastrado**, sem estimar patrimônio de mercado.
+  A carteira distingue custo de aquisição e valor atual manual/estimado. Bitcoin
+  usa satoshis, custo médio e cotação pública. Contas têm saldo inicial explícito;
+  transferências não alteram o fluxo mensal. Patrimônio = disponível + investimentos.
+  Consulte [Finanças](../apps/web/src/modules/finances/README.md) para contas,
+  vendas parciais, avaliações, gráficos e compatibilidade com os dados anteriores.
   Aportes/retiradas são transferências da carteira: não criam receitas/despesas de
   consumo nem alteram o saldo operacional mensal (receitas menos despesas).
 - **Treinos:** um registro por data, com Sim/Não. Salvar novamente substitui o

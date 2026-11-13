@@ -1,4 +1,10 @@
 import type {
+  FinanceLedger,
+  CashAccount,
+  AccountTransfer,
+  InvestmentValuation,
+  BitcoinQuote,
+  UsdQuote,
   Investment,
   InvestmentEntry,
   MoneyMovement,
@@ -7,6 +13,7 @@ import type { WorkoutDay } from '../workouts/types';
 import type { SleepDay } from '../rest/types';
 import type { Book, ReadingEntry } from '../knowledge/types';
 export interface LifeRecords {
+  finance?: FinanceLedger;
   movements: MoneyMovement[];
   investments: Investment[];
   investmentEntries: InvestmentEntry[];
@@ -17,15 +24,30 @@ export interface LifeRecords {
   readings: ReadingEntry[];
 }
 export type RecordCommand =
+  | { type: 'deleteAccount'; id: string; confirmed: boolean }
+  | { type: 'resetFinances'; confirmation: string }
+  | { type: 'saveAccount'; value: CashAccount }
+  | { type: 'saveTransfer'; value: AccountTransfer }
+  | { type: 'deleteTransfer'; id: string }
+  | { type: 'saveValuation'; value: InvestmentValuation }
+  | { type: 'deleteValuation'; id: string }
+  | { type: 'saveQuote'; value: BitcoinQuote }
+  | { type: 'saveUsdQuote'; value: UsdQuote }
   | { type: 'saveMovement'; value: MoneyMovement }
   | { type: 'deleteMovement'; id: string }
   | {
       type: 'saveInvestment';
       value: Investment;
       initialEntry?: InvestmentEntry;
+      initialValuation?: InvestmentValuation;
     }
   | { type: 'deleteInvestment'; id: string }
-  | { type: 'saveInvestmentEntry'; value: InvestmentEntry }
+  | {
+      type: 'saveInvestmentEntry';
+      value: InvestmentEntry;
+      confirmInitial?: boolean;
+    }
+  | { type: 'convertToInitialPosition'; id: string; confirmed: boolean }
   | { type: 'deleteInvestmentEntry'; id: string }
   | { type: 'saveWorkout'; value: WorkoutDay }
   | { type: 'deleteWorkout'; date: string }

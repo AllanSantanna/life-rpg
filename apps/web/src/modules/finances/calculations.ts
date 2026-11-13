@@ -1,3 +1,5 @@
+import { formatCurrency } from './monetary';
+import { position } from './position';
 import type { Investment, InvestmentEntry, MoneyMovement } from './types';
 import { investmentCategories } from './types';
 export function monthlyBalance(
@@ -16,14 +18,7 @@ export function monthlyBalance(
   return { income, expense, balance: income - expense };
 }
 export function investedIn(entries: readonly InvestmentEntry[], id: string) {
-  return entries
-    .filter((item) => item.investmentId === id)
-    .reduce(
-      (sum, item) =>
-        sum +
-        (item.kind === 'contribution' ? item.amountCents : -item.amountCents),
-      0,
-    );
+  return position(entries.filter((item) => item.investmentId === id)).cost;
 }
 export function investmentTotals(
   investments: readonly Investment[],
@@ -33,7 +28,19 @@ export function investmentTotals(
     category,
     amountCents: investments
       .filter((item) => item.category === category)
-      .reduce((sum, item) => sum + investedIn(entries, item.id), 0),
+      .reduce(
+        (sum, item) =>
+          sum +
+          position(
+            entries.filter((entry) => entry.investmentId === item.id),
+            item.category === 'Bitcoin'
+              ? true
+              : item.category === 'Dólar (USD)'
+                ? 'USD'
+                : false,
+          ).cost,
+        0,
+      ),
   }));
   return {
     byCategory,
@@ -41,8 +48,5 @@ export function investmentTotals(
   };
 }
 export function money(cents: number) {
-  return (cents / 100).toLocaleString('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  });
+  return formatCurrency(cents);
 }

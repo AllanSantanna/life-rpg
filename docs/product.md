@@ -51,7 +51,9 @@ Tokens centralizados em `apps/web/src/shared/styles/index.css`. Tipografia de si
 
 ## Integrações externas futuras
 
-Uma camada de adaptadores no backend poderá atender investimentos, cotações e dados de saúde. Os módulos consumirão contratos internos, sem conhecer SDKs de provedores. A arquitetura e os limites estão em [architecture.md](architecture.md). Nenhum SDK, chave, chamada externa ou sincronização foi implementado.
+Uma camada de adaptadores no backend poderá atender investimentos, cotações e dados de saúde. Os módulos consumirão contratos internos, sem conhecer SDKs de provedores. A arquitetura e os limites estão em [architecture.md](architecture.md). A consulta pública BTC/BRL no frontend é a integração atual, sem SDK, chave ou sincronização.
+Contas locais, transferências, avaliações e gráficos estão descritos no
+[módulo financeiro](../apps/web/src/modules/finances/README.md).
 
 ## Sprint 1 — Dashboard do Jogador
 

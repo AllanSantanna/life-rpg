@@ -67,3 +67,9 @@ entre abas. Não há backup manual nem dependências novas.
 ## Migração v1 → v2
 
 A validação anterior é preservada em `isLegacyPlayerState`. Uma leitura v1 válida acrescenta `records` vazio sem alterar os campos anteriores. O adaptador retorna `migrated: true`; o hook persiste v2 após hidratar o estado validado. Falha na gravação mantém o payload v1 intacto. Versões desconhecidas continuam bloqueadas para gravação. Detalhes em `docs/four-pillars.md`.
+
+O módulo financeiro estende a versão 2 com `records.finance` opcional (contas,
+transferências, avaliações e cotações). A ausência desse campo representa o
+formato anterior e não invalida nem reinicia os dados. Referências de conta
+omitidas pertencem à conta principal; o usuário informa o saldo inicial.
+Veja [Finanças](../../modules/finances/README.md) para as regras e limitações.
