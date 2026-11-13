@@ -1,0 +1,4 @@
+// Sem modelos de negócio nesta etapa. Não executar migrações ainda.
+datasource db {
+  provider = "postgresql"
+}

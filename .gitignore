@@ -1,0 +1,39 @@
+# Dependências e saídas geradas
+node_modules/
+dist/
+coverage/
+.vite/
+.vitest/
+*.tsbuildinfo
+
+# Ambientes locais (somente o template sem segredos é versionado)
+.env
+.env.*
+!.env.example
+.envrc
+
+# Credenciais, chaves e configurações privadas
+.aws/
+.ssh/
+.gnupg/
+.codex/
+.agents/
+.npmrc.local
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+service-account*.json
+
+# Arquivos temporários e do sistema
+*.log
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

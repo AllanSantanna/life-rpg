@@ -1,0 +1,1 @@
+Hooks reutilizáveis entre módulos.

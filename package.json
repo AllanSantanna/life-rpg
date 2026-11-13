@@ -1,0 +1,40 @@
+{
+  "name": "life-rpg",
+  "private": true,
+  "version": "0.0.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=22.12.0",
+    "npm": ">=10"
+  },
+  "scripts": {
+    "dev": "concurrently -k -n web,api \"npm:dev:web\" \"npm:dev:api\"",
+    "dev:web": "npm run dev -w @life-rpg/web",
+    "dev:api": "npm run dev -w @life-rpg/api",
+    "db:up": "docker compose up -d postgres",
+    "db:down": "docker compose down",
+    "db:validate": "npm run db:validate -w @life-rpg/api",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "eslint . --max-warnings 0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "npm run test --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present",
+    "check": "npm run typecheck && npm run lint && npm run test && npm run build"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "eslint": "^9.0.0",
+    "typescript-eslint": "^8.0.0",
+    "globals": "^16.0.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.20",
+    "typescript": "~5.9.3",
+    "prettier": "^3.0.0",
+    "concurrently": "^9.0.0",
+    "dotenv-cli": "^8.0.0"
+  }
+}
