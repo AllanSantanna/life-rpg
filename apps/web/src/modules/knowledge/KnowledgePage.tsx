@@ -1,3 +1,4 @@
+import { CustomSelect } from '../../shared/components/CustomSelect';
 import { useCommand } from '../records/useCommand';
 import { formText, formNumber, newId } from '../records/form';
 import { useState } from 'react';
@@ -98,13 +99,17 @@ export function KnowledgePage({ records, today, onCommand }: RecordPageProps) {
             }}
           >
             <Field label="Livro da leitura">
-              <select name="bookId" defaultValue={reading?.bookId}>
-                {records.books.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.title}
-                  </option>
-                ))}
-              </select>
+              <CustomSelect
+                label="Livro da leitura"
+                name="bookId"
+                defaultValue={reading?.bookId}
+                options={records.books.map((item) => ({
+                  value: item.id,
+                  label: item.title,
+                  icon: 'book',
+                  area: 'Conhecimento',
+                }))}
+              />
             </Field>
             <Field label="Páginas lidas neste registro">
               <input

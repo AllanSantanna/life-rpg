@@ -1,3 +1,4 @@
+import { CustomDatePicker } from '../../shared/components/CustomDatePicker';
 import { useCommand } from '../records/useCommand';
 import { useState } from 'react';
 import type { RecordPageProps } from '../records/types';
@@ -32,12 +33,12 @@ export function WorkoutsPage({ records, today, onCommand }: RecordPageProps) {
       />
       <RecordForm title="Treinou hoje?" onSubmit={() => null}>
         <Field label="Dia do treino">
-          <input
-            type="date"
+          <CustomDatePicker
+            label="Dia do treino"
             value={date}
-            max={today}
             required
-            onChange={(event) => setDate(event.target.value)}
+            max={today}
+            onChange={setDate}
           />
         </Field>
         <p className="record-hint">
@@ -89,11 +90,12 @@ export function WorkoutsPage({ records, today, onCommand }: RecordPageProps) {
       >
         <h2>Calendário de treinos</h2>
         <Field label="Mês do calendário">
-          <input
-            type="month"
+          <CustomDatePicker
+            label="Mês do calendário"
+            mode="month"
             value={month}
             max={today.slice(0, 7)}
-            onChange={(event) => setMonth(event.target.value)}
+            onChange={setMonth}
           />
         </Field>
         <p className="record-hint">

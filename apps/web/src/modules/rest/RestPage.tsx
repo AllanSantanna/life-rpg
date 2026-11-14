@@ -1,3 +1,4 @@
+import { CustomDatePicker } from '../../shared/components/CustomDatePicker';
 import { useCommand } from '../records/useCommand';
 import { formText, formNumber } from '../records/form';
 import { useState } from 'react';
@@ -65,7 +66,12 @@ export function RestPage({ records, today, onCommand }: RecordPageProps) {
         >
           {editing ? (
             <Field label="Data">
-              <input type="date" name="date" value={editing} readOnly />
+              <CustomDatePicker
+                label="Data"
+                name="date"
+                value={editing}
+                readOnly
+              />
             </Field>
           ) : (
             <DateField today={today} />

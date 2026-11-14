@@ -1,3 +1,4 @@
+import { CustomSelect } from '../../shared/components/CustomSelect';
 import { MoneyInput } from './MoneyInput';
 import { FinancialConfirmation } from './FinancialConfirmation';
 import { accountDeletionImpact } from './management';
@@ -25,16 +26,29 @@ export function AccountField({
   const accounts = records.finance?.accounts ?? [];
   return (
     <Field label={label}>
-      <select name={name} defaultValue={value ?? 'principal'}>
-        {!accounts.some((item) => item.id === 'principal') && (
-          <option value="">Conta principal (saldo inicial pendente)</option>
-        )}
-        {accounts.map((item) => (
-          <option key={item.id} value={item.id}>
-            {item.name}
-          </option>
-        ))}
-      </select>
+      <CustomSelect
+        label={label}
+        name={name}
+        defaultValue={value ?? 'principal'}
+        options={[
+          ...(!accounts.some((item) => item.id === 'principal')
+            ? [
+                {
+                  value: '',
+                  label: 'Conta principal (saldo inicial pendente)',
+                  icon: 'wallet' as const,
+                  area: 'Finanças',
+                },
+              ]
+            : []),
+          ...accounts.map((item) => ({
+            value: item.id,
+            label: item.name,
+            icon: 'building' as const,
+            area: 'Finanças',
+          })),
+        ]}
+      />
     </Field>
   );
 }
@@ -278,22 +292,18 @@ export function CashLedgerPanel({
         >
           <div className="record-fields">
             <Field label="Investimento avaliado">
-              <select
+              <CustomSelect
+                label="Investimento avaliado"
                 name="investmentId"
                 defaultValue={valuation?.investmentId}
-              >
-                {records.investments
+                options={records.investments
                   .filter(
                     (item) =>
                       item.category !== 'Bitcoin' &&
                       item.category !== 'Dólar (USD)',
                   )
-                  .map((item) => (
-                    <option key={item.id} value={item.id}>
-                      {item.name}
-                    </option>
-                  ))}
-              </select>
+                  .map((item) => ({ value: item.id, label: item.name }))}
+              />
             </Field>
             <Field label="Valor atual manual (R$)">
               <MoneyInput

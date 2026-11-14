@@ -1,3 +1,5 @@
+import { CustomDatePicker } from '../../shared/components/CustomDatePicker';
+import { CustomSelect } from '../../shared/components/CustomSelect';
 import { SavingsBoxFields } from './SavingsBoxFields';
 import { SavingsBoxCard } from './SavingsBoxCard';
 import { decimalToUnits } from './monetary';
@@ -173,11 +175,12 @@ export function FinancesPage({
   return (
     <div className="pillar-page" data-area="Finanças">
       <Field label="Mês financeiro">
-        <input
-          type="month"
+        <CustomDatePicker
+          label="Mês financeiro"
+          mode="month"
           value={month}
           max={today.slice(0, 7)}
-          onChange={(event) => setMonth(event.target.value)}
+          onChange={setMonth}
         />
       </Field>
       <Summary
@@ -267,10 +270,15 @@ export function FinancesPage({
       >
         <div className="record-fields">
           <Field label="Tipo de movimentação">
-            <select name="kind" defaultValue={movement?.kind ?? 'expense'}>
-              <option value="income">Receita</option>
-              <option value="expense">Despesa</option>
-            </select>
+            <CustomSelect
+              label="Tipo de movimentação"
+              name="kind"
+              defaultValue={movement?.kind ?? 'expense'}
+              options={[
+                { value: 'income', label: 'Receita' },
+                { value: 'expense', label: 'Despesa' },
+              ]}
+            />
           </Field>
           <Field label="Descrição">
             <input
@@ -426,19 +434,17 @@ export function FinancesPage({
             />
           </Field>
           <Field label="Categoria do investimento">
-            <select
+            <CustomSelect
+              label="Categoria do investimento"
               name="category"
-              defaultValue={investment?.category ?? draftCategory}
-              onChange={(event) =>
-                setDraftCategory(event.target.value as InvestmentCategory)
-              }
-            >
-              {investmentCategories.map((category) => (
-                <option key={category} value={category}>
-                  {category === 'Outros' ? 'Outros investimentos' : category}
-                </option>
-              ))}
-            </select>
+              value={draftCategory}
+              onChange={setDraftCategory}
+              options={investmentCategories.map((category) => ({
+                value: category,
+                label:
+                  category === 'Outros' ? 'Outros investimentos' : category,
+              }))}
+            />
           </Field>
           {!investment && (
             <>
@@ -503,19 +509,16 @@ export function FinancesPage({
         >
           <div className="record-fields">
             <Field label="Investimento">
-              <select
+              <CustomSelect
+                label="Investimento"
                 name="investmentId"
-                defaultValue={entryTarget ?? undefined}
-                onChange={(event) =>
-                  setDraftEntryInvestment(event.target.value)
-                }
-              >
-                {records.investments.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.name}
-                  </option>
-                ))}
-              </select>
+                value={entryTarget ?? ''}
+                onChange={setDraftEntryInvestment}
+                options={records.investments.map((item) => ({
+                  value: item.id,
+                  label: item.name,
+                }))}
+              />
             </Field>
             <InvestmentFields
               key={`${entryId}:${draftEntryInvestment}:${revision}`}

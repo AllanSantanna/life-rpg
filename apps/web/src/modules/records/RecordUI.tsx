@@ -1,3 +1,4 @@
+import { CustomDatePicker } from '../../shared/components/CustomDatePicker';
 import type { FormEvent, ReactNode } from 'react';
 import { useState } from 'react';
 
@@ -95,8 +96,8 @@ export function DateField({
 }) {
   return (
     <Field label={label}>
-      <input
-        type="date"
+      <CustomDatePicker
+        label={label}
         name="date"
         required
         max={today}

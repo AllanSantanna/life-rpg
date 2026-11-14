@@ -1,3 +1,4 @@
+import { selectDate, selectOption } from '../../test/selectOption';
 import {
   cleanup,
   fireEvent,
@@ -21,6 +22,15 @@ vi.mock('./bitcoinQuote', async (original) => ({
 }));
 afterEach(cleanup);
 function input(form: HTMLElement, label: string, value: string) {
+  const control = within(form).getByLabelText(label);
+  if (control.getAttribute('aria-haspopup') === 'dialog') {
+    selectDate(control, value);
+    return;
+  }
+  if (control.getAttribute('role') === 'combobox') {
+    selectOption(control, value);
+    return;
+  }
   fireEvent.change(within(form).getByLabelText(label), { target: { value } });
 }
 function click(form: HTMLElement, name: string) {
@@ -54,7 +64,7 @@ describe('Fluxos com moedas formatadas', () => {
     let form = screen.getByRole('form', { name: 'Cadastrar investimento' });
     input(form, 'Nome do investimento', 'Dólares');
     input(form, 'Categoria do investimento', 'Dólar (USD)');
-    input(form, 'Tipo de registro do investimento', 'purchase');
+    input(form, 'Tipo de registro do investimento', 'Nova compra ou aporte');
     input(form, 'Quantidade em USD', '10000');
     input(form, 'Valor pago (R$, se conhecido)', '50000');
     await waitFor(() =>
@@ -75,7 +85,7 @@ describe('Fluxos com moedas formatadas', () => {
       screen.getByRole('region', { name: 'Carteira cadastrada' }),
     ).toHaveTextContent('US$ 100,00');
     form = screen.getByRole('form', { name: 'Aportes e retiradas' });
-    input(form, 'Operação', 'withdrawal');
+    input(form, 'Operação', 'Retirada / venda');
     input(form, 'Quantidade em USD', '4000');
     input(form, 'Valor da operação (R$)', '22000');
     click(form, 'Registrar operação');
@@ -120,11 +130,11 @@ describe('Fluxos com moedas formatadas', () => {
     let form = screen.getByRole('form', { name: 'Cadastrar investimento' });
     input(form, 'Nome do investimento', 'BTC em sats');
     input(form, 'Categoria do investimento', 'Bitcoin');
-    input(form, 'Tipo de registro do investimento', 'purchase');
+    input(form, 'Tipo de registro do investimento', 'Nova compra ou aporte');
     input(form, 'Valor aplicado inicial (R$)', '50000');
-    input(form, 'Unidade de Bitcoin', 'sats');
+    input(form, 'Unidade de Bitcoin', 'Satoshis (sats)');
     input(form, 'Quantidade em sats', '100000');
-    input(form, 'Unidade de Bitcoin', 'BTC');
+    input(form, 'Unidade de Bitcoin', 'Bitcoin (BTC)');
     expect(within(form).getByLabelText('Quantidade em BTC')).toHaveValue(
       '0,00100000',
     );
@@ -138,7 +148,7 @@ describe('Fluxos com moedas formatadas', () => {
       screen.getByRole('button', { name: /Editar operação de BTC em sats/ }),
     );
     form = screen.getByRole('form', { name: 'Editar aporte ou retirada' });
-    input(form, 'Unidade de Bitcoin', 'sats');
+    input(form, 'Unidade de Bitcoin', 'Satoshis (sats)');
     expect(within(form).getByLabelText('Quantidade em sats')).toHaveValue(
       '100.000',
     );

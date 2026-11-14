@@ -1,3 +1,5 @@
+import { CustomDatePicker } from '../../shared/components/CustomDatePicker';
+import { CustomSelect } from '../../shared/components/CustomSelect';
 import { isInitialPosition } from './initialPosition';
 import { AccountField } from './CashLedgerPanel';
 import { DateField } from '../records/RecordUI';
@@ -96,30 +98,30 @@ export function InvestmentFields({
     <>
       {!initial && (
         <Field label="Operação">
-          <select
+          <CustomSelect
+            label="Operação"
             name="kind"
             value={kind}
-            onChange={(event) =>
-              setKind(event.target.value as InvestmentEntry['kind'])
-            }
-          >
-            <option value="contribution">Aporte / compra</option>
-            <option value="withdrawal">Retirada / venda</option>
-          </select>
+            onChange={setKind}
+            options={[
+              { value: 'contribution', label: 'Aporte / compra' },
+              { value: 'withdrawal', label: 'Retirada / venda' },
+            ]}
+          />
         </Field>
       )}
       {kind === 'contribution' && (
         <Field label="Tipo de registro do investimento">
-          <select
+          <CustomSelect
+            label="Tipo de registro do investimento"
             name="positionType"
             value={positionInitial ? 'initial' : 'purchase'}
-            onChange={(event) =>
-              setPositionInitial(event.target.value === 'initial')
-            }
-          >
-            <option value="initial">Investimento que já possuo</option>
-            <option value="purchase">Nova compra ou aporte</option>
-          </select>
+            options={[
+              { value: 'initial', label: 'Investimento que já possuo' },
+              { value: 'purchase', label: 'Nova compra ou aporte' },
+            ]}
+            onChange={(next) => setPositionInitial(next === 'initial')}
+          />
         </Field>
       )}
       {kind === 'contribution' && !positionInitial && (
@@ -207,9 +209,9 @@ export function InvestmentFields({
       )}
       {positionInitial && kind === 'contribution' ? (
         <Field label="Data original de aquisição (opcional)">
-          <input
+          <CustomDatePicker
             key="original-date"
-            type="date"
+            label="Data original de aquisição (opcional)"
             name="date"
             max={today}
             defaultValue={

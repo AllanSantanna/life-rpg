@@ -1,3 +1,4 @@
+import { selectDate, selectOption } from '../../test/selectOption';
 import { fetchBitcoinQuote } from './bitcoinQuote';
 vi.mock('./bitcoinQuote', async (importOriginal) => ({
   ...(await importOriginal<typeof import('./bitcoinQuote')>()),
@@ -23,6 +24,15 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 function input(form: HTMLElement, label: string, value: string) {
+  const control = within(form).getByLabelText(label);
+  if (control.getAttribute('aria-haspopup') === 'dialog') {
+    selectDate(control, value);
+    return;
+  }
+  if (control.getAttribute('role') === 'combobox') {
+    selectOption(control, value);
+    return;
+  }
   fireEvent.change(within(form).getByLabelText(label), {
     target: {
       value:
@@ -57,7 +67,7 @@ describe('Finanças pela interface', () => {
     form = screen.getByRole('form', { name: 'Cadastrar investimento' });
     input(form, 'Nome do investimento', 'Minha reserva BTC');
     input(form, 'Categoria do investimento', 'Bitcoin');
-    input(form, 'Tipo de registro do investimento', 'purchase');
+    input(form, 'Tipo de registro do investimento', 'Nova compra ou aporte');
     input(form, 'Valor aplicado inicial (R$)', '200');
     input(form, 'Quantidade em BTC', '0.002');
     click(form, 'Adicionar investimento');
@@ -68,7 +78,7 @@ describe('Finanças pela interface', () => {
       screen.getByRole('region', { name: 'Carteira cadastrada' }),
     ).toHaveTextContent('0.00200000 BTC');
     form = screen.getByRole('form', { name: 'Aportes e retiradas' });
-    input(form, 'Operação', 'withdrawal');
+    input(form, 'Operação', 'Retirada / venda');
     input(form, 'Valor da operação (R$)', '150');
     input(form, 'Quantidade em BTC', '0.001');
     click(form, 'Registrar operação');

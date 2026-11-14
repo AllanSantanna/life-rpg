@@ -1,3 +1,4 @@
+import { selectDate, selectOption } from '../../test/selectOption';
 import {
   cleanup,
   fireEvent,
@@ -35,6 +36,15 @@ function seed() {
   return state;
 }
 function input(form: HTMLElement, label: string, value: string) {
+  const control = within(form).getByLabelText(label);
+  if (control.getAttribute('aria-haspopup') === 'dialog') {
+    selectDate(control, value);
+    return;
+  }
+  if (control.getAttribute('role') === 'combobox') {
+    selectOption(control, value);
+    return;
+  }
   fireEvent.change(within(form).getByLabelText(label), { target: { value } });
 }
 function stored() {

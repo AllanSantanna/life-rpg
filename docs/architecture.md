@@ -98,6 +98,16 @@ Os formulários de Quests usam o mesmo combobox/listbox customizado em todos os
 campos de seleção. O portal evita recortes, e valores ocultos mantêm compatibilidade
 com `FormData`, sem select nativo, dependências novas ou alteração do armazenamento.
 
-As datas dos formulários de Quests usam `CustomDatePicker` e o mesmo
-`useAnchoredPopover` dos seletores. Os controles preservam valores ISO e limites,
-com navegação por mês/ano, digitação manual, teclado e tratamento de foco.
+`CustomSelect` também substitui os seletores nativos de Finanças e Conhecimento.
+Campos dependentes de outras escolhas mantêm valores controlados; campos simples
+usam `defaultValue` e nomes de formulário preservados. A troca é somente visual:
+nenhuma versão de storage, regra de XP/Radar ou cálculo financeiro foi modificada.
+Testes interagem pelos rótulos e roles públicos dos controles, incluindo contas,
+transferências, investimentos, conversão BTC/sats e escolha do livro da leitura.
+
+Os calendários de data/mês usam `shared/components/CustomDatePicker`, com o mesmo
+`useAnchoredPopover` dos seletores. Valores e limites permanecem ISO, e o diálogo
+possui seleção de mês/ano, digitação manual, teclado e tratamento de foco. A
+validação mantém campos obrigatórios e limites dos formulários existentes, sem
+alterar storage. As utilidades civis foram movidas sem alteração para
+`shared/dates/calendar.ts`, com reexport no caminho anterior de records.

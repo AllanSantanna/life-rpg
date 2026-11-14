@@ -1,3 +1,4 @@
+import { CustomSelect } from '../../shared/components/CustomSelect';
 import { useState } from 'react';
 import { Field } from '../records/RecordUI';
 import { decimalToUnits, unitsToDecimal } from './monetary';
@@ -21,16 +22,28 @@ export function BitcoinQuantity({
   return (
     <>
       <Field label="Unidade de Bitcoin">
-        <select
+        <CustomSelect
+          label="Unidade de Bitcoin"
           value={unit}
-          onChange={(event) => {
-            setUnit(event.target.value as 'BTC' | 'sats');
+          options={[
+            {
+              value: 'BTC',
+              label: 'Bitcoin (BTC)',
+              icon: 'bitcoin',
+              area: 'Finanças',
+            },
+            {
+              value: 'sats',
+              label: 'Satoshis (sats)',
+              icon: 'bitcoin',
+              area: 'Finanças',
+            },
+          ]}
+          onChange={(next) => {
+            setUnit(next);
             setBtc(hasValue ? unitsToDecimal(units, 8).replace('.', ',') : '');
           }}
-        >
-          <option value="BTC">Bitcoin (BTC)</option>
-          <option value="sats">Satoshis (sats)</option>
-        </select>
+        />
       </Field>
       <Field label={`Quantidade em ${unit}`}>
         <input

@@ -31,9 +31,16 @@ timers e listeners são limpos ao desmontar. Movimento reduzido desativa as anim
 desabilitadas, movimento reduzido e posicionamento em viewport móvel/redimensionado.
 Os testes de Quests verificam integração com edição, filtros, recarga e conclusão.
 
+É usado em Quests, Finanças (contas, transferências, receitas/despesas, categorias,
+aportes/vendas, posição inicial, avaliações e BTC/sats) e Conhecimento (livro da
+leitura). Não há elementos `<select>` nativos no código da interface. Os testes
+`app/SelectControls.test.tsx` verificam contas/transferências/avaliações e leitura
+em livros diferentes, com correção, recarga e preservação dos outros pilares.
+As suítes financeiras também cobrem Bitcoin, USD e caixinhas com esses controles.
+
 ## CustomDatePicker
 
-`CustomDatePicker.tsx` fornece os calendários dos formulários de Quests, mantendo
+`CustomDatePicker.tsx` substitui todos os campos nativos de data e mês, mantendo
 os valores ISO `AAAA-MM-DD` / `AAAA-MM` em `FormData` e nos callbacks. Aceita
 `value`/`onChange` ou `defaultValue`, `name`, `min`, `max`, `required`, `readOnly` e
 `disabled`. Na tela, datas são DD/MM/AAAA e meses MM/AAAA. Campos opcionais podem
@@ -57,8 +64,10 @@ portal, foco na grade e fechamento de backdrop; limita largura/altura ao viewpor
 inclusive quando o teclado móvel encobre o campo. Ao fechar, o diálogo sai da
 camada modal antes de animar, sem prender o foco no conteúdo inerte.
 
-`shared/dates/calendar.ts` disponibiliza as mesmas funções civis usadas em
-`modules/records/dates.ts` para os controles compartilhados. `shared/dates/picker.ts`
-cuida de máscara, leitura, limites e navegação sem alterar regras financeiras,
-XP ou Radar. Os testes de calendário cobrem datas bissextas, viradas de mês/ano,
-teclado, foco, limites, limpeza, formulários e viewport móvel.
+`shared/dates/calendar.ts` contém as mesmas funções civis anteriormente em
+`modules/records/dates.ts`, que continua reexportando os nomes para compatibilidade.
+`shared/dates/picker.ts` cuida de máscara, leitura, limites e navegação sem alterar
+regras financeiras, XP ou Radar. Os testes de calendário cobrem datas bissextas,
+viradas de mês/ano, teclado, foco, limites, limpeza, formulários e viewport móvel;
+`app/CalendarControls.test.tsx` verifica Finanças, Treinos e Quests. As suítes já
+existentes cobrem também aquisição antiga, caixinhas, sono e leituras.

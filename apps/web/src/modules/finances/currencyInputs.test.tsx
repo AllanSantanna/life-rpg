@@ -1,3 +1,4 @@
+import { selectOption } from '../../test/selectOption';
 import {
   cleanup,
   fireEvent,
@@ -100,9 +101,10 @@ describe('Máscaras e unidades de Bitcoin', () => {
     expect(new FormData(container.querySelector('form')!).get('quantity')).toBe(
       '0.00000001',
     );
-    fireEvent.change(screen.getByLabelText('Unidade de Bitcoin'), {
-      target: { value: 'sats' },
-    });
+    selectOption(
+      screen.getByRole('combobox', { name: 'Unidade de Bitcoin' }),
+      'Satoshis (sats)',
+    );
     expect(screen.getByLabelText('Quantidade em sats')).toHaveValue('1');
     fireEvent.change(screen.getByLabelText('Quantidade em sats'), {
       target: { value: '100000' },
@@ -111,9 +113,10 @@ describe('Máscaras e unidades de Bitcoin', () => {
     expect(new FormData(container.querySelector('form')!).get('quantity')).toBe(
       '0.00100000',
     );
-    fireEvent.change(screen.getByLabelText('Unidade de Bitcoin'), {
-      target: { value: 'BTC' },
-    });
+    selectOption(
+      screen.getByRole('combobox', { name: 'Unidade de Bitcoin' }),
+      'Bitcoin (BTC)',
+    );
     expect(screen.getByLabelText('Quantidade em BTC')).toHaveValue(
       '0,00100000',
     );

@@ -497,3 +497,13 @@ Para testar no navegador:
 6. Edite uma operação anterior ao saldo informado: o cartão deve pedir nova
    conferência. Atualize novamente com o valor real do banco e confira a curva
    patrimonial, sem efeitos artificiais em Dinheiro disponível.
+
+## Seleção de opções
+
+Todos os campos de seleção usam o `shared/components/CustomSelect`: tipo de
+movimentação, contas de origem/destino, categoria, investimento, operação,
+posição inicial/compra, ativo avaliado e unidade BTC/sats. Não há `<select>` nativo.
+Rótulos, IDs/valores de formulário, padrões e recálculos foram preservados;
+listas suportam teclado, clique fora e viewport móvel. A troca não altera saldos,
+transferências, carteira, XP nem o envelope v4. Consulte os testes de fluxos e
+`app/SelectControls.test.tsx` para seleção, correção e recarga.

@@ -30,7 +30,8 @@ atuais. O projeto também contém uma base de API para evoluções futuras.
 - **Persistência:** formato versionado, validação e migração automática de v1/v2/v3 para
   v4, preservando os registros reais e corrigindo o progresso demonstrativo no mesmo navegador e endereço.
 - **Navegação:** URLs próprias, acesso direto, recarga e Voltar/Avançar.
-- **Acessibilidade/PWA:** foco de teclado, formulários rotulados, respeito a
+- **Acessibilidade/PWA:** seletores e calendários customizados dark em todo o aplicativo,
+  foco de teclado, formulários rotulados, respeito a
   movimento reduzido, manifesto e cache de arquivos estáticos no build.
 
 Todo jogador novo começa no **nível 1, com 0 XP**. XP e níveis usam somente

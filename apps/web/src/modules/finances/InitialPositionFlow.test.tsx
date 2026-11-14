@@ -1,3 +1,4 @@
+import { selectDate, selectOption } from '../../test/selectOption';
 import {
   cleanup,
   fireEvent,
@@ -60,6 +61,15 @@ function stored() {
   return JSON.parse(localStorage.getItem(PLAYER_STORAGE_KEY)!).data.records;
 }
 function input(form: HTMLElement, label: string, value: string) {
+  const control = within(form).getByLabelText(label);
+  if (control.getAttribute('aria-haspopup') === 'dialog') {
+    selectDate(control, value);
+    return;
+  }
+  if (control.getAttribute('role') === 'combobox') {
+    selectOption(control, value);
+    return;
+  }
   fireEvent.change(within(form).getByLabelText(label), { target: { value } });
 }
 describe('Posições iniciais na interface', () => {
@@ -76,7 +86,7 @@ describe('Posições iniciais na interface', () => {
     input(form, 'Categoria do investimento', 'Bitcoin');
     expect(
       within(form).getByLabelText('Tipo de registro do investimento'),
-    ).toHaveValue('initial');
+    ).toHaveTextContent('Investimento que já possuo');
     expect(within(form).queryByLabelText('Conta')).not.toBeInTheDocument();
     input(form, 'Custo de aquisição (R$, se conhecido)', '23954');
     input(form, 'Quantidade em BTC', '0,00061258');
@@ -102,7 +112,7 @@ describe('Posições iniciais na interface', () => {
     form = screen.getByRole('form', { name: 'Aportes e retiradas' });
     expect(
       within(form).getByLabelText('Tipo de registro do investimento'),
-    ).toHaveValue('purchase');
+    ).toHaveTextContent('Nova compra ou aporte');
     input(form, 'Valor da operação (R$)', '5000');
     input(form, 'Quantidade em BTC', '0,00012821');
     fireEvent.click(
@@ -171,7 +181,11 @@ describe('Posições iniciais na interface', () => {
     const form = screen.getByRole('form', {
       name: 'Editar aporte ou retirada',
     });
-    input(form, 'Tipo de registro do investimento', 'initial');
+    input(
+      form,
+      'Tipo de registro do investimento',
+      'Investimento que já possuo',
+    );
     input(form, 'Data original de aquisição (opcional)', '');
     fireEvent.click(
       within(form).getByRole('button', { name: 'Salvar operação' }),

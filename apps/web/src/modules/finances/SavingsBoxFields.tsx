@@ -1,3 +1,4 @@
+import { CustomDatePicker } from '../../shared/components/CustomDatePicker';
 import type { Investment } from './types';
 import { Field } from '../records/RecordUI';
 import { MoneyInput } from './MoneyInput';
@@ -43,8 +44,8 @@ export function SavingsBoxFields({
             <MoneyInput name="boxBalance" />
           </Field>
           <Field label="Data do saldo informado">
-            <input
-              type="date"
+            <CustomDatePicker
+              label="Data do saldo informado"
               name="balanceDate"
               max={today}
               defaultValue={today}
