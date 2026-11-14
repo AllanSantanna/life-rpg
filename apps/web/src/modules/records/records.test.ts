@@ -11,8 +11,8 @@ import {
   weeklyRecordXP,
 } from './progression';
 import { scorePeriod } from '../evolution/scoring';
-import { missionCatalog } from '../missions/catalog';
-const initialMissions = missionCatalog;
+import { legacyMissionCatalog } from '../missions/catalog';
+const initialMissions = legacyMissionCatalog;
 import { isDate, localDate, monthDates, daysBetween } from './dates';
 
 const today = '2026-11-13';

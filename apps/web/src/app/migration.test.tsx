@@ -108,8 +108,8 @@ describe('Migração única para evolução real v3', () => {
       expect(storage.load()).toEqual({ status: 'loaded', data: result.data });
       expect(
         JSON.parse(localStorage.getItem(PLAYER_STORAGE_KEY)!).version,
-      ).toBe(3);
-      expect(migratePlayerState(3, result.data)).toBeNull();
+      ).toBe(4);
+      expect(migratePlayerState(4, result.data)).toBeNull();
     },
   );
   it('elimina apenas demonstração e conserva missões marcadas pelo usuário, registros e perfil em StrictMode', () => {
@@ -131,15 +131,11 @@ describe('Migração única para evolução real v3', () => {
       screen.getByRole('progressbar', { name: 'Experiência do jogador' }),
     ).toHaveAttribute('aria-valuenow', '450');
     expect(
-      screen.getByRole('checkbox', {
-        name: 'Concluir missão: Comece com o essencial',
-      }),
-    ).not.toBeChecked();
+      screen.queryByRole('checkbox', { name: /Concluir missão/ }),
+    ).not.toBeInTheDocument();
     expect(
-      screen.getByRole('checkbox', {
-        name: 'Concluir missão: Um passo mais forte',
-      }),
-    ).toBeChecked();
+      screen.queryByRole('button', { name: 'Missões' }),
+    ).not.toBeInTheDocument();
     expect(
       screen.getByRole('heading', { name: 'Em chamas' }).closest('article'),
     ).toHaveClass('is-locked');

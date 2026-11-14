@@ -66,7 +66,7 @@ export function realAchievements(
       id: 'first',
       title: 'Primeiro passo',
       description:
-        'Registrar sua primeira atividade válida ou confirmar uma missão real.',
+        'Registrar sua primeira atividade válida; confirmações históricas são preservadas.',
       tier: 'Nível I',
       icon: 'sword',
       unlocked: first,

@@ -1,8 +1,8 @@
 # Finanças
 
-O armazenamento atual é v3: a migração de progressão real preserva integralmente
+O armazenamento atual é v4 (quests personalizadas; dados financeiros preservados): a migração de progressão real preserva integralmente
 os registros financeiros e o perfil. Referências a v2 abaixo documentam a
-introdução das extensões financeiras, que continuam compatíveis em v3.
+introdução das extensões financeiras, que continuam compatíveis em v4.
 
 O módulo separa fluxo mensal, saldos líquidos, custo de aquisição e avaliação dos
 investimentos. Valores monetários são centavos inteiros; BTC usa satoshis

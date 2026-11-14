@@ -16,7 +16,7 @@ export default defineConfig({
         id: '/',
         name: 'Life RPG',
         short_name: 'Life RPG',
-        description: 'Evolua sua vida, uma missão por vez.',
+        description: 'Evolua sua vida, um objetivo por vez.',
         lang: 'pt-BR',
         theme_color: '#090909',
         background_color: '#090909',

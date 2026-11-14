@@ -1,12 +1,15 @@
+import { GoalsPage } from '../modules/goals/GoalsPage';
+import { GoalsSummary } from '../modules/goals/GoalsSummary';
+import { dashboardGoals } from '../modules/goals/dashboardGoals';
+import { applyGoalCommand } from '../modules/goals/commands';
+import { goalRewards } from '../modules/goals/rewards';
+import type { GoalCommand } from '../modules/goals/types';
 import {
   startingProgress,
   realAttributes,
   realAchievements,
 } from '../modules/gamification/realProgress';
-import {
-  missionsForDay,
-  realMissionHistory,
-} from '../modules/missions/catalog';
+import { realMissionHistory } from '../modules/missions/catalog';
 import { useUsdQuote } from '../modules/finances/useUsdQuote';
 import { useBitcoinQuote } from '../modules/finances/useBitcoinQuote';
 import { applyRecordCommand } from '../modules/records/commands';
@@ -27,7 +30,7 @@ import { KnowledgePage } from '../modules/knowledge/KnowledgePage';
 import { usePlayerState } from './usePlayerState';
 import { scorePeriod } from '../modules/evolution/scoring';
 import { EvolutionPanel } from '../modules/evolution/EvolutionPanel';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { useUrlNavigation } from './useUrlNavigation';
 import { Navigation, type View } from './Navigation';
 import { pillarViews } from './views';
@@ -35,14 +38,13 @@ import { PlayerHeader } from '../modules/profile/PlayerHeader';
 import { AttributesPanel } from '../modules/gamification/AttributesPanel';
 import { AchievementsPanel } from '../modules/gamification/AchievementsPanel';
 import { projectProgress } from '../modules/gamification/progression';
-import { MissionList } from '../modules/missions/MissionList';
 import { MetricCard } from '../shared/components/MetricCard';
 import { SectionHeading } from '../shared/components/SectionHeading';
 import { Icon } from '../shared/components/Icon';
 
 const titles: Record<View, string> = {
   home: 'Visão geral',
-  missions: 'Suas missões',
+  goals: 'Quests',
   stats: 'Sua evolução',
   profile: 'Seu personagem',
   pillars: 'Quatro pilares da vida',
@@ -53,30 +55,22 @@ const titles: Record<View, string> = {
 };
 export function App() {
   const today = useToday();
-  const { view, navigate } = useUrlNavigation();
+  const { view, navigate, goalId } = useUrlNavigation();
   const { state, setState, storageAvailable } = usePlayerState();
   const recordsRef = useRef(state.records);
   recordsRef.current = state.records;
   const player = state.profile;
-  const missions = missionsForDay(state.missionEvents, today);
   const realMissions = realMissionHistory(state.missionEvents);
-  const [announcement, setAnnouncement] = useState('');
   const heading = useRef<HTMLHeadingElement>(null);
-  const currentReward = recordReward(
-    {
-      ...state.records,
-      movements: [],
-      investmentEntries: [],
-      workouts: [],
-      sleep: [],
-      readings: [],
-    },
-    missions,
+  const goalReward = goalRewards(
+    state.goals,
+    state.records,
+    realMissions,
     today,
   );
   const progress = projectProgress(
     startingProgress,
-    recordReward(state.records, realMissions, today),
+    recordReward(state.records, realMissions, today) + goalReward.total,
   );
   const activities = projectEffortActivities(
     [],
@@ -92,7 +86,16 @@ export function App() {
     today,
     activities,
   );
-  const weeklyActivity = weeklyRecordXP(state.records, realMissions, today);
+  const weeklyActivity = weeklyRecordXP(state.records, realMissions, today).map(
+    (day) => ({
+      ...day,
+      xp:
+        day.xp +
+        goalReward.entries
+          .filter((entry) => entry.date === day.date)
+          .reduce((sum, entry) => sum + entry.xp, 0),
+    }),
+  );
   const maxWeeklyXP = Math.max(100, ...weeklyActivity.map((day) => day.xp));
   const currentMetrics = recordMetrics(state.records, today, dedication);
   function changeRecords(command: RecordCommand): string | null {
@@ -107,6 +110,20 @@ export function App() {
         : 'Não foi possível salvar o registro.';
     }
   }
+  const goalsRef = useRef(state.goals);
+  goalsRef.current = state.goals;
+  function changeGoals(command: GoalCommand): string | null {
+    try {
+      const goals = applyGoalCommand(goalsRef.current, command, today);
+      goalsRef.current = goals;
+      setState((previous) => ({ ...previous, goals }));
+      return null;
+    } catch (error) {
+      return error instanceof Error
+        ? error.message
+        : 'Não foi possível atualizar a quest.';
+    }
+  }
   const recordProps = {
     records: state.records,
     today,
@@ -114,38 +131,11 @@ export function App() {
   };
   const bitcoin = useBitcoinQuote(recordProps);
   const usd = useUsdQuote(recordProps);
-  const completed = missions.filter((mission) => mission.completed).length;
+  const activeGoals = dashboardGoals(state.goals, state.records, today);
   useEffect(() => {
     const frame = requestAnimationFrame(() => heading.current?.focus());
     return () => cancelAnimationFrame(frame);
-  }, [view]);
-  function toggleMission(id: string) {
-    const mission = missions.find((item) => item.id === id);
-    if (!mission) return;
-    const event = {
-      missionId: id,
-      date: today,
-      source: 'user' as const,
-      completed: !mission.completed,
-    };
-    const events = [
-      ...state.missionEvents.filter(
-        (item) => item.missionId !== id || item.date !== today,
-      ),
-      event,
-    ];
-    setState((previous) => ({ ...previous, missionEvents: events }));
-    const delta =
-      recordReward(state.records, realMissionHistory(events), today) -
-      recordReward(state.records, realMissions, today);
-    setAnnouncement(
-      delta === 0
-        ? `${mission.title}: atividade já contabilizada nos registros do dia.`
-        : delta > 0
-          ? `${mission.title}: missão concluída! Você ganhou ${delta} XP.`
-          : `${mission.title}: conclusão desfeita, ${-delta} XP removidos.`,
-    );
-  }
+  }, [view, goalId]);
   return (
     <div className={`app-shell view-${view}`}>
       <a className="skip-link" href="#main">
@@ -202,11 +192,9 @@ export function App() {
               <p className="mt-2 text-sm leading-relaxed text-muted">
                 {view === 'home'
                   ? 'Pequenos passos hoje. Uma nova versão de você amanhã.'
-                  : view === 'missions'
-                    ? 'Cada missão é uma oportunidade de ir além.'
-                    : view === 'stats'
-                      ? 'A evolução acontece quando você continua.'
-                      : 'O protagonista dessa história é você.'}
+                  : view === 'stats'
+                    ? 'A evolução acontece quando você continua.'
+                    : 'O protagonista dessa história é você.'}
               </p>
             </div>
             <span className="flex items-center gap-2 text-xs text-muted">
@@ -266,11 +254,13 @@ export function App() {
                     ))}
                   </div>
                 </section>
-                <div className="grid items-start gap-5 xl:grid-cols-[1.45fr_1fr]">
-                  <MissionList
-                    missions={missions}
-                    onToggle={toggleMission}
-                    onViewAll={() => navigate('missions')}
+                <div
+                  className={`dashboard-secondary${activeGoals.length ? ' dashboard-secondary--with-goals' : ''}`}
+                >
+                  <GoalsSummary
+                    items={activeGoals}
+                    onOpen={() => navigate('goals')}
+                    onOpenGoal={(id) => navigate('goals', id)}
                   />
                   <AchievementsPanel achievements={achievements} />
                 </div>
@@ -281,6 +271,17 @@ export function App() {
             )}
             {pillarViews.includes(view) && (
               <PillarLinks current={view} navigate={navigate} />
+            )}
+            {view === 'goals' && (
+              <GoalsPage
+                selectedGoalId={goalId}
+                onShowAll={() => navigate('goals')}
+                state={state.goals}
+                records={state.records}
+                today={today}
+                onCommand={changeGoals}
+                rewards={goalReward.entries}
+              />
             )}
             {view === 'finances' && (
               <FinancesPage
@@ -294,46 +295,6 @@ export function App() {
             {view === 'workouts' && <WorkoutsPage {...recordProps} />}
             {view === 'rest' && <RestPage {...recordProps} />}
             {view === 'knowledge' && <KnowledgePage {...recordProps} />}
-            {view === 'missions' && (
-              <div className="mx-auto max-w-4xl">
-                <div className="mb-5 grid grid-cols-2 gap-4">
-                  <div className="panel p-5">
-                    <p className="eyebrow text-muted">Missões concluídas</p>
-                    <p className="mt-3 text-3xl font-semibold">
-                      {completed}
-                      <span className="text-lg font-normal text-muted">
-                        {' '}
-                        / {missions.length} missões
-                      </span>
-                    </p>
-                  </div>
-                  <div className="panel p-5">
-                    <p className="eyebrow text-muted">
-                      Recompensas das missões
-                    </p>
-                    <p className="mt-3 text-3xl font-semibold text-red-400">
-                      {currentReward}
-                      <span className="text-sm font-normal text-muted">
-                        {' '}
-                        XP
-                      </span>
-                    </p>
-                  </div>
-                </div>
-                <MissionList
-                  missions={missions}
-                  onToggle={toggleMission}
-                  expanded
-                  filter={state.preferences.missionFilter}
-                  onFilterChange={(missionFilter) =>
-                    setState((previous) => ({
-                      ...previous,
-                      preferences: { ...previous.preferences, missionFilter },
-                    }))
-                  }
-                />
-              </div>
-            )}
             {view === 'stats' && (
               <div className="grid items-start gap-5 xl:grid-cols-2">
                 <section className="panel p-5 sm:p-6">
@@ -342,8 +303,9 @@ export function App() {
                     eyebrow="Atividade semanal"
                   />
                   <p className="mb-7 text-xs text-muted">
-                    XP por dia dos registros e missões datados. O saldo inicial
-                    do personagem não entra no gráfico.
+                    XP por dia dos registros, quests e confirmações históricas.
+                    Cada atividade é contabilizada conforme os limites
+                    existentes.
                   </p>
                   <div className="flex h-56 items-end gap-3 sm:gap-5">
                     {weeklyActivity.map((day) => (
@@ -417,14 +379,6 @@ export function App() {
             </span>
           </footer>
         </main>
-        <p
-          role="status"
-          aria-live="polite"
-          aria-atomic="true"
-          className="sr-only"
-        >
-          {announcement}
-        </p>
       </div>
     </div>
   );

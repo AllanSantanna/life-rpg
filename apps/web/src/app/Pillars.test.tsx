@@ -117,7 +117,7 @@ describe('Fluxos reais dos quatro pilares', () => {
       screen.getByRole('progressbar', { name: 'Experiência do jogador' }),
     ).toHaveAttribute('aria-valuenow', '80');
   });
-  it('mantém treino único e sincroniza XP/radar, recarga, missão associada e reversão', () => {
+  it('mantém treino único e sincroniza XP/radar, recarga e reversão sem missões fixas', () => {
     let app = open('/treinos');
     click(screen.getByRole('form', { name: 'Treinou hoje?' }), 'Sim');
     click(screen.getByRole('form', { name: 'Treinou hoje?' }), 'Sim');
@@ -132,19 +132,9 @@ describe('Fluxos reais dos quatro pilares', () => {
     const score = screen
       .getByRole('progressbar', { name: 'Treinos: Dedicação · 7 dias' })
       .getAttribute('aria-valuenow');
-    fireEvent.click(
-      screen.getByRole('checkbox', {
-        name: 'Concluir missão: Um passo mais forte',
-      }),
-    );
     expect(
-      screen.getByRole('progressbar', { name: 'Experiência do jogador' }),
-    ).toHaveAttribute('aria-valuenow', '150');
-    fireEvent.click(
-      screen.getByRole('checkbox', {
-        name: 'Concluir missão: Um passo mais forte',
-      }),
-    );
+      screen.queryByRole('checkbox', { name: /Concluir missão/ }),
+    ).not.toBeInTheDocument();
     fireEvent.click(
       screen.getByRole('button', {
         name: 'Ver Radar de Evolução em Estatísticas',

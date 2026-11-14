@@ -1,6 +1,13 @@
 import type { CSSProperties } from 'react';
 
 const paths = {
+  search: 'M21 21l-5-5M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z',
+  sort: 'M8 4v16m-4-4 4 4 4-4M15 5h6m-6 5h4m-4 5h2',
+  plus: 'M12 5v14M5 12h14',
+  close: 'm6 6 12 12M6 18 18 6',
+  pause: 'M8 4v16M16 4v16',
+  play: 'm6 3 15 9-15 9Z',
+  calendar: 'M3 5h18v16H3ZM7 2v6m10-6v6M3 11h18',
   dollar: 'M12 2v20M18 6H9a4 4 0 0 0 0 8h6a3 3 0 0 1 0 6H5',
   edit: 'm15 4 5 5M4 20l5-1L21 7l-5-5L4 14Zm0 0 1-6',
   trash: 'M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7m4-7v7',

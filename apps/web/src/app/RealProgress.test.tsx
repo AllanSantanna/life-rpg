@@ -34,7 +34,7 @@ describe('Nível e progresso reais na interface', () => {
     state.records.workouts.pop();
     localStorage.setItem(
       PLAYER_STORAGE_KEY,
-      JSON.stringify({ version: 3, data: state }),
+      JSON.stringify({ version: 4, data: state }),
     );
     render(<App />);
     expect(screen.getByText('Nível 1')).toBeInTheDocument();
@@ -45,7 +45,7 @@ describe('Nível e progresso reais na interface', () => {
     state.records.workouts = [{ date: '2026-11-13', trained: true }];
     localStorage.setItem(
       PLAYER_STORAGE_KEY,
-      JSON.stringify({ version: 3, data: state }),
+      JSON.stringify({ version: 4, data: state }),
     );
     window.history.replaceState(null, '', '/treinos');
     const app = render(<App />);

@@ -1,5 +1,10 @@
+import { emptyGoals, type GoalState } from '../modules/goals/types';
+import { isGoalState } from '../modules/goals/commands';
 import { startingProgress } from '../modules/gamification/realProgress';
-import { missionCatalog, type MissionEvent } from '../modules/missions/catalog';
+import {
+  legacyMissionCatalog,
+  type MissionEvent,
+} from '../modules/missions/catalog';
 import { isDate } from '../modules/records/dates';
 import { emptyRecords, type LifeRecords } from '../modules/records/types';
 import { isLifeRecords } from '../modules/records/commands';
@@ -25,13 +30,15 @@ export interface LegacyPlayerState {
 export interface PlayerState extends LegacyPlayerState {
   records: LifeRecords;
   missionEvents: MissionEvent[];
+  goals: GoalState;
 }
 export const PLAYER_STORAGE_KEY = 'life-rpg:player-state';
-export const PLAYER_STORAGE_VERSION = 3;
+export const PLAYER_STORAGE_VERSION = 4;
 
 export function createInitialPlayerState(): PlayerState {
   return {
     records: emptyRecords(),
+    goals: emptyGoals(),
     missionEvents: [],
     profile: {
       name: 'Jogador',
@@ -45,7 +52,7 @@ export function createInitialPlayerState(): PlayerState {
       focus: 'Evoluir um pouco, todos os dias.',
     },
     progressOrigin: { ...startingProgress },
-    missionCompletion: missionCatalog.map(({ id }) => ({
+    missionCompletion: legacyMissionCatalog.map(({ id }) => ({
       id,
       completed: false,
     })),
@@ -151,7 +158,7 @@ export function isLegacyPlayerState(
   );
 }
 
-export function isPlayerState(value: unknown): value is PlayerState {
+function isProgressState(value: unknown): value is Omit<PlayerState, 'goals'> {
   if (
     !record(value) ||
     !isLegacyPlayerState(value) ||
@@ -173,7 +180,7 @@ export function isPlayerState(value: unknown): value is PlayerState {
     events.every(
       (event: unknown) =>
         record(event) &&
-        missionCatalog.some((m) => m.id === event.missionId) &&
+        legacyMissionCatalog.some((m) => m.id === event.missionId) &&
         isDate(event.date) &&
         typeof event.completed === 'boolean' &&
         event.source === 'user',
@@ -183,10 +190,15 @@ export function isPlayerState(value: unknown): value is PlayerState {
     ).size === events.length
   );
 }
+export function isPlayerState(value: unknown): value is PlayerState {
+  return isProgressState(value) && 'goals' in value && isGoalState(value.goals);
+}
 export function migratePlayerState(
   version: number,
   value: unknown,
 ): PlayerState | null {
+  if (version === 3)
+    return isProgressState(value) ? { ...value, goals: emptyGoals() } : null;
   if ((version !== 1 && version !== 2) || !isLegacyPlayerState(value))
     return null;
   if (version === 2 && (!record(value) || !isLifeRecords(value.records)))
@@ -212,9 +224,10 @@ export function migratePlayerState(
   );
   return {
     ...value,
+    goals: emptyGoals(),
     records,
     progressOrigin: { ...startingProgress },
-    missionCompletion: missionCatalog.map(({ id }) => ({
+    missionCompletion: legacyMissionCatalog.map(({ id }) => ({
       id,
       completed: false,
     })),

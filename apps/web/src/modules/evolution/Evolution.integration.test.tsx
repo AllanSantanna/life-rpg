@@ -10,19 +10,27 @@ import { App } from '../../app/App';
 
 afterEach(cleanup);
 describe('Radar sincronizado na sessão', () => {
-  it('sincroniza missão, XP, cartão e os dois radares; desfaz e preserva filtros independentes', () => {
+  it('sincroniza treino real, XP, cartão e os dois radares; desfaz e preserva o período selecionado', () => {
     render(<App />);
     const baseline = 0;
-    const mission = screen.getByRole('checkbox', {
-      name: 'Concluir missão: Um passo mais forte',
-    });
     const compact = screen.getByRole('figure', {
       name: 'Radar de Evolução · 7 dias',
     });
     expect(within(compact).getByRole('img')).toHaveAccessibleDescription(
       expect.stringContaining(`Treinos: ${baseline} de 100`),
     );
-    fireEvent.click(mission);
+    fireEvent.click(screen.getByRole('button', { name: 'Registrar Treinos' }));
+    fireEvent.click(
+      within(screen.getByRole('form', { name: 'Treinou hoje?' })).getByRole(
+        'button',
+        { name: 'Sim' },
+      ),
+    );
+    fireEvent.click(
+      within(
+        screen.getByRole('navigation', { name: 'Navegação principal' }),
+      ).getByRole('button', { name: 'Início' }),
+    );
     const updated = screen.getByRole('progressbar', {
       name: 'Treinos: Dedicação · 7 dias',
     });
@@ -31,7 +39,11 @@ describe('Radar sincronizado na sessão', () => {
     expect(
       screen.getByRole('progressbar', { name: 'Experiência do jogador' }),
     ).toHaveAttribute('aria-valuenow', '150');
-    expect(within(compact).getByRole('img')).toHaveAccessibleDescription(
+    expect(
+      within(
+        screen.getByRole('figure', { name: 'Radar de Evolução · 7 dias' }),
+      ).getByRole('img'),
+    ).toHaveAccessibleDescription(
       expect.stringContaining(`Treinos: ${score} de 100`),
     );
     const nav = within(
@@ -65,11 +77,14 @@ describe('Radar sincronizado na sessão', () => {
     expect(
       screen.getByRole('progressbar', { name: 'Treinos: Dedicação · 7 dias' }),
     ).toHaveAttribute('aria-valuenow', `${score}`);
+    fireEvent.click(screen.getByRole('button', { name: 'Registrar Treinos' }));
     fireEvent.click(
-      screen.getByRole('checkbox', {
-        name: 'Concluir missão: Um passo mais forte',
-      }),
+      within(screen.getByRole('form', { name: 'Treinou hoje?' })).getByRole(
+        'button',
+        { name: 'Não' },
+      ),
     );
+    fireEvent.click(nav.getByRole('button', { name: 'Início' }));
     expect(
       screen.getByRole('progressbar', { name: 'Treinos: Dedicação · 7 dias' }),
     ).toHaveAttribute('aria-valuenow', `${baseline}`);

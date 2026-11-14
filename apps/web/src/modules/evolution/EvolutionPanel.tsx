@@ -43,8 +43,8 @@ export function EvolutionPanel({
         </div>
       </div>
       <p className="mt-3 text-xs leading-relaxed text-muted">
-        Somente registros e missões reais datados. Referência: {referenceDate}.
-        Últimos {period} dias versus os {period} anteriores.
+        Somente registros reais e confirmações históricas datadas. Referência:{' '}
+        {referenceDate}. Últimos {period} dias versus os {period} anteriores.
       </p>
       {activities.length === 0 && (
         <p className="mt-3 text-sm text-muted">
@@ -95,9 +95,9 @@ export function EvolutionPanel({
           dias equivalentes.
         </p>
         <p>
-          Missões de finanças, treino e leitura valem 1 unidade; hidratação e
-          desconexão, 0,5 cada. Desfazer remove a contribuição. XP e patrimônio
-          não entram no cálculo. Registros e missões confirmadas da mesma
+          Confirmações históricas de finanças, treino e leitura valem 1 unidade;
+          hidratação e desconexão, 0,5 cada. Não há novas missões fixas. XP e
+          patrimônio não entram no cálculo. Registros e confirmações da mesma
           área/dia compartilham o limite diário. Sono usa a proporção da meta
           pessoal.
         </p>

@@ -1,7 +1,7 @@
 # Life RPG
 
 Aplicação de evolução pessoal com identidade de RPG: registre atividades de
-Finanças, Treinos, Descanso e Conhecimento, acompanhe missões, ganhe XP e visualize
+Finanças, Treinos, Descanso e Conhecimento, defina quests, ganhe XP e visualize
 sua dedicação recente no Radar de Evolução.
 
 O frontend funciona de forma independente, com salvamento automático no
@@ -11,7 +11,7 @@ atuais. O projeto também contém uma base de API para evoluções futuras.
 ## Funcionalidades
 
 - **Dashboard:** personagem, classe, nível, XP, indicadores dos quatro pilares,
-  missões e medalhas, com layout dark/vermelho e navegação responsiva.
+  quests do usuário e medalhas, com layout dark/vermelho e navegação responsiva.
 - **Finanças:** receitas e despesas com edição/exclusão, histórico mensal e saldo;
   contas com saldo inicial, transferências, posições preexistentes sem débito e compras reais de investimentos; correção confirmada de compras antigas e avaliações manuais;
   Bitcoin em BTC/sats e Dólar (USD), com cotações de referência, custo médio e vendas parciais. Campos monetários com máscara durante a digitação. Caixinhas por instituição,
@@ -20,20 +20,23 @@ atuais. O projeto também contém uma base de API para evoluções futuras.
 - **Treinos:** um registro Sim/Não por dia, calendário, frequência e consistência.
 - **Descanso:** registro diário de horas, valores decimais, meta pessoal e médias.
 - **Conhecimento:** biblioteca, leituras por data, progresso e livros concluídos.
+- **Quests personalizadas:** objetivos livres ou modelos editáveis, acompanhamento
+  manual/automático, ciclos, pausas, histórico e XP limitado sem duplicação.
+  Busca por título/descrição, filtros em chips e ordenação sem alterar os dados.
 - **Progressão:** XP e níveis recalculados a partir das fontes de dados, limites de
-  recompensa por área/dia e prevenção de duplicação com missões associadas.
+  recompensa por área/dia e prevenção de duplicação com quests e confirmações históricas.
 - **Estatísticas:** radar dinâmico de 7/30/90 dias, comparação com o período anterior
   e gráfico semanal de XP das ações datadas.
-- **Persistência:** formato versionado, validação e migração automática de v1/v2 para
-  v3, preservando os registros reais e corrigindo o progresso demonstrativo no mesmo navegador e endereço.
+- **Persistência:** formato versionado, validação e migração automática de v1/v2/v3 para
+  v4, preservando os registros reais e corrigindo o progresso demonstrativo no mesmo navegador e endereço.
 - **Navegação:** URLs próprias, acesso direto, recarga e Voltar/Avançar.
 - **Acessibilidade/PWA:** foco de teclado, formulários rotulados, respeito a
   movimento reduzido, manifesto e cache de arquivos estáticos no build.
 
 Todo jogador novo começa no **nível 1, com 0 XP**. XP e níveis usam somente
-atividades reais e missões confirmadas pelo usuário, sem recompensas demonstrativas.
+atividades reais, quests elegíveis e confirmações históricas do usuário, sem recompensas demonstrativas.
 Atributos, conquistas, Radar e estatísticas são derivados dessas fontes. A migração
-v3 conserva perfil, preferências e todos os registros dos pilares, retirando apenas
+v4 conserva perfil, preferências e todos os registros dos pilares, retirando apenas
 progresso fictício. Não há sincronização entre dispositivos; limpar os dados do
 navegador remove o progresso local.
 
@@ -87,7 +90,7 @@ verificar a continuidade do progresso.
 | Página       | URL             |
 | ------------ | --------------- |
 | Início       | `/`             |
-| Missões      | `/missoes`      |
+| Quests       | `/quests`       |
 | Estatísticas | `/estatisticas` |
 | Perfil       | `/perfil`       |
 | Pilares      | `/pilares`      |
@@ -95,6 +98,14 @@ verificar a continuidade do progresso.
 | Treinos      | `/treinos`      |
 | Descanso     | `/descanso`     |
 | Conhecimento | `/conhecimento` |
+
+O dashboard mostra **Minhas Quests** somente quando há objetivos em andamento, até
+cinco por prazo. Cada quest abre seus detalhes em `/quests?quest=<id>`, com os mesmos
+controles de progresso da página Quests. Sem quests ativas, as conquistas usam o espaço
+disponível. O endereço antigo `/missoes` redireciona para `/quests`; não há novas
+conclusões ou recompensas de missões fixas. Links antigos de `/metas` também
+continuam funcionando e abrem `/quests`, inclusive os detalhes já compartilhados. Confirmações legítimas anteriores
+permanecem como histórico, sem migração adicional do envelope v4.
 
 ### Backend e ambiente opcionais
 
@@ -178,7 +189,8 @@ apps/
       records/              Comandos, datas e projeções compartilhadas
       evolution/            Radar e pontuação recente
       gamification/         Níveis, atributos e conquistas
-      missions/             Missões e filtros
+      goals/                Objetivos personalizados, progresso e histórico
+      missions/             Compatibilidade de confirmações históricas
       profile/              Resumo do personagem
     shared/                 Componentes, hooks, storage e estilos
   api/                      Infraestrutura Express e módulos futuros
@@ -192,6 +204,7 @@ docs/                       Produto, arquitetura e regras implementadas
 - [Arquitetura e integrações futuras](docs/architecture.md)
 - [Quatro pilares: regras, migração e verificação manual](docs/four-pillars.md)
 - [Finanças: contas, Bitcoin, gráficos e verificação manual](apps/web/src/modules/finances/README.md)
+- [Quests personalizadas: ciclos, acompanhamento e XP](apps/web/src/modules/goals/README.md)
 - [Persistência local](apps/web/src/shared/storage/README.md)
 - [Radar de Evolução](apps/web/src/modules/evolution/README.md)
 

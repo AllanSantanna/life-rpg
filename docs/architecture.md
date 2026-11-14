@@ -12,7 +12,7 @@ O frontend usa React, Vite e Tailwind CSS. Cada domínio terá páginas e compon
 
 Adicionar rotas/controladores, serviços de aplicação, validações e repositórios conforme surgirem casos de uso. Controladores tratam HTTP; serviços coordenam regras; repositórios isolam persistência. Evitar acesso direto a tabelas de outro módulo. A comunicação entre domínios usará serviços públicos e, se necessário no futuro, eventos internos.
 
-Gamification é o único responsável por XP, níveis, atributos e conquistas. Missions coordena missões e sua conclusão. Profile guarda apresentação e preferências, sem duplicar estado de progressão.
+Gamification é o único responsável por XP, níveis, atributos e conquistas. Goals coordena objetivos personalizados; Missions no frontend mantém somente compatibilidade de confirmações históricas. Profile guarda apresentação e preferências, sem duplicar estado de progressão.
 
 `packages/contracts` está preparado para contratos públicos de requisição/resposta, sem exportar entidades Prisma ou segredos. Ainda não é consumido pelas aplicações, pois não há contratos de negócio. Quando houver consumo em execução, compilar contracts antes dos consumidores e declarar a dependência no workspace.
 
@@ -62,3 +62,42 @@ conquistas são derivados, sem desbloqueios artificiais. V1/v2 migram para v3 um
 origem de XP, histórico e recompensas demonstrativos.
 O contrato atual está em [Persistência](../apps/web/src/shared/storage/README.md).
 As descrições históricas de mocks/Sprint 1 acima não são mais a origem dos cálculos.
+
+## Quests personalizadas
+
+`modules/goals` separa comandos, ciclos, progresso, fontes automáticas, recompensas
+e apresentação. `PlayerState.goals` é persistido no envelope v4 com migração
+compatível de v3. Quests consultam registros reais sem modificá-los. XP agregado
+no App divide limites com missões/registros e tem orçamento próprio limitado;
+o Radar não recebe eventos de quest. Contrato e verificação em
+[Quests](../apps/web/src/modules/goals/README.md).
+
+## Dashboard com objetivos do usuário
+
+A interface de missões fixas e seu handler de conclusão foram removidos. O único
+painel de objetivos no dashboard é **Minhas Quests**, usando `dashboardGoals` para
+filtrar pendências e ordenar por prazo/fim de ciclo. Exibe até cinco, com links
+para `/quests?quest=<id>`; a página reutiliza `GoalCard` nos detalhes. O endereço
+antigo `/missoes` é substituído por `/quests` sem oferecer conclusões legadas.
+Sem quests disponíveis, o painel retorna `null` e a grade dá toda a largura às
+conquistas; no celular os painéis seguem em uma coluna.
+
+`missionEvents` e os metadados legados são somente históricos: conservam XP,
+Radar e conquistas legítimos, sem gerar novas declarações ou prêmios. O contrato
+continua v4, sem migração destrutiva ou gravações extras na montagem. Testes de
+migração anteriores continuam cobrindo a remoção de demonstração e preservação
+dos registros dos quatro pilares, perfil e confirmações reais.
+
+A consulta da página Quests é uma projeção em `modules/goals/questList.ts`:
+normalização da busca, interseção de filtros e ordenação estável. `QuestFilters`
+usa chips, um campo de busca e `shared/components/CustomSelect` para ordenação. O estado
+desses controles permanece local à página, sem mudar o envelope v4. O arquivo de
+quests excluídas continua acessível por um atalho separado. Cartões reutilizam
+ciclos, recompensas e comandos existentes, sem alterar XP ou o Radar.
+Os formulários de Quests usam o mesmo combobox/listbox customizado em todos os
+campos de seleção. O portal evita recortes, e valores ocultos mantêm compatibilidade
+com `FormData`, sem select nativo, dependências novas ou alteração do armazenamento.
+
+As datas dos formulários de Quests usam `CustomDatePicker` e o mesmo
+`useAnchoredPopover` dos seletores. Os controles preservam valores ISO e limites,
+com navegação por mês/ano, digitação manual, teclado e tratamento de foco.

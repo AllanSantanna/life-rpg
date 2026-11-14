@@ -1,52 +1,21 @@
 import type { Mission } from './types';
-/** Modelos de ações reais: nenhum começa concluído ou concede XP automaticamente. */
-export const missionCatalog: Mission[] = [
-  {
-    id: 'water',
-    title: 'Comece com o essencial',
-    description: 'Confirmar que bebeu 2 litros de água hoje',
-    category: 'Descanso',
-    icon: 'moon',
-    xp: 120,
-    completed: false,
-  },
-  {
-    id: 'workout',
-    title: 'Um passo mais forte',
-    description: 'Confirmar que concluiu o treino de hoje',
-    category: 'Treinos',
-    icon: 'dumbbell',
-    xp: 150,
-    completed: false,
-  },
-  {
-    id: 'read',
-    title: 'Alimente a sua mente',
-    description: 'Confirmar que leu 20 páginas hoje',
-    category: 'Conhecimento',
-    icon: 'book',
-    xp: 100,
-    completed: false,
-  },
-  {
-    id: 'finance',
-    title: 'Cada escolha conta',
-    description: 'Confirmar que revisou os gastos de hoje',
-    category: 'Finanças',
-    icon: 'wallet',
-    xp: 80,
-    completed: false,
-  },
-  {
-    id: 'sleep',
-    title: 'Prepare o próximo capítulo',
-    description: 'Confirmar que se desconectou das telas antes de dormir',
-    category: 'Descanso',
-    icon: 'moon',
-    xp: 120,
-    completed: false,
-  },
-];
+/** Somente metadados de compatibilidade para recompensas já confirmadas.
+ * Não são metas sugeridas, missões ativas ou fontes de novas conclusões. */
+export const legacyMissionCatalog: Mission[] = [
+  { id: 'water', category: 'Descanso', icon: 'moon', xp: 120 },
+  { id: 'workout', category: 'Treinos', icon: 'dumbbell', xp: 150 },
+  { id: 'read', category: 'Conhecimento', icon: 'book', xp: 100 },
+  { id: 'finance', category: 'Finanças', icon: 'wallet', xp: 80 },
+  { id: 'sleep', category: 'Descanso', icon: 'moon', xp: 120 },
+].map((metadata) => ({
+  ...metadata,
+  category: metadata.category as Mission['category'],
+  icon: metadata.icon as Mission['icon'],
+  title: 'Confirmação histórica',
+  description:
+    'Atividade confirmada pelo usuário antes da retirada das missões fixas.',
+  completed: false,
+}));
 export interface MissionEvent {
   missionId: string;
   date: string;
@@ -55,7 +24,9 @@ export interface MissionEvent {
 }
 export function realMissionHistory(events: readonly MissionEvent[]): Mission[] {
   return events.flatMap((event) => {
-    const template = missionCatalog.find((item) => item.id === event.missionId);
+    const template = legacyMissionCatalog.find(
+      (item) => item.id === event.missionId,
+    );
     return template && event.source === 'user' && event.completed
       ? [
           {
@@ -67,18 +38,4 @@ export function realMissionHistory(events: readonly MissionEvent[]): Mission[] {
         ]
       : [];
   });
-}
-export function missionsForDay(events: readonly MissionEvent[], today: string) {
-  return missionCatalog.map((mission) => ({
-    ...mission,
-    completed: events.some(
-      (event) =>
-        event.missionId === mission.id &&
-        event.date === today &&
-        event.completed &&
-        event.source === 'user',
-    ),
-    completedOn: today,
-    source: 'user' as const,
-  }));
 }

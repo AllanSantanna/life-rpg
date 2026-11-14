@@ -1,6 +1,6 @@
 export type View =
+  | 'goals'
   | 'home'
-  | 'missions'
   | 'stats'
   | 'profile'
   | 'pillars'

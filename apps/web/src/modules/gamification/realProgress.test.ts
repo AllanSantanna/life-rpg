@@ -11,7 +11,7 @@ import {
   projectEffortActivities,
   weeklyRecordXP,
 } from '../records/progression';
-import { missionCatalog, realMissionHistory } from '../missions/catalog';
+import { legacyMissionCatalog, realMissionHistory } from '../missions/catalog';
 import { initialMissions } from '../../app/mocks/dashboard';
 import { effortHistory } from '../../app/mocks/effort';
 import { scorePeriod } from '../evolution/scoring';
@@ -80,7 +80,7 @@ describe('Progressão exclusivamente real', () => {
     expect(
       recordReward(
         records,
-        [{ ...missionCatalog[1]!, completed: true, completedOn: today }],
+        [{ ...legacyMissionCatalog[1]!, completed: true, completedOn: today }],
         today,
       ),
     ).toBe(450);

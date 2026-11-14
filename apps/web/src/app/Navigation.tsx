@@ -3,10 +3,10 @@ import { pillarViews, type View } from './views';
 export type { View } from './views';
 const links: { id: View; label: string; icon: IconName; number: string }[] = [
   { id: 'home', label: 'Início', icon: 'home', number: '01' },
-  { id: 'missions', label: 'Missões', icon: 'sword', number: '02' },
+  { id: 'goals', label: 'Quests', icon: 'target', number: '02' },
   { id: 'stats', label: 'Estatísticas', icon: 'chart', number: '03' },
-  { id: 'pillars', label: 'Pilares', icon: 'target', number: '05' },
-  { id: 'profile', label: 'Perfil', icon: 'user', number: '04' },
+  { id: 'pillars', label: 'Pilares', icon: 'target', number: '04' },
+  { id: 'profile', label: 'Perfil', icon: 'user', number: '05' },
 ];
 export function Navigation({
   current,

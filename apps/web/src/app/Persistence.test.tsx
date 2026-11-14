@@ -16,10 +16,6 @@ import {
 afterEach(cleanup);
 const xp = () =>
   screen.getByRole('progressbar', { name: 'Experiência do jogador' });
-const workout = () =>
-  screen.getByRole('checkbox', {
-    name: 'Concluir missão: Um passo mais forte',
-  });
 function nav(name: string) {
   fireEvent.click(
     within(
@@ -27,8 +23,21 @@ function nav(name: string) {
     ).getByRole('button', { name }),
   );
 }
+function train(yes = true) {
+  nav('Pilares');
+  fireEvent.click(
+    within(
+      screen.getByRole('navigation', { name: 'Quatro pilares' }),
+    ).getByRole('button', { name: /Treinos/ }),
+  );
+  const form = screen.getByRole('form', { name: 'Treinou hoje?' });
+  fireEvent.click(
+    within(form).getByRole('button', { name: yes ? 'Sim' : 'Não' }),
+  );
+  nav('Início');
+}
 describe('Persistência da evolução real', () => {
-  it('começa em nível 1/0 XP sem gravar na montagem nem completar missões', () => {
+  it('começa em nível 1/0 XP sem gravar na montagem ou oferecer missões', () => {
     const writes = vi.spyOn(Storage.prototype, 'setItem');
     render(
       <StrictMode>
@@ -38,20 +47,18 @@ describe('Persistência da evolução real', () => {
     expect(xp()).toHaveAttribute('aria-valuenow', '0');
     expect(screen.getByText('Nível 1')).toBeInTheDocument();
     expect(
-      screen
-        .getAllByRole('checkbox')
-        .every((e) => !(e as HTMLInputElement).checked),
-    ).toBe(true);
+      screen.queryByRole('checkbox', { name: /Concluir missão/ }),
+    ).not.toBeInTheDocument();
     expect(writes).not.toHaveBeenCalled();
-    fireEvent.click(workout());
+    train();
     expect(writes).toHaveBeenCalledTimes(1);
     expect(JSON.parse(localStorage.getItem(PLAYER_STORAGE_KEY)!).version).toBe(
-      3,
+      PLAYER_STORAGE_VERSION,
     );
   });
-  it('conserva missão confirmada, XP e radar na recarga e desfaz sem duplicar', () => {
+  it('conserva atividade real, XP e Radar na recarga e desfaz sem duplicar', () => {
     let app = render(<App />);
-    fireEvent.click(workout());
+    train();
     expect(xp()).toHaveAttribute('aria-valuenow', '150');
     const raw = localStorage.getItem(PLAYER_STORAGE_KEY);
     app.unmount();
@@ -60,18 +67,16 @@ describe('Persistência da evolução real', () => {
         <App />
       </StrictMode>,
     );
-    expect(workout()).toBeChecked();
     expect(xp()).toHaveAttribute('aria-valuenow', '150');
     expect(localStorage.getItem(PLAYER_STORAGE_KEY)).toBe(raw);
     expect(
       screen.getByRole('progressbar', { name: 'Treinos: Dedicação · 7 dias' }),
     ).toHaveAttribute('aria-valuenow', '25');
-    fireEvent.click(workout());
+    train(false);
     expect(xp()).toHaveAttribute('aria-valuenow', '0');
     app.unmount();
     render(<App />);
     expect(xp()).toHaveAttribute('aria-valuenow', '0');
-    expect(workout()).not.toBeChecked();
   });
   it('mantém informações pessoais e progresso real sem desbloqueios artificiais', () => {
     const state = createInitialPlayerState();
@@ -92,11 +97,12 @@ describe('Persistência da evolução real', () => {
       screen.getByRole('heading', { name: 'Mente curiosa' }).closest('article'),
     ).toHaveClass('is-locked');
     expect(localStorage.getItem(PLAYER_STORAGE_KEY)).toBe(raw);
-    fireEvent.click(workout());
+    train();
     expect(xp()).toHaveAttribute('aria-valuenow', '150');
   });
-  it('preserva filtros e separa missões de hoje de conclusões anteriores', () => {
+  it('preserva confirmações históricas e preferências sem criar novas missões', () => {
     const state = createInitialPlayerState();
+    state.preferences.missionFilter = 'pending';
     state.missionEvents = [
       {
         missionId: 'workout',
@@ -107,13 +113,10 @@ describe('Persistência da evolução real', () => {
     ];
     localStorage.setItem(
       PLAYER_STORAGE_KEY,
-      JSON.stringify({ version: 3, data: state }),
+      JSON.stringify({ version: PLAYER_STORAGE_VERSION, data: state }),
     );
     const app = render(<App />);
-    expect(workout()).not.toBeChecked();
     expect(xp()).toHaveAttribute('aria-valuenow', '150');
-    nav('Missões');
-    fireEvent.click(screen.getByRole('button', { name: 'Pendentes' }));
     nav('Estatísticas');
     fireEvent.click(screen.getByRole('button', { name: '30 dias' }));
     app.unmount();
@@ -122,25 +125,27 @@ describe('Persistência da evolução real', () => {
       'aria-pressed',
       'true',
     );
-    nav('Missões');
-    expect(screen.getByRole('button', { name: 'Pendentes' })).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    );
-    expect(screen.getAllByRole('checkbox')).toHaveLength(5);
+    const saved = JSON.parse(localStorage.getItem(PLAYER_STORAGE_KEY)!).data;
+    expect(saved.missionEvents).toEqual(state.missionEvents);
+    expect(saved.preferences.missionFilter).toBe('pending');
+    nav('Início');
+    expect(xp()).toHaveAttribute('aria-valuenow', '150');
+    expect(
+      screen.queryByRole('checkbox', { name: /Concluir missão/ }),
+    ).not.toBeInTheDocument();
   });
-  it.each(['{', '{"version":3,"data":{}}'])(
+  it.each(['{', '{"version":4,"data":{}}'])(
     'mantém o conteúdo inválido na montagem e permite sessão real (%s)',
     (raw) => {
       localStorage.setItem(PLAYER_STORAGE_KEY, raw);
       render(<App />);
       expect(xp()).toHaveAttribute('aria-valuenow', '0');
       expect(localStorage.getItem(PLAYER_STORAGE_KEY)).toBe(raw);
-      fireEvent.click(workout());
+      train();
       expect(xp()).toHaveAttribute('aria-valuenow', '150');
       expect(
         JSON.parse(localStorage.getItem(PLAYER_STORAGE_KEY)!).version,
-      ).toBe(3);
+      ).toBe(PLAYER_STORAGE_VERSION);
     },
   );
   it('preserva uma versão desconhecida e funciona sem sobrescrevê-la', () => {
@@ -150,7 +155,7 @@ describe('Persistência da evolução real', () => {
     });
     localStorage.setItem(PLAYER_STORAGE_KEY, raw);
     render(<App />);
-    fireEvent.click(workout());
+    train();
     expect(xp()).toHaveAttribute('aria-valuenow', '150');
     expect(localStorage.getItem(PLAYER_STORAGE_KEY)).toBe(raw);
     expect(
@@ -162,12 +167,12 @@ describe('Persistência da evolução real', () => {
       throw new Error('quota');
     });
     render(<App />);
-    fireEvent.click(workout());
+    train();
     expect(xp()).toHaveAttribute('aria-valuenow', '150');
     expect(
       screen.getByText(/Salvamento local indisponível/),
     ).toBeInTheDocument();
-    fireEvent.click(workout());
+    train(false);
     expect(xp()).toHaveAttribute('aria-valuenow', '0');
   });
   it('acesso ao armazenamento bloqueado não impede ações reais', () => {
@@ -176,7 +181,7 @@ describe('Persistência da evolução real', () => {
     });
     render(<App />);
     expect(xp()).toHaveAttribute('aria-valuenow', '0');
-    fireEvent.click(workout());
+    train();
     expect(xp()).toHaveAttribute('aria-valuenow', '150');
     expect(
       screen.getByText(/Salvamento local indisponível/),

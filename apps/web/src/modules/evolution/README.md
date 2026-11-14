@@ -3,7 +3,8 @@
 O SVG reutilizável continua usando `scorePeriod` e `comparePeriods` com a fórmula
 70% esforço + 30% frequência e metas proporcionais a 7/30/90 dias.
 A fonte da projeção agora é `projectEffortActivities` em `modules/records`, que
-combina missões e histórico demonstrativo preservado com os registros reais.
+combina registros reais com confirmações históricas comprovadas do usuário.
+Histórico demonstrativo é ignorado; novas quests não criam esforço no Radar.
 Datas e projeções são puras; a interface usa o dia civil atual do navegador.
 
 O histórico legado permanece associado a 13/11/2026; nunca é convertido em
