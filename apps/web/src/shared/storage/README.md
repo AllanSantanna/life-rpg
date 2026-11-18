@@ -1,6 +1,6 @@
 # Persistência local e evolução real
 
-Chave `life-rpg:player-state`, envelope `{ version: 4, data: PlayerState }`.
+Chave `life-rpg:player-state`, envelope `{ version: 7, data: PlayerState }`.
 O adaptador `localStateStorage.ts` isola leitura, validação, serialização e escrita;
 `app/usePlayerState.ts` hidrata o estado e salva alterações automaticamente.
 
@@ -19,7 +19,7 @@ para nível 1/0 XP e limiar de 2.000 XP; os campos legados `activityHistory` e
 formato de catálogo, com todos pendentes; conclusões reais ficam em `missionEvents`.
 O aplicativo não lê valores de progresso ou atributos dos arquivos de mocks.
 
-## Correção de progressão v1/v2 e formato atual v4
+## Correção de progressão v1/v2
 
 A leitura valida a estrutura antiga antes de migrar. V2 preserva integralmente
 `records`; v1 não possuía registros dos pilares e recebe a estrutura vazia, como
@@ -37,8 +37,8 @@ formato antigo não registrava a hora/data do clique: essas conclusões conserva
 que tenham ocorrido na data da atualização. Não são criados novos eventos: missões fixas foram removidas da interface. Histórico opaco sem origem verificável não é usado no Radar.
 
 A migração acontece em memória e retorna `migrated: true`. Após hidratação válida,
-o hook salva v4 em um `setItem`; em StrictMode essa gravação não se duplica. Na
-próxima carga v4 é validada diretamente: nenhuma recompensa ou migração é repetida.
+o hook salva v7 em um `setItem`; em StrictMode essa gravação não se duplica. Na
+próxima carga v7 é validada diretamente: nenhuma recompensa ou migração é repetida.
 Uma falha de escrita mantém o conteúdo antigo intacto; a sessão usa a projeção real
 e o rodapé avisa que não foi possível salvar. Versões desconhecidas e dados de
 versões antigas que não possam ser migrados não são sobrescritos.
@@ -56,7 +56,7 @@ como histórico e não são excluídos, para preservar XP, conquistas e esforço
 Não há handler para concluir/desfazer novas missões. O catálogo legado serve
 somente à validação e interpretação desses dados. Quests personalizadas e registros
 continuam usando os limites existentes, sem multiplicar a recompensa de uma área/data.
-Como não muda o esquema, essa retirada não exige nova migração nem regrava v4 na montagem.
+A retirada das missões fixas não modifica os dados históricos.
 
 Atributos usam dedicação real de 7 dias; conquistas são derivadas de atividades,
 constância, livros concluídos e metas. Elas não dão XP extra. Veja
@@ -78,7 +78,7 @@ ou resolução de alterações simultâneas entre abas.
 
 1. Abra no mesmo endereço usado anteriormente. O progresso deve refletir apenas
    seus registros e missões confirmadas, mantendo o perfil e os quatro pilares.
-2. Em DevTools → Application → Local Storage, confira a versão 4. Recarregue:
+2. Em DevTools → Application → Local Storage, confira a versão 6. Recarregue:
    XP/nível devem permanecer iguais, sem novo crédito ou migração.
 3. Em uma origem/navegador sem dados, confira nível 1/0 XP, Radar zero e conquistas
    bloqueadas. Registre um treino: 150 XP. Sua quest automática de treino não duplica esse prêmio.
@@ -93,10 +93,42 @@ Veja [Finanças](../../modules/finances/README.md) para as regras monetárias.
 
 ## Quests personalizadas e migração v3 → v4
 
-O envelope atual é v4. Dados v3 válidos recebem apenas `goals: {items: [], updates: []}`,
+O formato de quests foi introduzido em v4. Dados v3 válidos recebem `goals: {items: [], updates: []}`,
 sem alterar perfil, registros, missões, preferências ou origem da progressão real.
 Versões v1/v2 aplicam a correção de demonstração descrita acima e recebem quests
-vazias. Na carga seguinte v4 é validado diretamente, sem repetir migração ou XP.
+vazias. O envelope salvo usa a versão atual, sem repetir migração ou XP na próxima carga.
 O limite/orçamento de XP de quests é calculado a partir das conclusões, não salvo
 como crédito acumulado. Exclusão/edição/desfazer recalculam a projeção. O contrato
 completo está em [Quests](../../modules/goals/README.md).
+
+## Perfil simplificado e migração v5 → v6
+
+`character` contém somente `avatar` e `classification`. V5 preserva esses dois
+campos e remove os antigos equipamentos, coleções, desbloqueios e histórico do
+personagem. Todos os outros campos, incluindo perfil pessoal, registros dos
+quatro pilares, quests, missões e preferências, são copiados sem alteração.
+V4 recebe apenas o estado inicial do personagem; não há redefinição de progresso.
+
+A classificação de 30 dias é reconciliada na hidratação, nas alterações dos
+registros e na mudança de dia. Classe e avatar não alteram a projeção de XP/nível. Veja as
+[regras de classes](../../modules/profile/README.md).
+
+## Classes imediatas e migração v5/v6 → v7
+
+A classe Aventureiro é convertida para `current: null`. A hidratação calcula a
+classe pelo pilar de maior pontuação nos últimos 30 dias, desde o primeiro registro.
+Sem pontuação, o perfil fica sem classe definida. Trocas não exigem confirmação
+nem intervalo; `pending` é limpo na reconciliação. Avatar, registros, quests,
+preferências e progressão são preservados. Uma falha de gravação conserva o
+envelope original.
+
+## Musculação opcional
+
+`records.advancedWorkouts` é opcional, com contrato interno `version: 1`.
+Guarda a preferência, exercícios personalizados, fichas e snapshots de sessões
+com séries, cargas, repetições, RIR e observações. A ausência do campo representa
+modo desativado sem dados; dados anteriores continuam válidos no envelope v7,
+sem migração ou gravação na montagem. Desativar o modo preserva o conteúdo.
+Recordes, volumes e evolução são projeções; não existe crédito de XP avançado.
+A conclusão pode atualizar atomicamente o registro diário existente por data.
+Veja [Treinos](../../modules/workouts/README.md).

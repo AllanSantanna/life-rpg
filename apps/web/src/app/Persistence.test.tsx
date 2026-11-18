@@ -1,3 +1,4 @@
+import { projectCharacter } from '../modules/profile/character';
 import { StrictMode } from 'react';
 import {
   cleanup,
@@ -83,6 +84,10 @@ describe('Persistência da evolução real', () => {
     state.profile.name = 'Lia';
     state.profile.title = 'Guardiã';
     state.records.workouts = [{ date: '2026-11-13', trained: true }];
+    state.character.classification = projectCharacter(
+      state,
+      '2026-11-13',
+    ).classification.state;
     const raw = JSON.stringify({
       version: PLAYER_STORAGE_VERSION,
       data: state,
@@ -134,7 +139,7 @@ describe('Persistência da evolução real', () => {
       screen.queryByRole('checkbox', { name: /Concluir missão/ }),
     ).not.toBeInTheDocument();
   });
-  it.each(['{', '{"version":4,"data":{}}'])(
+  it.each(['{', JSON.stringify({ version: PLAYER_STORAGE_VERSION, data: {} })])(
     'mantém o conteúdo inválido na montagem e permite sessão real (%s)',
     (raw) => {
       localStorage.setItem(PLAYER_STORAGE_KEY, raw);

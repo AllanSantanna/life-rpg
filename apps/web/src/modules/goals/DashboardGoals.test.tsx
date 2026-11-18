@@ -1,3 +1,4 @@
+import { projectCharacter } from '../profile/character';
 import { StrictMode } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
@@ -289,7 +290,7 @@ describe('Quests do usuário no dashboard', () => {
     expect(summary()).toHaveTextContent('Objetivo treino-unico');
     expect(xp()).toHaveAttribute('aria-valuenow', '0');
   });
-  it('preserva XP, conquistas e dados v4 anteriores sem regravar ou conceder recompensas por navegar', () => {
+  it('preserva XP, conquistas e dados existentes sem regravar ou conceder recompensas por navegar', () => {
     const state = createInitialPlayerState();
     state.profile.name = 'Lia';
     state.records.workouts = [{ date: today, trained: true }];
@@ -298,6 +299,10 @@ describe('Quests do usuário no dashboard', () => {
       { missionId: 'water', date: today, completed: true, source: 'user' },
     ];
     add(state, 'legitima');
+    state.character.classification = projectCharacter(
+      state,
+      today,
+    ).classification.state;
     store(state);
     const raw = localStorage.getItem(PLAYER_STORAGE_KEY);
     const writes = vi.spyOn(Storage.prototype, 'setItem');

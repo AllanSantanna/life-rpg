@@ -58,8 +58,8 @@ describe('Armazenamento local versionado', () => {
     'null',
     '[]',
     '42',
-    '{"version":4}',
-    '{"version":4,"data":{}}',
+    JSON.stringify({ version: PLAYER_STORAGE_VERSION }),
+    JSON.stringify({ version: PLAYER_STORAGE_VERSION, data: {} }),
   ])('recupera com segurança o conteúdo inválido %s', (raw) => {
     const { store, content } = fixture(raw);
     expect(store.load().status).toBe('invalid');

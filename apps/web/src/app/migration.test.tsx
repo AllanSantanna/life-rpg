@@ -108,8 +108,10 @@ describe('Migração única para evolução real v3', () => {
       expect(storage.load()).toEqual({ status: 'loaded', data: result.data });
       expect(
         JSON.parse(localStorage.getItem(PLAYER_STORAGE_KEY)!).version,
-      ).toBe(4);
-      expect(migratePlayerState(4, result.data)).toBeNull();
+      ).toBe(PLAYER_STORAGE_VERSION);
+      expect(
+        migratePlayerState(PLAYER_STORAGE_VERSION, result.data),
+      ).toBeNull();
     },
   );
   it('elimina apenas demonstração e conserva missões marcadas pelo usuário, registros e perfil em StrictMode', () => {

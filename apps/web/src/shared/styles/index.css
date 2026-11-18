@@ -2987,3 +2987,111 @@ input.custom-date-picker__validation {
     transition: none;
   }
 }
+
+/* Perfil simples, compartilhado com o cabeçalho do dashboard. */
+.character-avatar {
+  position: relative;
+  overflow: hidden;
+  width: 74px;
+  aspect-ratio: 6 / 7;
+  border: 2px solid #8c7578;
+  border-radius: 16px 16px 25px 25px;
+  background: #1b1017;
+}
+.character-avatar > svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.character-level-badge {
+  position: absolute;
+  bottom: -7px;
+  right: -5px;
+  min-width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  padding: 0 6px;
+  border: 1px solid #ed7869;
+  border-radius: 9px;
+  background: linear-gradient(#9d2c36, #45151d);
+  color: #fff1e9;
+  font: 600 12px monospace;
+}
+.player-class {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+  font-size: 12px;
+}
+.player-class-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 9px;
+  border: 1px solid #a4454d66;
+  border-radius: 6px;
+  color: #f3a39c;
+  background: #70232c33;
+}
+.character-sheet {
+  min-width: 0;
+}
+.profile-settings {
+  max-width: 640px;
+  padding: 24px;
+}
+.profile-name-form label {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 12px;
+  color: #cbbac1;
+}
+.profile-name-form > div {
+  display: flex;
+  gap: 10px;
+}
+.profile-name-form input {
+  min-width: 0;
+  flex: 1;
+  padding: 12px;
+  border: 1px solid #4d303a;
+  border-radius: 8px;
+  background: #100d12;
+  font-size: 14px;
+}
+.profile-save {
+  flex-shrink: 0;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid #b34248;
+  border-radius: 8px;
+  background: #70232c;
+  font-size: 12px;
+}
+.profile-save:hover {
+  background-color: #79323a;
+}
+.profile-feedback {
+  margin-top: 8px;
+  color: #f2aba5;
+  font-size: 12px;
+}
+.profile-feedback:empty {
+  margin: 0;
+}
+.character-sheet button:focus-visible,
+.character-sheet input:focus-visible {
+  outline: 2px solid #f9aaa0;
+  outline-offset: 4px;
+}
+@media (max-width: 480px) {
+  .profile-settings {
+    padding: 20px;
+  }
+  .profile-name-form > div {
+    flex-direction: column;
+  }
+}

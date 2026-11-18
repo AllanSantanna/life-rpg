@@ -27,8 +27,11 @@ atuais. O projeto também contém uma base de API para evoluções futuras.
   recompensa por área/dia e prevenção de duplicação com quests e confirmações históricas.
 - **Estatísticas:** radar dinâmico de 7/30/90 dias, comparação com o período anterior
   e gráfico semanal de XP das ações datadas.
-- **Persistência:** formato versionado, validação e migração automática de v1/v2/v3 para
-  v4, preservando os registros reais e corrigindo o progresso demonstrativo no mesmo navegador e endereço.
+- **Perfil:** nome editável, avatar atual, classe automática, nível, XP e Radar. A classe
+  considera a dedicação real dos últimos 30 dias, atribuindo imediatamente a classe pelo pilar de maior pontuação.
+  Veja as [regras de classes e migração](apps/web/src/modules/profile/README.md).
+- **Persistência:** formato v7, com migração automática das versões anteriores,
+  preservando registros reais, quests, XP e nível. O perfil antigo perde apenas os campos cosméticos descontinuados.
 - **Navegação:** URLs próprias, acesso direto, recarga e Voltar/Avançar.
 - **Acessibilidade/PWA:** seletores e calendários customizados dark em todo o aplicativo,
   foco de teclado, formulários rotulados, respeito a
@@ -37,8 +40,8 @@ atuais. O projeto também contém uma base de API para evoluções futuras.
 Todo jogador novo começa no **nível 1, com 0 XP**. XP e níveis usam somente
 atividades reais, quests elegíveis e confirmações históricas do usuário, sem recompensas demonstrativas.
 Atributos, conquistas, Radar e estatísticas são derivados dessas fontes. A migração
-v4 conserva perfil, preferências e todos os registros dos pilares, retirando apenas
-progresso fictício. Não há sincronização entre dispositivos; limpar os dados do
+conserva perfil, preferências e todos os registros dos pilares. A correção de
+progresso fictício permanece restrita aos dados demonstrativos de v1/v2. Não há sincronização entre dispositivos; limpar os dados do
 navegador remove o progresso local.
 
 ## Tecnologias
@@ -105,8 +108,8 @@ cinco por prazo. Cada quest abre seus detalhes em `/quests?quest=<id>`, com os m
 controles de progresso da página Quests. Sem quests ativas, as conquistas usam o espaço
 disponível. O endereço antigo `/missoes` redireciona para `/quests`; não há novas
 conclusões ou recompensas de missões fixas. Links antigos de `/metas` também
-continuam funcionando e abrem `/quests`, inclusive os detalhes já compartilhados. Confirmações legítimas anteriores
-permanecem como histórico, sem migração adicional do envelope v4.
+continuam funcionando e abrem `/quests`, inclusive os detalhes já compartilhados.
+Confirmações legítimas anteriores permanecem preservadas como histórico no envelope v7.
 
 ### Backend e ambiente opcionais
 

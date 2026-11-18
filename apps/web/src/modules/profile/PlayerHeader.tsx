@@ -1,10 +1,10 @@
+import { CharacterAvatar } from './CharacterAvatar';
+import type { CharacterState } from './character';
+import { classCatalog } from './classes';
 import { EvolutionRadar } from '../evolution/EvolutionRadar';
 import type { Scores } from '../evolution/scoring';
 import { useProgressFeedback } from '../../shared/hooks/useProgressFeedback';
-import {
-  HeroPortrait,
-  JourneyLandscape,
-} from '../../shared/components/JourneyArt';
+import { JourneyLandscape } from '../../shared/components/JourneyArt';
 import { Icon } from '../../shared/components/Icon';
 import { ProgressBar } from '../../shared/components/ProgressBar';
 import type { PlayerProfile } from './types';
@@ -12,15 +12,20 @@ import type { PlayerProgress } from '../gamification/types';
 
 export function PlayerHeader({
   player,
+  character,
   progress,
   dedication,
   onOpenEvolution,
 }: {
   player: PlayerProfile;
+  character: CharacterState;
   progress: PlayerProgress;
   dedication: Scores;
   onOpenEvolution: () => void;
 }) {
+  const currentClass = character.classification.current
+    ? classCatalog[character.classification.current]
+    : null;
   const xpFeedback = useProgressFeedback(
     (progress.level - 1) * progress.xpPerLevel + progress.xp,
   );
@@ -42,32 +47,37 @@ export function PlayerHeader({
       )}
       <div className="player-content relative">
         <div className="player-identity flex items-center gap-4">
-          <div
-            role="img"
-            aria-label={`Avatar de ${player.name}`}
-            className="player-avatar relative grid size-16 shrink-0 place-items-center rounded-2xl border border-primary/40 text-xl font-semibold sm:size-20 sm:text-2xl"
-          >
-            <HeroPortrait />
+          <div className="relative shrink-0">
+            <CharacterAvatar
+              avatar={character.avatar}
+              name={player.name}
+              className="player-avatar"
+            />
             <span
-              aria-hidden="true"
-              className="absolute -bottom-2 -right-2 grid size-7 place-items-center rounded-lg border border-background bg-primary text-[11px]"
+              aria-label={`Nível do personagem: ${progress.level}`}
+              className="character-level-badge"
             >
               {progress.level}
             </span>
           </div>
           <div className="player-details">
-            <p className="eyebrow mb-2 text-red-400">Sua jornada começa aqui</p>
+            <p className="eyebrow mb-2 text-red-400">Ficha do personagem</p>
             <h2 className="text-2xl font-semibold tracking-tight">
               {player.name}
-              <span className="ml-3 inline-flex align-middle text-red-400">
-                <Icon name="shield" size={18} />
-              </span>
             </h2>
-            <p className="mt-1 text-sm text-muted">
-              {player.title} <span className="mx-1.5 text-white/20">/</span>{' '}
+            <p className="player-class">
+              <span
+                aria-label="Classe automática"
+                className="player-class-badge"
+              >
+                <Icon name={currentClass?.icon ?? 'target'} size={15} />
+                <strong>{currentClass?.name ?? 'Sem classe definida'}</strong>
+              </span>
               <strong className="player-level">Nível {progress.level}</strong>
             </p>
-            <p className="player-journey">{player.journey}</p>
+            <p className="player-journey">
+              Classe automática · últimos 30 dias
+            </p>
           </div>
         </div>
         <div className="player-experience">

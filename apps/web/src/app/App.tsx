@@ -1,24 +1,15 @@
+import { ProfilePage } from '../modules/profile/ProfilePage';
+import { realAttributes } from '../modules/gamification/realProgress';
 import { GoalsPage } from '../modules/goals/GoalsPage';
 import { GoalsSummary } from '../modules/goals/GoalsSummary';
 import { dashboardGoals } from '../modules/goals/dashboardGoals';
 import { applyGoalCommand } from '../modules/goals/commands';
-import { goalRewards } from '../modules/goals/rewards';
 import type { GoalCommand } from '../modules/goals/types';
-import {
-  startingProgress,
-  realAttributes,
-  realAchievements,
-} from '../modules/gamification/realProgress';
-import { realMissionHistory } from '../modules/missions/catalog';
 import { useUsdQuote } from '../modules/finances/useUsdQuote';
 import { useBitcoinQuote } from '../modules/finances/useBitcoinQuote';
 import { applyRecordCommand } from '../modules/records/commands';
 import type { RecordCommand } from '../modules/records/types';
-import {
-  projectEffortActivities,
-  recordReward,
-  weeklyRecordXP,
-} from '../modules/records/progression';
+import { weeklyRecordXP } from '../modules/records/progression';
 import { recordMetrics } from '../modules/records/metrics';
 import { useToday } from '../modules/records/useToday';
 import { displayDate } from '../modules/records/dates';
@@ -28,7 +19,6 @@ import { WorkoutsPage } from '../modules/workouts/WorkoutsPage';
 import { RestPage } from '../modules/rest/RestPage';
 import { KnowledgePage } from '../modules/knowledge/KnowledgePage';
 import { usePlayerState } from './usePlayerState';
-import { scorePeriod } from '../modules/evolution/scoring';
 import { EvolutionPanel } from '../modules/evolution/EvolutionPanel';
 import { useEffect, useRef } from 'react';
 import { useUrlNavigation } from './useUrlNavigation';
@@ -37,7 +27,6 @@ import { pillarViews } from './views';
 import { PlayerHeader } from '../modules/profile/PlayerHeader';
 import { AttributesPanel } from '../modules/gamification/AttributesPanel';
 import { AchievementsPanel } from '../modules/gamification/AchievementsPanel';
-import { projectProgress } from '../modules/gamification/progression';
 import { MetricCard } from '../shared/components/MetricCard';
 import { SectionHeading } from '../shared/components/SectionHeading';
 import { Icon } from '../shared/components/Icon';
@@ -56,36 +45,20 @@ const titles: Record<View, string> = {
 export function App() {
   const today = useToday();
   const { view, navigate, goalId } = useUrlNavigation();
-  const { state, setState, storageAvailable } = usePlayerState();
+  const { state, setState, storageAvailable, facts } = usePlayerState(today);
   const recordsRef = useRef(state.records);
   recordsRef.current = state.records;
   const player = state.profile;
-  const realMissions = realMissionHistory(state.missionEvents);
-  const heading = useRef<HTMLHeadingElement>(null);
-  const goalReward = goalRewards(
-    state.goals,
-    state.records,
-    realMissions,
-    today,
-  );
-  const progress = projectProgress(
-    startingProgress,
-    recordReward(state.records, realMissions, today) + goalReward.total,
-  );
-  const activities = projectEffortActivities(
-    [],
-    realMissions,
-    state.records,
-    today,
-  );
-  const dedication = scorePeriod(activities, 7);
-  const attributes = realAttributes(dedication);
-  const achievements = realAchievements(
-    state.records,
-    realMissions,
-    today,
+  const {
+    missions: realMissions,
+    rewards: goalReward,
+    progress,
     activities,
-  );
+    dedication,
+    achievements,
+  } = facts;
+  const heading = useRef<HTMLHeadingElement>(null);
+  const attributes = realAttributes(dedication);
   const weeklyActivity = weeklyRecordXP(state.records, realMissions, today).map(
     (day) => ({
       ...day,
@@ -205,9 +178,10 @@ export function App() {
             </span>
           </div>
           <div className="view-content" key={view}>
-            {(view === 'home' || view === 'profile') && (
+            {view === 'home' && (
               <PlayerHeader
                 player={player}
+                character={state.character}
                 progress={progress}
                 dedication={dedication}
                 onOpenEvolution={() => navigate('stats')}
@@ -334,37 +308,12 @@ export function App() {
               </div>
             )}
             {view === 'profile' && (
-              <div className="grid items-start gap-5 xl:grid-cols-2">
-                <section className="panel p-6">
-                  <SectionHeading
-                    title="Sua ficha de jogador"
-                    eyebrow="Seu perfil"
-                  />
-                  <dl className="divide-y divide-white/[0.06]">
-                    {[
-                      { label: 'Nome', value: player.name },
-                      { label: 'Classe', value: player.title },
-                      { label: 'Jornada', value: player.journey },
-                      { label: 'Início da jornada', value: player.joined },
-                      { label: 'Foco', value: player.focus },
-                    ].map((item) => (
-                      <div
-                        key={item.label}
-                        className="flex flex-wrap justify-between gap-2 py-4 text-sm"
-                      >
-                        <dt className="text-muted">{item.label}</dt>
-                        <dd>{item.value}</dd>
-                      </div>
-                    ))}
-                  </dl>
-                  <p className="mt-5 rounded-lg border border-white/10 p-4 text-xs leading-relaxed text-muted">
-                    Seu progresso é calculado somente a partir de atividades
-                    reais. As informações do perfil são mantidas neste
-                    navegador.
-                  </p>
-                </section>
-                <AchievementsPanel achievements={achievements} />
-              </div>
+              <ProfilePage
+                state={state}
+                facts={facts}
+                onChange={setState}
+                onOpenEvolution={() => navigate('stats')}
+              />
             )}
           </div>
           <footer className="mt-9 flex flex-wrap items-center justify-between gap-3 border-t border-white/[0.06] pt-5 text-[11px] text-muted">

@@ -1,3 +1,8 @@
+import {
+  initialCharacter,
+  isCharacterState,
+  type CharacterState,
+} from '../modules/profile/character';
 import { emptyGoals, type GoalState } from '../modules/goals/types';
 import { isGoalState } from '../modules/goals/commands';
 import { startingProgress } from '../modules/gamification/realProgress';
@@ -28,22 +33,24 @@ export interface LegacyPlayerState {
   preferences: { radarPeriod: Period; missionFilter: MissionFilter };
 }
 export interface PlayerState extends LegacyPlayerState {
+  character: CharacterState;
   records: LifeRecords;
   missionEvents: MissionEvent[];
   goals: GoalState;
 }
 export const PLAYER_STORAGE_KEY = 'life-rpg:player-state';
-export const PLAYER_STORAGE_VERSION = 4;
+export const PLAYER_STORAGE_VERSION = 7;
 
 export function createInitialPlayerState(): PlayerState {
   return {
+    character: initialCharacter(),
     records: emptyRecords(),
     goals: emptyGoals(),
     missionEvents: [],
     profile: {
       name: 'Jogador',
       initials: 'JO',
-      title: 'Explorador',
+      title: 'Jogador',
       journey: 'O caminho da constância',
       joined: new Date().toLocaleDateString('pt-BR', {
         month: 'long',
@@ -158,7 +165,9 @@ export function isLegacyPlayerState(
   );
 }
 
-function isProgressState(value: unknown): value is Omit<PlayerState, 'goals'> {
+function isProgressState(
+  value: unknown,
+): value is Omit<PlayerState, 'goals' | 'character'> {
   if (
     !record(value) ||
     !isLegacyPlayerState(value) ||
@@ -190,15 +199,56 @@ function isProgressState(value: unknown): value is Omit<PlayerState, 'goals'> {
     ).size === events.length
   );
 }
-export function isPlayerState(value: unknown): value is PlayerState {
+function isV4PlayerState(
+  value: unknown,
+): value is Omit<PlayerState, 'character'> {
   return isProgressState(value) && 'goals' in value && isGoalState(value.goals);
+}
+export function isPlayerState(value: unknown): value is PlayerState {
+  return (
+    isV4PlayerState(value) &&
+    'character' in value &&
+    isCharacterState(value.character)
+  );
 }
 export function migratePlayerState(
   version: number,
   value: unknown,
 ): PlayerState | null {
+  if (version === 5 || version === 6) {
+    if (
+      !isV4PlayerState(value) ||
+      !('character' in value) ||
+      !record(value.character) ||
+      !record(value.character.classification)
+    )
+      return null;
+    const { avatar, classification } = value.character;
+    const character = {
+      avatar,
+      classification: {
+        ...classification,
+        current:
+          classification.current === 'adventurer'
+            ? null
+            : classification.current,
+        pending:
+          record(classification.pending) &&
+          classification.pending.id === 'adventurer'
+            ? null
+            : classification.pending,
+      },
+    };
+    return isCharacterState(character) ? { ...value, character } : null;
+  }
+  if (version === 4)
+    return isV4PlayerState(value)
+      ? { ...value, character: initialCharacter() }
+      : null;
   if (version === 3)
-    return isProgressState(value) ? { ...value, goals: emptyGoals() } : null;
+    return isProgressState(value)
+      ? { ...value, goals: emptyGoals(), character: initialCharacter() }
+      : null;
   if ((version !== 1 && version !== 2) || !isLegacyPlayerState(value))
     return null;
   if (version === 2 && (!record(value) || !isLifeRecords(value.records)))
@@ -224,6 +274,7 @@ export function migratePlayerState(
   );
   return {
     ...value,
+    character: initialCharacter(),
     goals: emptyGoals(),
     records,
     progressOrigin: { ...startingProgress },
