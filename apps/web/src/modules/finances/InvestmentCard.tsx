@@ -1,6 +1,9 @@
 import type { ReactNode } from 'react';
 import { ActionButton } from '../../shared/components/ActionButton';
-import { Icon } from '../../shared/components/Icon';
+import {
+  ActionMenu,
+  type ActionMenuItem,
+} from '../../shared/components/ActionMenu';
 import { displayDate } from '../records/dates';
 import type { RecordPageProps } from '../records/types';
 import { money } from './calculations';
@@ -19,6 +22,14 @@ import { SavingsBoxDetails } from './SavingsBoxCard';
 import type { Investment } from './types';
 import { useQuoteRefresh } from './useQuoteRefresh';
 
+const menuIcons: Record<InvestmentAction['id'], ActionMenuItem['icon']> = {
+  contribute: 'plus',
+  withdraw: 'arrow',
+  balance: 'wallet',
+  quote: 'chart',
+  edit: 'edit',
+};
+
 export interface QuoteStatus {
   error: string;
   stale: boolean;
@@ -28,12 +39,9 @@ export interface QuoteStatus {
  * Cartão único da carteira. Somente apresenta projeções de `ledger.ts` e
  * delega as ações aos formulários e comandos existentes.
  *
- * Botões oficiais (docs/design-system/components.md):
- * - ação primária da categoria: `ActionButton`;
- * - ações secundárias: `.filter-button`;
- * - Editar: botão de `.record-actions` com ícone `edit`, como nas contas;
- * - Excluir: `.financial-danger` com ícone `trash` e `FinancialConfirmation`;
- * - Ver detalhes: `.text-action`.
+ * Ações (docs/design-system/components.md): a principal da categoria usa
+ * `ActionButton`; as secundárias, Editar e Excluir (com confirmação) ficam em
+ * `ActionMenu` (“Mais ações”); “Ver detalhes” usa `.text-action`.
  */
 export function InvestmentCard({
   investment,
@@ -120,16 +128,6 @@ export function InvestmentCard({
             </div>
           ))}
         </dl>
-        {figures.notes.map((note) => (
-          <p key={note} className="record-hint">
-            {note}
-          </p>
-        ))}
-        {(bitcoin || usd) && status.error && (
-          <p className="record-hint" role="status">
-            {status.error}
-          </p>
-        )}
       </div>
       <div className="investment-card__actions">
         <ActionButton
@@ -139,50 +137,44 @@ export function InvestmentCard({
         >
           {primary.label}
         </ActionButton>
-        <div className="record-actions investment-card__secondary">
-          {secondary.map((action) => (
-            <button
-              key={action.id}
-              type="button"
-              className="filter-button"
-              aria-label={actionAccessibleName(action, investment.name)}
-              aria-busy={action.id === 'quote' && refresh.busy}
-              disabled={action.id === 'quote' && refresh.busy}
-              onClick={() =>
+        <ActionMenu
+          label="Mais ações"
+          accessibleLabel={`Mais ações de ${investment.name}`}
+          items={[
+            ...secondary.map((action) => ({
+              id: action.id,
+              label:
+                action.id === 'quote' && refresh.busy
+                  ? 'Consultando cotação…'
+                  : action.label,
+              accessibleLabel: actionAccessibleName(action, investment.name),
+              icon: menuIcons[action.id],
+              disabled: action.id === 'quote' && refresh.busy,
+              onSelect: () =>
                 action.id === 'quote'
                   ? void refresh.refresh()
-                  : onAction(action)
-              }
-            >
-              {action.id === 'quote' && refresh.busy
-                ? 'Consultando…'
-                : action.label}
-            </button>
-          ))}
-        </div>
-        <div className="record-actions">
-          <button
-            type="button"
-            aria-label={actionAccessibleName(edit, investment.name)}
-            onClick={() => onAction(edit)}
-          >
-            <Icon name="edit" size={16} />
-            Editar
-          </button>
-          <button
-            type="button"
-            className="financial-danger"
-            onClick={onDelete}
-            aria-label={`Excluir investimento e operações de ${investment.name}`}
-          >
-            <Icon name="trash" size={16} />
-            Excluir
-          </button>
-        </div>
+                  : onAction(action),
+            })),
+            {
+              id: 'edit',
+              label: 'Editar',
+              accessibleLabel: actionAccessibleName(edit, investment.name),
+              icon: 'edit',
+              onSelect: () => onAction(edit),
+            },
+            {
+              id: 'delete',
+              label: 'Excluir',
+              accessibleLabel: `Excluir investimento e operações de ${investment.name}`,
+              icon: 'trash',
+              onSelect: onDelete,
+            },
+          ]}
+        />
       </div>
       <div className="investment-card__footer">
         <p className="record-feedback" role="status">
-          {(bitcoin || usd ? refresh.message : '') || message}
+          {(bitcoin || usd ? refresh.message || status.error : '') || message}
         </p>
         {form}
         <Disclosure
@@ -192,6 +184,11 @@ export function InvestmentCard({
           variant="text"
           className="investment-card__details"
         >
+          {figures.notes.map((note) => (
+            <p key={note} className="record-hint">
+              {note}
+            </p>
+          ))}
           {box ? (
             <SavingsBoxDetails investment={investment} value={value} />
           ) : (

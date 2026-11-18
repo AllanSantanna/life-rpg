@@ -1995,16 +1995,17 @@
 .investment-card__value {
   overflow-wrap: anywhere;
 }
-/* Primária no topo, Editar/Excluir na base: a sobra da faixa compartilhada
-   fica entre elas, sem esticar os botões oficiais. */
+/* ActionButton + “Mais ações”; o menu vai para a linha de baixo quando os
+   160 px oficiais e o gatilho não cabem lado a lado. */
 .investment-card__actions {
-  display: grid;
-  grid-template-rows: auto 1fr auto;
-  gap: var(--space-2);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
 }
-.investment-card__secondary {
+.investment-card__footer {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 128px), 1fr));
+  gap: var(--space-2);
   align-content: start;
 }
 .investment-card__details {
@@ -2812,6 +2813,18 @@
   opacity: 0.4;
   cursor: not-allowed;
 }
+/* ActionMenu reutiliza o popup e as opções do CustomSelect. */
+.action-menu .custom-select__option {
+  width: 100%;
+  text-align: left;
+}
+.action-menu__chevron {
+  transform: rotate(90deg);
+  transition: transform 0.16s;
+}
+[aria-expanded='true'] > .action-menu__chevron {
+  transform: rotate(-90deg);
+}
 .quest-controls__top > .custom-select--compact {
   margin-left: auto;
 }
@@ -2848,6 +2861,7 @@
 @media (prefers-reduced-motion: reduce) {
   .custom-select__trigger,
   .custom-select__chevron,
+  .action-menu__chevron,
   .custom-select__option,
   .custom-select__popup {
     transition: none;

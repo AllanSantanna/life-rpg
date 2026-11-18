@@ -8,6 +8,7 @@ export interface CardFigures {
   label: string;
   value: string;
   metrics: { label: string; value: string }[];
+  /** Explicações longas, exibidas em “Ver detalhes”. */
   notes: string[];
 }
 
@@ -76,6 +77,23 @@ export function cardFigures(
               value: usd
                 ? formatCurrency(value.units, 'USD')
                 : (value.units / 1e8).toFixed(8) + ' BTC',
+            },
+            {
+              label: bitcoin ? 'Cotação BTC/BRL' : 'PTAX USD/BRL',
+              value: quote
+                ? `${
+                    bitcoin
+                      ? money(quotes.btc!.priceCents)
+                      : (quotes.usd!.rateUnits / 10000).toLocaleString(
+                          'pt-BR',
+                          {
+                            style: 'currency',
+                            currency: 'BRL',
+                            minimumFractionDigits: 4,
+                          },
+                        )
+                  }${quotes.stale ? ' · Desatualizada' : ''}`
+                : 'Indisponível',
             },
           ]
         : []),

@@ -2,6 +2,7 @@ import { selectDate, selectOption } from '../../test/selectOption';
 import {
   cardAction,
   cardDetails,
+  cardMenuAction,
   confirmDeletion,
   financeTab,
   investmentCard,
@@ -477,11 +478,12 @@ describe('Organização da página Finanças', () => {
     render(<App />);
     financeTab('Investimentos');
     const entries = stored().investmentEntries;
-    const button = () =>
-      within(investmentCard('Investimento Bitcoin (BTC)')).getByRole('button', {
-        name: /Atualizar cotação de Bitcoin \(BTC\)|Consultando/,
-      });
-    fireEvent.click(button());
+    const refresh = () =>
+      cardMenuAction(
+        'Investimento Bitcoin (BTC)',
+        'Atualizar cotação de Bitcoin (BTC)',
+      );
+    refresh();
     await waitFor(() =>
       expect(investmentCard('Investimento Bitcoin (BTC)')).toHaveTextContent(
         'Cotação em cache ainda válida',
@@ -494,7 +496,7 @@ describe('Organização da página Finanças', () => {
       observedAt: quote.observedAt + 3600000,
     };
     vi.mocked(fetchBitcoinQuote).mockResolvedValue(fresh);
-    fireEvent.click(button());
+    refresh();
     await waitFor(() =>
       expect(investmentCard('Investimento Bitcoin (BTC)')).toHaveTextContent(
         'Cotação atualizada',
@@ -505,7 +507,7 @@ describe('Organização da página Finanças', () => {
       '400.000,00',
     );
     vi.mocked(fetchBitcoinQuote).mockRejectedValue(new Error('offline'));
-    fireEvent.click(button());
+    refresh();
     await waitFor(() =>
       expect(investmentCard('Investimento Bitcoin (BTC)')).toHaveTextContent(
         'Mantida a última cotação conhecida',
@@ -553,11 +555,9 @@ describe('Organização da página Finanças', () => {
   it('exclui investimento somente após confirmação e preserva tudo após recarga', () => {
     seed();
     const app = render(<App />);
-    cardDetails('Investimento Fundo XP', 'Fundo XP');
-    fireEvent.click(
-      screen.getByRole('button', {
-        name: 'Excluir investimento e operações de Fundo XP',
-      }),
+    cardMenuAction(
+      'Investimento Fundo XP',
+      'Excluir investimento e operações de Fundo XP',
     );
     expect(
       screen.getByRole('dialog', { name: 'Excluir investimento' }),
@@ -578,11 +578,9 @@ describe('Organização da página Finanças', () => {
       'R$ 820,78',
     );
     expect(localStorage.getItem(PLAYER_STORAGE_KEY)).toBe(saved);
-    cardDetails('Investimento Fundo XP', 'Fundo XP');
-    fireEvent.click(
-      screen.getByRole('button', {
-        name: 'Excluir investimento e operações de Fundo XP',
-      }),
+    cardMenuAction(
+      'Investimento Fundo XP',
+      'Excluir investimento e operações de Fundo XP',
     );
     confirmDeletion();
     expect(stored().investments.map((item: { id: string }) => item.id)).toEqual(
@@ -620,30 +618,32 @@ describe('Organização da página Finanças', () => {
     ).getAllByRole('group');
     expect(cards).toHaveLength(7);
     for (const card of cards) {
+      const name = card
+        .getAttribute('aria-label')!
+        .replace(/^(Caixinha|Investimento) /, '');
+      // Visíveis: uma ação primária oficial, “Mais ações” e “Ver detalhes”.
       const buttons = within(card).getAllByRole('button');
-      // Exatamente uma ação primária, sempre com o componente oficial.
-      const primary = buttons.filter((button) =>
-        button.classList.contains('action-button'),
-      );
-      expect(primary).toHaveLength(1);
-      expect(primary[0]!.className).toBe('action-button');
-      for (const button of buttons) {
-        const name = button.getAttribute('aria-label') ?? '';
-        const kind = button.className;
-        if (button === primary[0]) continue;
-        if (name.startsWith('Editar investimento')) expect(kind).toBe('');
-        else if (name.startsWith('Excluir investimento'))
-          expect(kind).toBe('financial-danger');
-        else if (name.startsWith('Ver detalhes'))
-          expect(kind).toBe('text-action');
-        else expect(kind).toBe('filter-button');
-        // Botões de cartão nunca usam classes próprias de Finanças.
-        expect(kind).not.toMatch(/investment|finance-/);
-      }
-      expect(
-        within(card).getByRole('button', { name: /^Editar investimento/ })
-          .parentElement,
-      ).toHaveClass('record-actions');
+      expect(buttons.map((button) => button.className)).toEqual([
+        'action-button',
+        'text-action',
+        'text-action',
+      ]);
+      expect(buttons[1]).toHaveAccessibleName(`Mais ações de ${name}`);
+      expect(buttons[1]).toHaveAttribute('aria-haspopup', 'menu');
+      expect(buttons[2]).toHaveAccessibleName(`Ver detalhes de ${name}`);
+      // O menu usa as opções do popup oficial e termina em Editar e Excluir.
+      fireEvent.click(buttons[1]!);
+      const items = within(screen.getByRole('menu')).getAllByRole('menuitem');
+      for (const item of items)
+        expect(item).toHaveClass('custom-select__option');
+      expect(items.slice(-2).map((item) => item.textContent)).toEqual([
+        'Editar',
+        'Excluir',
+      ]);
+      expect(items[0]).toHaveFocus();
+      fireEvent.keyDown(items[0]!, { key: 'Escape' });
+      expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+      expect(buttons[1]).toHaveFocus();
     }
   });
 });
