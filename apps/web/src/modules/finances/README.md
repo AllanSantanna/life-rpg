@@ -532,6 +532,10 @@ filtros de investimento, categoria, tipo de operação (compra/aporte,
 venda/retirada, posição inicial) e período. Editar, excluir e “Corrigir como
 posição inicial” continuam no histórico.
 
+A primeira ação de cada linha abaixo é a principal (`ActionButton`); as demais
+são secundárias (`.filter-button`). Editar e Excluir (com confirmação) aparecem em
+todos os cartões, como nas contas.
+
 | Categoria            | Ações do cartão                                 |
 | -------------------- | ----------------------------------------------- |
 | Caixinhas bancárias  | Aportar, Retirar, Atualizar saldo, Editar       |
@@ -554,7 +558,7 @@ falhas: com cache válido informa o horário e quando nova consulta será possí
 em falha mantém a última cotação e avisa que pode estar desatualizada. Só a
 cotação é gravada. “Editar” abre o cadastro em modo de edição. “Ver detalhes”
 mostra preço médio (BTC/USD), composição do custo, última avaliação, fonte da
-cotação, três operações recentes e “Excluir investimento”.
+cotação e três operações recentes.
 
 Exclusões de movimentações, operações e investimentos passam a pedir confirmação
 (`DeleteConfirmation`). Formulários guardam um bloqueio após o primeiro envio

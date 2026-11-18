@@ -286,6 +286,36 @@ async function capture(page, name, width) {
     const hasPicker = [...document.querySelectorAll('.exercise-picker')].some(
       visible,
     );
+    const investmentCards = [...document.querySelectorAll('.investment-card')]
+      .filter(visible)
+      .filter((el) => !el.classList.contains('investment-card--active'))
+      .map((el) => {
+        const rect = el.getBoundingClientRect();
+        const actions = [...el.querySelectorAll('button')].filter(visible);
+        return {
+          name: el.getAttribute('aria-label'),
+          top: Math.round(rect.top),
+          height: Math.round(rect.height),
+          primaryTop: Math.round(
+            el.querySelector('.action-button')?.getBoundingClientRect().top ??
+              -1,
+          ),
+          // Somente os botões oficiais documentados no catálogo.
+          unofficial: actions
+            .filter(
+              (button) =>
+                !(
+                  button.className === 'action-button' ||
+                  button.className === 'filter-button' ||
+                  button.className === 'financial-danger' ||
+                  button.className === 'text-action' ||
+                  (button.className === '' &&
+                    button.parentElement?.classList.contains('record-actions'))
+                ) && !button.closest('form'),
+            )
+            .map((button) => button.textContent.trim()),
+        };
+      });
     return {
       viewport: vw,
       viewportHeight: innerHeight,
@@ -317,6 +347,7 @@ async function capture(page, name, width) {
         .filter(visible)
         .map(info),
       hiddenValidation,
+      investmentCards,
       actions,
       sticky,
       hasPicker,
@@ -335,6 +366,25 @@ async function capture(page, name, width) {
       width,
       'Campo de validação oculto recebeu dimensões de campo visível.',
     );
+  for (const card of metrics.investmentCards) {
+    check(
+      card.unofficial.length === 0,
+      name,
+      width,
+      `Cartão ${card.name} com botões fora do Design System: ${card.unofficial.join(', ')}`,
+    );
+    const row = metrics.investmentCards.filter((item) => item.top === card.top);
+    check(
+      row.every(
+        (item) =>
+          Math.abs(item.height - card.height) <= 1 &&
+          Math.abs(item.primaryTop - card.primaryTop) <= 1,
+      ),
+      name,
+      width,
+      `Cartões da mesma linha desalinhados: ${row.map((item) => item.name).join(', ')}`,
+    );
+  }
   for (const action of metrics.actions)
     check(
       action.width === 160 && action.height === 44 && action.font === '12px',

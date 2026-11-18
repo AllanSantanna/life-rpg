@@ -90,9 +90,18 @@ universal. Gráficos aceitam medidas calculadas inline, mas não novos temas inl
   assíncrona, indique status, evite reenvio duplicado e mantenha o nome acessível.
   Não anuncie “salvo” enquanto a operação ainda estiver pendente.
 
-Os cartões da carteira financeira ([InvestmentCard](../../apps/web/src/modules/finances/InvestmentCard.tsx),
-classe `.investment-card`) reutilizam `.record-actions` em duas colunas para as
-ações da categoria (“Aportar”, “Comprar mais”, “Atualizar saldo” etc.); o nome do
+Os cartões da carteira financeira ([InvestmentCard](../../apps/web/src/modules/finances/InvestmentCard.tsx))
+usam `.panel` e somente botões oficiais: a ação principal da categoria
+(“Aportar”, “Comprar mais”, “Comprar”) é `ActionButton` com ícone `plus`; as
+secundárias (“Retirar”, “Vender”, “Resgatar”, “Atualizar saldo/cotação”) usam
+`.filter-button`; “Editar” e “Excluir” repetem o padrão das contas (botão de
+`.record-actions` com `Icon edit` e `.financial-danger` com `Icon trash` e
+confirmação); “Ver detalhes” usa `.text-action`. Como o `ActionButton` tem largura
+fixa de 160 px, cada cartão tem uma única ação primária. Valores reutilizam a regra
+de `.record-summary dd` e as métricas seguem as linhas `dt/dd` do `MetricCard`. A
+grade usa `subgrid` para alinhar cabeçalho, conteúdo, ações e rodapé entre cartões
+da mesma linha. Um teste e a auditoria visual falham se surgir outro tipo de botão
+nos cartões ou se as ações da mesma linha ficarem desalinhadas. O nome do
 investimento fica no rótulo acessível e no título do cartão. Listas de
 registros e seus botões permitem quebra de títulos longos sem alargar a página.
 

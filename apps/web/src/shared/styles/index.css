@@ -1321,7 +1321,8 @@
     color: #b5a8a8;
     line-height: 1.7;
   }
-  .record-summary dd {
+  .record-summary dd,
+  .investment-card__value {
     font-size: clamp(18px, 1.6vw, 25px);
     font-weight: 650;
     margin-top: 8px;
@@ -1921,7 +1922,7 @@
 .finance-disclosure > .finance-disclosure__heading {
   margin: 0;
 }
-.finance-disclosure__heading button {
+.finance-disclosure__heading button:not(.text-action) {
   display: flex;
   width: 100%;
   min-height: var(--control-height);
@@ -1956,106 +1957,61 @@
   }
 }
 
-/* Cartão único da carteira (antes restrito às caixinhas). */
+/* Cartão único da carteira: `.panel` + ações oficiais (ActionButton,
+   .filter-button, .financial-danger e .text-action). Só define o layout. */
 .investment-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
   gap: var(--space-3);
-  align-items: start;
 }
+/* Subgrid: cabeçalho, conteúdo, ações e rodapé ocupam faixas compartilhadas
+   pela linha; as ações ficam alinhadas mesmo com conteúdos de alturas
+   diferentes ou com “Ver detalhes” aberto em outro cartão. */
 .investment-card {
+  display: grid;
+  grid-row: span 4;
+  grid-template-rows: subgrid;
+  align-content: start;
   min-width: 0;
-  padding: 18px;
-  border: 1px solid #ffffff15;
-  border-radius: 12px;
-  background: #121212;
 }
 .investment-card--active {
   grid-column: 1 / -1;
 }
-.investment-card__heading {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
 .investment-card__heading h3 {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
   min-width: 0;
   font-size: 15px;
   font-weight: 650;
   overflow-wrap: anywhere;
 }
-.investment-card__heading > span {
-  color: var(--color-muted);
-  font-size: 12px;
+.investment-card__icon {
+  display: inline-flex;
+  color: var(--area-color);
+}
+.investment-card__heading .record-hint {
+  margin-bottom: 0;
 }
 .investment-card__value {
-  display: grid;
-  gap: 5px;
-  margin-block: 20px;
-}
-.investment-card__value > span {
-  font-size: 12px;
-  color: #b5b5b5;
-}
-.investment-card__value > strong {
-  font-size: clamp(24px, 4vw, 32px);
-  color: var(--color-foreground);
-  font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
 }
-.investment-card__metrics {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-  margin-bottom: 16px;
-}
-.investment-card__metrics dt {
-  color: #b5b5b5;
-  font-size: 11px;
-}
-.investment-card__metrics dd {
-  margin-top: 4px;
-  font-size: 15px;
-  font-variant-numeric: tabular-nums;
-  overflow-wrap: anywhere;
-}
+/* Primária no topo, Editar/Excluir na base: a sobra da faixa compartilhada
+   fica entre elas, sem esticar os botões oficiais. */
 .investment-card__actions {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  margin-top: var(--space-3);
+  grid-template-rows: auto 1fr auto;
+  gap: var(--space-2);
 }
-.investment-card form {
-  margin-top: 16px;
+.investment-card__secondary {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 128px), 1fr));
+  align-content: start;
 }
 .investment-card__details {
-  margin-top: var(--space-2);
-  padding-top: var(--space-2);
-  border-top: 1px solid #ffffff10;
+  border-top: 1px solid rgb(255 255 255 / 0.06);
 }
-.investment-card__details .finance-disclosure__heading button {
-  color: var(--color-muted);
-  font-size: var(--text-control);
-}
-.investment-card__subtitle {
-  margin-top: var(--space-2);
-  color: var(--color-muted);
-  font-size: 12px;
-}
-.investment-card__recent {
-  margin-bottom: var(--space-3);
-  color: #b4a7a7;
-  font-size: 12px;
-  line-height: 1.8;
-}
-@media (max-width: 640px) {
-  .investment-card {
-    padding: 14px;
-  }
+.investment-card form {
+  margin-top: var(--space-4);
 }
 
 .goals-page {

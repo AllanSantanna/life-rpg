@@ -16,54 +16,6 @@ const confirmedYield = (value: HoldingValue) =>
     value.costKnown
   );
 
-/** Saldo e métricas principais da caixinha, exibidos no cartão da carteira. */
-export function SavingsBoxSummary({ value }: { value: HoldingValue }) {
-  const valid = value.boxBalanceValid;
-  const confirmed = confirmedYield(value);
-  return (
-    <>
-      <p className="investment-card__value">
-        <span>
-          {valid
-            ? value.balanceEstimated
-              ? 'Saldo após movimentações registradas'
-              : 'Saldo atual informado'
-            : 'Referência pelo custo · atualize o saldo'}
-        </span>
-        <strong>
-          {value.unpriced ? 'Saldo pendente' : money(value.current)}
-        </strong>
-      </p>
-      <dl className="investment-card__metrics">
-        <div>
-          <dt>Total aplicado conhecido</dt>
-          <dd>{money(value.initialCost + value.contributed)}</dd>
-        </div>
-        <div>
-          <dt>Total retirado</dt>
-          <dd>{money(value.withdrawn)}</dd>
-        </div>
-        <div>
-          <dt>Custo da posição</dt>
-          <dd>{value.costKnown ? money(value.cost) : 'Desconhecido'}</dd>
-        </div>
-        <div>
-          <dt>
-            {confirmed ? 'Rendimento acumulado' : 'Diferença saldo/custo'}
-          </dt>
-          <dd>{valid && value.costKnown ? money(value.gain) : 'Pendente'}</dd>
-        </div>
-      </dl>
-      {!confirmed && (
-        <p className="record-hint">
-          A diferença não comprova rendimento: confira se existem aportes ou
-          retiradas não registrados.
-        </p>
-      )}
-    </>
-  );
-}
-
 /** Informações secundárias da caixinha, exibidas em “Ver detalhes”. */
 export function SavingsBoxDetails({
   investment,
