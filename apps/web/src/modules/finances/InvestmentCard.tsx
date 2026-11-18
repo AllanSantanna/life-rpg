@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { ActionButton } from '../../shared/components/ActionButton';
 import {
   ActionMenu,
@@ -19,7 +19,18 @@ import {
 import { cardFigures } from './investmentFigures';
 import { investmentValue } from './ledger';
 import { SavingsBoxDetails } from './SavingsBoxCard';
-import type { Investment } from './types';
+import { isMarketCategory, type Investment } from './types';
+import { compactSeries, positionHistory, priceHistory } from './marketChart';
+import { MarketChart, PriceSparkline } from './MarketCharts';
+import type { MarketTracker } from './useMarketQuotes';
+
+function positionChart(...args: Parameters<typeof positionHistory>): {
+  position: ReturnType<typeof positionHistory>['points'];
+  positionLimitation: string | null;
+} {
+  const { points, limitation } = positionHistory(...args);
+  return { position: points, positionLimitation: limitation };
+}
 import { useQuoteRefresh } from './useQuoteRefresh';
 
 const menuIcons: Record<InvestmentAction['id'], ActionMenuItem['icon']> = {
@@ -54,6 +65,7 @@ export function InvestmentCard({
   message,
   btcStatus,
   usdStatus,
+  market,
 }: RecordPageProps & {
   investment: Investment;
   onAction: (action: InvestmentAction) => void;
@@ -63,6 +75,7 @@ export function InvestmentCard({
   message?: string | undefined;
   btcStatus: QuoteStatus;
   usdStatus: QuoteStatus;
+  market?: MarketTracker | undefined;
 }) {
   const value = investmentValue(records, investment.id, today);
   const box = investment.category === 'Caixinhas bancárias';
@@ -81,18 +94,34 @@ export function InvestmentCard({
     usd: usdQuote,
     stale: status.stale,
   });
-  const actions = investmentActions(investment.category);
+  const shares = isMarketCategory(investment.category);
+  const ticker = shares ? investment.ticker : undefined;
+  const marketState = ticker ? market?.states[ticker] : undefined;
+  const [marketMessage, setMarketMessage] = useState('');
+  const [marketBusy, setMarketBusy] = useState(false);
+  const prices = priceHistory(
+    marketState?.data?.history ?? [],
+    value.marketQuote,
+  );
+  const actions = investmentActions(investment.category, { ticker });
   const primary = actions.find((action) => action.id === 'contribute')!;
   const secondary = actions.filter(
     (action) => action.id !== 'contribute' && action.id !== 'edit',
   );
   const edit = actions.find((action) => action.id === 'edit')!;
+  async function refreshMarket(code: string) {
+    if (!market || marketBusy) return;
+    setMarketBusy(true);
+    setMarketMessage('Consultando cotação…');
+    setMarketMessage(await market.refresh(code));
+    setMarketBusy(false);
+  }
   const recent = records.investmentEntries
     .filter((item) => item.investmentId === investment.id)
     .sort((a, b) => b.date.localeCompare(a.date))
     .slice(0, 3);
   const averagePrice =
-    value.units && value.costKnown
+    value.units && value.costKnown && value.unitsKnown
       ? money(Math.round((value.cost * (usd ? 100 : 1e8)) / value.units))
       : '—';
   return (
@@ -110,13 +139,20 @@ export function InvestmentCard({
           <span>{investment.name}</span>
         </h3>
         <p className="record-hint">
+          {ticker && `${ticker} · `}
           {categoryLabel(investment.category)}
           {box && ` · ${investment.institution ?? 'Instituição não informada'}`}
         </p>
       </header>
       <div className="investment-card__body">
         <p className="text-xs text-muted">{figures.label}</p>
-        <p className="investment-card__value">{figures.value}</p>
+        {/* O gráfico compacto divide a linha do valor: altura igual à do BTC. */}
+        <div className="investment-card__value-row">
+          <p className="investment-card__value">{figures.value}</p>
+          {ticker && (
+            <PriceSparkline points={compactSeries(prices)} ticker={ticker} />
+          )}
+        </div>
         <dl className="my-5 space-y-3 border-t border-white/[0.06] pt-5">
           {figures.metrics.map((metric) => (
             <div
@@ -144,16 +180,18 @@ export function InvestmentCard({
             ...secondary.map((action) => ({
               id: action.id,
               label:
-                action.id === 'quote' && refresh.busy
+                action.id === 'quote' && (refresh.busy || marketBusy)
                   ? 'Consultando cotação…'
                   : action.label,
               accessibleLabel: actionAccessibleName(action, investment.name),
               icon: menuIcons[action.id],
-              disabled: action.id === 'quote' && refresh.busy,
+              disabled: action.id === 'quote' && (refresh.busy || marketBusy),
               onSelect: () =>
-                action.id === 'quote'
-                  ? void refresh.refresh()
-                  : onAction(action),
+                action.id !== 'quote'
+                  ? onAction(action)
+                  : ticker
+                    ? void refreshMarket(ticker)
+                    : void refresh.refresh(),
             })),
             {
               id: 'edit',
@@ -174,7 +212,11 @@ export function InvestmentCard({
       </div>
       <div className="investment-card__footer">
         <p className="record-feedback" role="status">
-          {(bitcoin || usd ? refresh.message || status.error : '') || message}
+          {(bitcoin || usd
+            ? refresh.message || status.error
+            : ticker
+              ? marketMessage || marketState?.error
+              : '') || message}
         </p>
         {form}
         <Disclosure
@@ -189,11 +231,36 @@ export function InvestmentCard({
               {note}
             </p>
           ))}
+          {ticker && (
+            <MarketChart
+              ticker={ticker}
+              price={prices.map((point) => ({
+                date: point.date,
+                value: point.closeCents,
+                closeCents: point.closeCents,
+              }))}
+              {...positionChart(
+                records.investmentEntries.filter(
+                  (item) => item.investmentId === investment.id,
+                ),
+                prices,
+              )}
+              updatedAt={
+                value.marketQuote
+                  ? `Última cotação: ${new Date(value.marketQuote.marketTime).toLocaleString('pt-BR')}.`
+                  : 'Cotação ainda não obtida.'
+              }
+            />
+          )}
           {box ? (
             <SavingsBoxDetails investment={investment} value={value} />
           ) : (
             <div className="record-hint">
-              {(bitcoin || usd) && <p>Preço médio: {averagePrice}</p>}
+              {(bitcoin || usd || shares) && (
+                <p>
+                  Preço médio{shares ? ' por unidade' : ''}: {averagePrice}
+                </p>
+              )}
               <p>
                 Posição inicial (custo conhecido): {money(value.initialCost)} ·
                 Aportado conhecido: {money(value.contributed)} · Resgatado:{' '}

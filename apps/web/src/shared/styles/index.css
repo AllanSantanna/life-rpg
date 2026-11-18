@@ -1995,6 +1995,67 @@
 .investment-card__value {
   overflow-wrap: anywhere;
 }
+/* Valor e gráfico compacto dividem a mesma linha: o cartão de ações/FIIs
+   mantém a altura dos demais. A cor vem de .wealth-chart--up/down. */
+.investment-card__value-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.investment-card__value-row > .investment-card__value {
+  flex: 0 0 auto;
+  /* Valores monetários não quebram no meio; o gráfico cede espaço. */
+  overflow-wrap: normal;
+  white-space: nowrap;
+}
+.market-sparkline {
+  flex: 0 1 112px;
+  min-width: 64px;
+  height: 36px;
+  overflow: visible;
+}
+.market-sparkline:not(.wealth-chart--up):not(.wealth-chart--down) {
+  --wealth-color: var(--color-muted);
+}
+.market-sparkline .wealth-chart__line {
+  stroke-width: 1.75;
+  vector-effect: non-scaling-stroke;
+}
+.market-sparkline--empty {
+  width: auto;
+  height: auto;
+  margin: 0;
+}
+.market-chart {
+  display: grid;
+  gap: var(--space-3);
+  margin-block: var(--space-3);
+  padding: var(--space-4);
+}
+.market-chart .wealth-chart__periods {
+  flex-wrap: wrap;
+}
+.market-chart .wealth-chart__periods button {
+  flex: 1 1 auto;
+}
+.market-chart .wealth-chart__plot {
+  height: 220px;
+  margin-top: 0;
+}
+.ticker-field {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: start;
+  min-width: 0;
+}
+.ticker-field > .record-field {
+  width: 100%;
+}
+.ticker-field .record-hint {
+  margin: 0;
+}
 /* ActionButton + “Mais ações”; o menu vai para a linha de baixo quando os
    160 px oficiais e o gatilho não cabem lado a lado. */
 .investment-card__actions {

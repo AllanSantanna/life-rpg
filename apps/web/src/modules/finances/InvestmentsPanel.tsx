@@ -21,12 +21,15 @@ import {
 } from './historyFilters';
 import { isInitialPosition } from './initialPosition';
 import { InvestmentCard, type QuoteStatus } from './InvestmentCard';
+import type { MarketTracker } from './useMarketQuotes';
 import { categoryLabel, type InvestmentAction } from './investmentActions';
 import { InvestmentFields } from './InvestmentFields';
 import { formatCurrency } from './monetary';
 import { SavingsBalanceForm } from './SavingsBoxCard';
 import { SavingsBoxFields } from './SavingsBoxFields';
+import { TickerField } from './TickerField';
 import {
+  isMarketCategory,
   investmentCategories,
   type Investment,
   type InvestmentCategory,
@@ -43,6 +46,7 @@ interface Props extends RecordPageProps {
   onDelete: (pending: PendingDeletion) => void;
   btcStatus: QuoteStatus;
   usdStatus: QuoteStatus;
+  market?: MarketTracker | undefined;
 }
 
 /** Carteira, cadastro, operações contextuais e histórico de investimentos. */
@@ -54,6 +58,7 @@ export function InvestmentsPanel({
   onDelete,
   btcStatus,
   usdStatus,
+  market,
 }: Props) {
   const [creating, setCreating] = useState(false);
   const [cardForm, setCardForm] = useState<CardForm | null>(null);
@@ -138,6 +143,7 @@ export function InvestmentsPanel({
                 onCommand={onCommand}
                 btcStatus={btcStatus}
                 usdStatus={usdStatus}
+                market={market}
                 message={
                   cardMessage?.id === item.id ? cardMessage.text : undefined
                 }
@@ -276,6 +282,9 @@ function InvestmentForm({
             }))}
           />
         </Field>
+        {isMarketCategory(category) && (
+          <TickerField defaultValue={investment?.ticker} />
+        )}
         {!investment && (
           <InvestmentFields
             key={category}

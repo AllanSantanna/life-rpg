@@ -128,6 +128,7 @@ async function seed(page, populated) {
           category: 'Renda fixa',
         },
         { id: 'btc', name: 'Bitcoin (BTC)', category: 'Bitcoin' },
+        { id: 'vale', name: 'Vale', category: 'Ações', ticker: 'VALE3' },
       ];
       state.records.investmentEntries = [
         {
@@ -156,6 +157,16 @@ async function seed(page, populated) {
           quantity: 0.00061258,
           date: today,
           positionInitial: true,
+        },
+        {
+          id: 'entry-vale',
+          investmentId: 'vale',
+          kind: 'contribution',
+          amountCents: 12000,
+          quantity: 2,
+          date: '2026-11-03',
+          accountId: 'principal',
+          positionInitial: false,
         },
       ];
       // Cotação fixa da fixture: a auditoria bloqueia chamadas externas.
@@ -313,7 +324,9 @@ async function capture(page, name, width) {
                   button.className === 'text-action' ||
                   (button.className === '' &&
                     button.parentElement?.classList.contains('record-actions'))
-                ) && !button.closest('form'),
+                ) &&
+                // Formulários e gráficos (padrão do FinancialChart) têm controles próprios.
+                !button.closest('form, .wealth-chart'),
             )
             .map((button) => button.textContent.trim()),
         };
@@ -446,6 +459,33 @@ try {
     });
     await context.route('**/*', (route) =>
       route.request().url().startsWith(base) ? route.continue() : route.abort(),
+    );
+    // Resposta simulada do proxy apps/api (/market/quotes): sem rede externa.
+    await context.route('**/market/quotes/*', (route) =>
+      route.fulfill({
+        contentType: 'application/json',
+        headers: { 'Access-Control-Allow-Origin': '*' },
+        body: JSON.stringify({
+          ticker: 'VALE3',
+          name: 'Vale S.A.',
+          priceCents: 6120,
+          previousCloseCents: 6045,
+          marketTime: Date.parse('2026-11-17T11:30:00-03:00'),
+          fetchedAt: Date.parse('2026-11-17T11:45:00-03:00'),
+          stale: false,
+          history: [
+            ['2026-11-04', 6050],
+            ['2026-11-05', 5980],
+            ['2026-11-06', 6010],
+            ['2026-11-07', 6100],
+            ['2026-11-10', 6080],
+            ['2026-11-11', 6030],
+            ['2026-11-12', 6045],
+            ['2026-11-13', 6090],
+            ['2026-11-14', 6045],
+          ].map(([date, closeCents]) => ({ date, closeCents })),
+        }),
+      }),
     );
     const page = await context.newPage();
     page.setDefaultTimeout(10000);
@@ -631,6 +671,13 @@ try {
         })
         .click();
       await capture(page, 'financas-detalhes', width);
+      await page
+        .getByRole('button', { name: 'Ver detalhes de Vale', exact: true })
+        .click();
+      await page
+        .getByRole('button', { name: 'Valor da posição', exact: true })
+        .click();
+      await capture(page, 'financas-acao-detalhes', width);
       await page
         .getByRole('button', {
           name: 'Histórico de investimentos',
