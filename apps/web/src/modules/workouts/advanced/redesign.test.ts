@@ -19,7 +19,7 @@ describe('catálogo ampliado e pesquisa local', () => {
     expect(new Set(catalog.map((e) => normalizedName(e.name))).size).toBe(
       catalog.length,
     );
-    expect(new Set(catalog.map((e) => e.primary)).size).toBe(11);
+    expect(new Set(catalog.map((e) => e.primary)).size).toBe(12);
     for (const equipment of [
       'Máquina',
       'Halteres',

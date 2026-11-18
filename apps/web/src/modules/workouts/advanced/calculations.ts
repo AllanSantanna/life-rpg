@@ -1,6 +1,8 @@
 import { daysBetween } from '../../records/dates';
+import { normalizedName } from './catalog';
 import {
   muscleLabels,
+  type Exercise,
   type Muscle,
   type SessionExercise,
   type WorkoutSession,
@@ -173,12 +175,22 @@ export function muscleActivity(
   for (const session of completedSessions(sessions, today, period)) {
     for (const exercise of session.exercises) {
       const count = consideredSets(exercise).length;
-      for (const muscle of new Set([
-        exercise.exercise.primary,
-        ...exercise.exercise.secondary,
-      ]))
+      for (const muscle of new Set(sessionMuscles(exercise.exercise)))
         counts[muscle] += count;
     }
   }
   return counts;
+}
+
+// Sessões anteriores à criação do grupo Trapézio guardaram encolhimentos
+// (do catálogo ou próprios com o mesmo nome) como Costas. A leitura troca
+// apenas esse grupo principal por Trapézio, sem regravar o histórico.
+const trapeziusReclassified = new Set(['shrug', 'barbell-shrug']);
+function sessionMuscles(exercise: Exercise): Muscle[] {
+  const isShrug =
+    trapeziusReclassified.has(exercise.id) ||
+    normalizedName(exercise.name).startsWith('encolhimento');
+  const primary =
+    isShrug && exercise.primary === 'back' ? 'trapezius' : exercise.primary;
+  return [primary, ...exercise.secondary];
 }

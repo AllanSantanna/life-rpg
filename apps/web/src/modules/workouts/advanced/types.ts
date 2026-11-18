@@ -1,6 +1,7 @@
 export const muscleLabels = {
   chest: 'Peito',
   back: 'Costas',
+  trapezius: 'Trapézio',
   shoulders: 'Ombros',
   biceps: 'Bíceps',
   triceps: 'Tríceps',

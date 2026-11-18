@@ -203,11 +203,11 @@ const entries: Entry[] = [
     ['back'],
     'puxada para o rosto',
   ],
-  ['upright-row', 'Remada alta', 'shoulders', 'Barra', ['back']],
+  ['upright-row', 'Remada alta', 'shoulders', 'Barra', ['trapezius', 'back']],
   [
     'shrug',
     'Encolhimento com halteres',
-    'back',
+    'trapezius',
     'Halteres',
     ['forearms'],
     'trapezio shrug',
@@ -215,7 +215,7 @@ const entries: Entry[] = [
   [
     'barbell-shrug',
     'Encolhimento com barra',
-    'back',
+    'trapezius',
     'Barra',
     ['forearms'],
     'trapezio',

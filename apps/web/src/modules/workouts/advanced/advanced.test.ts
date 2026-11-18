@@ -393,6 +393,35 @@ describe('volume, evolução, RIR, recordes e mapa muscular', () => {
     expect(muscleActivity(sessions, today, 'year').chest).toBe(5);
     expect(muscleActivity([], today, 'month').chest).toBe(0);
   });
+  it('conta encolhimentos registrados antes do grupo Trapézio no trapézio, sem regravar a sessão', () => {
+    const old = testSession('shrug-old');
+    old.exercises[0]!.exercise = {
+      id: 'shrug',
+      name: 'Encolhimento com halteres',
+      primary: 'back',
+      secondary: ['forearms'],
+      equipment: 'Halteres',
+    };
+    const snapshot = structuredClone(old);
+    const counts = muscleActivity([old], today, 'week');
+    expect(counts.trapezius).toBe(1);
+    expect(counts.forearms).toBe(1);
+    expect(counts.back).toBe(0);
+    expect(old).toEqual(snapshot);
+  });
+  it('reconhece encolhimento próprio com o mesmo nome do catálogo', () => {
+    const custom = testSession('shrug-custom');
+    custom.exercises[0]!.exercise = {
+      id: 'custom-shrug',
+      name: 'Encolhimento com barra',
+      primary: 'back',
+      secondary: [],
+      equipment: 'Barra',
+    };
+    const counts = muscleActivity([custom], today, 'week');
+    expect(counts.trapezius).toBe(1);
+    expect(counts.back).toBe(0);
+  });
 });
 
 describe('persistência e isolamento do sistema RPG', () => {
