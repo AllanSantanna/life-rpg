@@ -134,14 +134,43 @@ paisagem vem abaixo. Em meia coluna, o contêiner do Radar ficaria abaixo de
 alterando sua aparência original. Cartões: uma coluna no celular, duas a partir
 de 768 px e quatro a partir de 1280 px.
 
-O calendário preserva alvos de toque de 44 px e rolagem local horizontal, com
-cabeçalhos dos pilares fixos. As setas, Home e End exploram os dias e as linhas
-sem exigir uma tabulação por célula. A data atual e a seleção têm marcas além da cor.
+## Calendário compacto e arraste
+
+O heatmap é compacto: quadrados de 28 px no celular e entre 24 e 30 px no
+desktop, com vão de 6 px nas duas direções (`--heat-gap`). As colunas são fluidas:
+a tabela ocupa a largura disponível e só rola localmente abaixo de 34 px por dia no
+celular ou 30 px a partir de 640 px. Em 1440 px o mês inteiro cabe; em 320 px
+aparecem cerca de cinco dias, sem reduzir os quadrados. A coluna dos pilares
+(84/112 px) permanece fixa. Esses alvos ficam abaixo do mínimo recorrente de
+44 px por decisão explícita de compactação; ver a exceção em
+[acessibilidade](../../../../../docs/design-system/accessibility.md).
+
+`useDragScroll` trata o mouse com Pointer Events: após 6 px de movimento
+predominantemente horizontal, aplica `scrollLeft` direto no DOM, sem estado React
+por movimento, e descarta o clique seguinte para não selecionar o dia sob o
+ponteiro. Gestos verticais e o botão secundário são ignorados. Toque e caneta
+usam a rolagem nativa (inércia e gesto vertical liberado para a página), e o
+navegador não gera clique após um deslize. Durante o arraste há cursor
+`grabbing` e um contorno discreto. A barra de rolagem continua como alternativa.
+
+Abrir um mês centraliza a data selecionada sem animação; “Hoje” seleciona a data
+atual e rola suavemente até ela, inclusive dentro do mês atual. As rolagens movem
+somente a área do calendário, respeitam movimento reduzido e não acontecem
+durante um arraste. As setas, Home e End exploram dias e linhas sem exigir uma
+tabulação por célula; a célula focada é revelada ao lado da coluna fixa com
+`focus({ preventScroll: true })`. A data atual e a seleção têm marcas além da cor.
+
+Investigação de desempenho: não havia estado React atualizado durante a rolagem;
+a sensação de travamento vinha das células de 44 px, que exigiam a barra de
+rolagem, e da ausência de arraste com mouse. Os ajustes evitam renderizações por
+movimento, `scroll-behavior: smooth` durante o arraste e listeners recriados.
 
 Testes próximos cobrem períodos, indicadores, limites das escalas, detalhes,
-ausências, modo, seleção, fallback, Radar, persistência e ausência de XP adicional.
+ausências, modo, seleção, fallback, Radar, persistência e ausência de XP adicional,
+além da personalização, das preferências salvas e do arraste do calendário.
 `npm run audit:visual` inclui cenários em 320/390/768/1024/1440 px para Estatísticas,
 modos, filtros, camadas, teclado, dia selecionado, dia vazio, overflow e preservação
-do storage. Em navegador com WebGL disponível, verifica movimento da câmera e
+do storage, além de geometria compacta, arraste com mouse, deslize e toque
+(eventos de toque reais do Chrome), rolagem vertical e personalização persistida. Em navegador com WebGL disponível, verifica movimento da câmera e
 fallback por perda de contexto. Registre a limitação quando o ambiente não
 conseguir criar WebGL; jsdom não comprova a imagem 3D. Inspecione as capturas reais.
