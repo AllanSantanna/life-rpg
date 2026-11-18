@@ -49,9 +49,12 @@ export function RecordForm({
 export function Actions({
   onCancel,
   submit = 'Salvar registro',
+  cancel = 'Cancelar edição',
 }: {
   onCancel?: (() => void) | undefined;
   submit?: string;
+  /** Rótulo do cancelamento; formulários de criação usam “Cancelar”. */
+  cancel?: string;
 }) {
   return (
     <div className="record-actions">
@@ -60,7 +63,7 @@ export function Actions({
       </button>
       {onCancel && (
         <button type="button" className="filter-button" onClick={onCancel}>
-          Cancelar edição
+          {cancel}
         </button>
       )}
     </div>

@@ -1,3 +1,11 @@
+import {
+  cardAction,
+  cardDetails,
+  confirmDeletion,
+  investmentCard,
+  investmentHistory,
+  newInvestmentForm,
+} from '../../test/finances';
 import { selectDate, selectOption } from '../../test/selectOption';
 import {
   cleanup,
@@ -61,7 +69,7 @@ describe('Fluxos com moedas formatadas', () => {
     });
     const app = open();
     account();
-    let form = screen.getByRole('form', { name: 'Cadastrar investimento' });
+    let form = newInvestmentForm();
     input(form, 'Nome do investimento', 'Dólares');
     input(form, 'Categoria do investimento', 'Dólar (USD)');
     input(form, 'Tipo de registro do investimento', 'Nova compra ou aporte');
@@ -78,14 +86,16 @@ describe('Fluxos com moedas formatadas', () => {
       quantity: 100,
       amountCents: 50000,
     });
+    expect(cardDetails('Investimento Dólares', 'Dólares')).toHaveTextContent(
+      'PTAX de venda',
+    );
+    expect(investmentCard('Investimento Dólares')).toHaveTextContent(
+      'US$ 100,00',
+    );
+    form = cardAction('Investimento Dólares', 'Vender Dólares');
     expect(
-      screen.getByRole('region', { name: 'Cotação Dólar' }),
-    ).toHaveTextContent('PTAX de venda');
-    expect(
-      screen.getByRole('region', { name: 'Carteira cadastrada' }),
-    ).toHaveTextContent('US$ 100,00');
-    form = screen.getByRole('form', { name: 'Aportes e retiradas' });
-    input(form, 'Operação', 'Retirada / venda');
+      within(form).queryByRole('combobox', { name: 'Operação' }),
+    ).not.toBeInTheDocument();
     input(form, 'Quantidade em USD', '4000');
     input(form, 'Valor da operação (R$)', '22000');
     click(form, 'Registrar operação');
@@ -94,9 +104,10 @@ describe('Fluxos com moedas formatadas', () => {
       amountCents: 22000,
     });
     expect(stored().movements).toEqual([]);
-    expect(
-      screen.getByRole('region', { name: 'Carteira cadastrada' }),
-    ).toHaveTextContent('US$ 60,00');
+    expect(investmentCard('Investimento Dólares')).toHaveTextContent(
+      'US$ 60,00',
+    );
+    investmentHistory();
     fireEvent.click(
       screen.getAllByRole('button', { name: /Editar operação de Dólares/ })[1]!,
     );
@@ -109,14 +120,17 @@ describe('Fluxos com moedas formatadas', () => {
     expect(stored().investmentEntries[1].amountCents).toBe(23000);
     app.unmount();
     open();
-    expect(
-      screen.getByRole('region', { name: 'Carteira cadastrada' }),
-    ).toHaveTextContent('US$ 60,00');
+    expect(investmentCard('Investimento Dólares')).toHaveTextContent(
+      'US$ 60,00',
+    );
+    investmentHistory();
     fireEvent.click(
       screen.getAllByRole('button', {
         name: /Excluir operação de Dólares/,
       })[1]!,
     );
+    expect(stored().investmentEntries).toHaveLength(2);
+    confirmDeletion();
     expect(stored().investmentEntries).toHaveLength(1);
   });
   it('compra Bitcoin em sats, alterna unidades e conserva a quantidade e a máscara na edição', async () => {
@@ -127,7 +141,7 @@ describe('Fluxos com moedas formatadas', () => {
     });
     open();
     account();
-    let form = screen.getByRole('form', { name: 'Cadastrar investimento' });
+    let form = newInvestmentForm();
     input(form, 'Nome do investimento', 'BTC em sats');
     input(form, 'Categoria do investimento', 'Bitcoin');
     input(form, 'Tipo de registro do investimento', 'Nova compra ou aporte');
@@ -144,6 +158,7 @@ describe('Fluxos com moedas formatadas', () => {
       quantity: 0.001,
       amountCents: 50000,
     });
+    investmentHistory();
     fireEvent.click(
       screen.getByRole('button', { name: /Editar operação de BTC em sats/ }),
     );
@@ -162,14 +177,14 @@ describe('Fluxos com moedas formatadas', () => {
     vi.mocked(fetchUsdQuote).mockRejectedValue(new Error('offline'));
     open();
     account();
-    const form = screen.getByRole('form', { name: 'Cadastrar investimento' });
+    const form = newInvestmentForm();
     input(form, 'Nome do investimento', 'Posição existente');
     input(form, 'Categoria do investimento', 'Dólar (USD)');
     input(form, 'Quantidade em USD', '10000');
     click(form, 'Adicionar investimento');
     await waitFor(() =>
       expect(
-        screen.getByRole('region', { name: 'Cotação Dólar' }),
+        investmentCard('Investimento Posição existente'),
       ).toHaveTextContent('PTAX indisponível'),
     );
     expect(stored().investmentEntries[0]).toMatchObject({
@@ -177,14 +192,12 @@ describe('Fluxos com moedas formatadas', () => {
       amountCents: 0,
       quantity: 100,
     });
+    const card = investmentCard('Investimento Posição existente');
+    expect(card).toHaveTextContent('Aguardando cotação');
+    expect(card).toHaveTextContent(/Resultado não realizado\s*Pendente/);
+    expect(card).toHaveTextContent('Desconhecido');
     expect(
-      screen.getByRole('region', { name: 'Carteira cadastrada' }),
-    ).toHaveTextContent('Aguardando cotação');
-    expect(
-      screen.queryByText(/Lucro\/prejuízo não realizado/),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.getByRole('form', { name: 'Aportes e retiradas' }),
-    ).toBeInTheDocument();
+      cardAction('Investimento Posição existente', 'Comprar Posição existente'),
+    ).toHaveAccessibleName('Comprar · Posição existente');
   });
 });

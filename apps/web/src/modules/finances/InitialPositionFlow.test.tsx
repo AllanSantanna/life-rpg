@@ -1,3 +1,8 @@
+import {
+  cardAction,
+  investmentHistory,
+  newInvestmentForm,
+} from '../../test/finances';
 import { selectDate, selectOption } from '../../test/selectOption';
 import {
   cleanup,
@@ -81,7 +86,7 @@ describe('Posições iniciais na interface', () => {
     });
     seed();
     render(<App />);
-    let form = screen.getByRole('form', { name: 'Cadastrar investimento' });
+    let form = newInvestmentForm();
     input(form, 'Nome do investimento', 'BTC anterior');
     input(form, 'Categoria do investimento', 'Bitcoin');
     expect(
@@ -109,7 +114,7 @@ describe('Posições iniciais na interface', () => {
       within(chart).getByRole('button', { name: 'Patrimônio total' }),
     );
     expect(chart).toHaveTextContent('R$ 438,90');
-    form = screen.getByRole('form', { name: 'Aportes e retiradas' });
+    form = cardAction('Investimento BTC anterior', 'Comprar mais BTC anterior');
     expect(
       within(form).getByLabelText('Tipo de registro do investimento'),
     ).toHaveTextContent('Nova compra ou aporte');
@@ -132,6 +137,7 @@ describe('Posições iniciais na interface', () => {
     });
     const state = seed(true);
     const app = render(<App />);
+    investmentHistory();
     fireEvent.click(
       screen.getByRole('button', {
         name: 'Corrigir como posição inicial de BTC anterior',
@@ -175,6 +181,7 @@ describe('Posições iniciais na interface', () => {
     });
     seed(true);
     render(<App />);
+    investmentHistory();
     fireEvent.click(
       screen.getByRole('button', { name: /Editar operação de BTC anterior/ }),
     );

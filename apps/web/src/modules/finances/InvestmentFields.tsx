@@ -26,6 +26,8 @@ export function InvestmentFields({
   initial = false,
   quote: storedQuote,
   usdQuote: storedUsdQuote,
+  defaultKind,
+  lockKind = false,
 }: {
   category: InvestmentCategory;
   records: LifeRecords;
@@ -34,6 +36,10 @@ export function InvestmentFields({
   initial?: boolean;
   quote?: BitcoinQuote | undefined;
   usdQuote?: UsdQuote | undefined;
+  /** Operação inicial quando aberta por uma ação do cartão. */
+  defaultKind?: InvestmentEntry['kind'] | undefined;
+  /** Mantém a operação escolhida no cartão (Comprar, Vender, Aportar...). */
+  lockKind?: boolean;
 }) {
   const bitcoin = category === 'Bitcoin',
     usd = category === 'Dólar (USD)';
@@ -77,7 +83,9 @@ export function InvestmentFields({
   const [positionInitial, setPositionInitial] = useState(() =>
     entry ? isInitialPosition(entry) : initial,
   );
-  const [kind, setKind] = useState(entry?.kind ?? 'contribution');
+  const [kind, setKind] = useState(
+    entry?.kind ?? defaultKind ?? 'contribution',
+  );
   const label =
     positionInitial && kind === 'contribution'
       ? 'Custo de aquisição (R$, se conhecido)'
@@ -96,7 +104,8 @@ export function InvestmentFields({
         : null;
   return (
     <>
-      {!initial && (
+      {!initial && lockKind && <input type="hidden" name="kind" value={kind} />}
+      {!initial && !lockKind && (
         <Field label="Operação">
           <CustomSelect
             label="Operação"
@@ -255,7 +264,7 @@ export function InvestmentFields({
             Valor estimado da quantidade informada:{' '}
             {estimate === null ? 'Aguardando cotação' : money(estimate)}. A
             última cotação conhecida pode estar desatualizada; confira o horário
-            na seção de cotações.
+            no cartão do investimento.
           </p>
         </div>
       )}
