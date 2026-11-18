@@ -19,7 +19,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['scripts/audit-visual.mjs'],
+    files: ['scripts/audit-visual.mjs', 'scripts/audit-statistics.mjs'],
     languageOptions: { globals: { ...globals.node, ...globals.browser } },
   },
   {

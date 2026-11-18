@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
+import { auditStatistics } from './audit-statistics.mjs';
 
 // Opcional: Playwright pertence ao ambiente de auditoria, não ao bundle do app.
 let chromium;
@@ -387,6 +388,14 @@ try {
     );
     await page.clock.setFixedTime(new Date('2026-11-17T12:00:00-03:00'));
     await page.goto(base);
+    if (process.env.AUDIT_STATISTICS_ONLY) {
+      await seed(page, true);
+      await page.goto(base + '/estatisticas');
+      await capture(page, 'estatisticas-populated', width);
+      await auditStatistics({ page, width, capture, check });
+      await context.close();
+      continue;
+    }
     if (!process.env.AUDIT_STRESS_ONLY) {
       for (const populated of [false, true]) {
         await seed(page, populated);
@@ -408,6 +417,8 @@ try {
             `${name}-${populated ? 'populated' : 'empty'}`,
             width,
           );
+          if (name === 'estatisticas' && populated)
+            await auditStatistics({ page, width, capture, check });
         }
       }
       await page.goto(base + '/treinos');

@@ -37,3 +37,22 @@ Validar manualmente em 320, 375/390, 768, 1024 e 1280 px, com texto longo e zoom
 Confira barra inferior, foco, popovers, teclado virtual, tabelas e ações fixas.
 Essas larguras são uma matriz de revisão, não novos breakpoints de implementação.
 Os testes jsdom de viewport não substituem a inspeção num navegador real.
+
+## Auditoria visual automatizada
+
+Com Vite rodando localmente e Playwright disponível no ambiente de auditoria,
+execute `npm run audit:visual`. `PLAYWRIGHT_MODULE` aceita o caminho do módulo
+Playwright instalado fora do projeto; `AUDIT_BASE_URL` aponta para o Vite local
+e `AUDIT_OUTPUT` define a pasta de resultados (por padrão, uma pasta temporária).
+Não execute fixtures de auditoria contra um site remoto ou um perfil real.
+
+O roteiro percorre 320, 390, 768, 1024 e 1440 px, com dados vazios, preenchidos,
+textos longos, formulários e popovers. `AUDIT_WIDTHS` permite restringir larguras.
+Estatísticas inclui filtros, modos, camadas, seleção, calendário, teclado,
+preservação do estado e alternativa 2D. O teste de câmera e perda de contexto
+depende de WebGL disponível; sua ausência é registrada no log.
+
+O comando verifica geometria e gera capturas e `results.json`; não faz comparação
+automática de pixels nem auditoria completa de acessibilidade. Abra as capturas
+para conferir legibilidade, foco, estados e alinhamento. O CI mantém os artefatos
+para revisão. Limitações do navegador/GPU devem acompanhar o relatório.
