@@ -18,8 +18,12 @@ arredondamento ao centavo mais próximo. Na liquidação total, todo custo resta
 - `calculations.ts`: resultado mensal e custo por categoria.
 - `bitcoinQuote.ts`: cliente HTTP substituível e cache de uma hora.
 - `useBitcoinQuote.ts`: atualização automática no ciclo de vida do aplicativo.
-- `FinancesPage.tsx`, `CashLedgerPanel.tsx`, `FinancialChart.tsx` e
+- `FinancesPage.tsx`, `MovementsPanel.tsx`, `InvestmentsPanel.tsx`,
+  `InvestmentCard.tsx`, `CashLedgerPanel.tsx`, `FinancialChart.tsx` e
   `CategoryIcon.tsx`: apresentação e formulários.
+- `financeForms.ts`: conversão dos formulários em registros/comandos (extraída
+  sem alteração de regras). `investmentActions.ts`: ações por categoria.
+  `historyFilters.ts`: filtros somente de leitura dos históricos.
 - `../records/commands.ts`: validação e publicação atômica das alterações.
 
 Resultado mensal = receitas − despesas do mês selecionado. Saldo de uma conta =
@@ -126,7 +130,7 @@ cotações, avaliações, aberturas de contas e transferências não geram XP.
 
 1. Execute `nvm use` e `npm run dev:web`. Abra `/financas` no mesmo endereço usado
    anteriormente para manter o acesso ao armazenamento do navegador.
-2. Abra “Contas, transferências e avaliações manuais”. Cadastre saldo inicial
+2. Abra “Contas, transferências e avaliações manuais” (na visão geral). Cadastre saldo inicial
    de R$ 1.000,00, com data anterior às operações do teste.
 3. Cadastre uma caixinha selecionando **Nova compra ou aporte**, com R$ 200,00: disponível R$ 800,00,
    investimento R$ 200,00, patrimônio R$ 1.000,00, despesas inalteradas
@@ -507,3 +511,61 @@ Rótulos, IDs/valores de formulário, padrões e recálculos foram preservados;
 listas suportam teclado, clique fora e viewport móvel. A troca não altera saldos,
 transferências, carteira, XP nem o envelope v4. Consulte os testes de fluxos e
 `app/SelectControls.test.tsx` para seleção, correção e recarga.
+
+## Organização da página e ações nos cartões
+
+A página tem três partes. A **visão geral** (mês, receitas/despesas, dinheiro
+disponível, investimentos, patrimônio, custos, gráfico e contas) fica sempre no
+topo. Abaixo, as abas **Movimentações** e **Investimentos** (`FinanceTabs`,
+teclado com setas/Home/End) mostram uma área por vez. “Configurações financeiras”
+permanece ao final. Nenhuma fórmula, comando ou formato de armazenamento mudou.
+
+**Movimentações:** “Nova movimentação” abre o formulário existente (mesmos campos e
+validações). Salvar fecha o formulário e recalcula os indicadores; cancelar fecha
+sem gravar. “Histórico de movimentações” começa recolhido e filtra por mês (o
+mesmo estado de “Mês financeiro”), tipo, conta (registros sem conta pertencem à
+principal) e categoria, com carregamento progressivo de 20 em 20.
+
+**Investimentos:** totais por categoria, “Novo investimento” (cadastro existente,
+sob demanda), carteira em cartões e “Histórico de investimentos” recolhido, com
+filtros de investimento, categoria, tipo de operação (compra/aporte,
+venda/retirada, posição inicial) e período. Editar, excluir e “Corrigir como
+posição inicial” continuam no histórico.
+
+| Categoria            | Ações do cartão                                 |
+| -------------------- | ----------------------------------------------- |
+| Caixinhas bancárias  | Aportar, Retirar, Atualizar saldo, Editar       |
+| Bitcoin              | Comprar mais, Vender, Atualizar cotação, Editar |
+| Dólar (USD)          | Comprar, Vender, Atualizar cotação, Editar      |
+| Ações e FIIs         | Comprar mais, Vender, Editar                    |
+| Renda fixa           | Aportar, Resgatar, Editar                       |
+| Outros investimentos | Aportar, Retirar, Editar                        |
+
+Aportar/Comprar/Retirar/Vender/Resgatar abrem, dentro do próprio cartão, o mesmo
+formulário de aportes e retiradas (`InvestmentFields` + `entryFromForm`) com o
+investimento fixado (campo oculto `investmentId`) e a operação definida
+(`defaultKind` + `lockKind`). Os campos específicos (BTC/sats, USD, quantidade e
+preço, custo resgatado, conta) e o comando `saveInvestmentEntry` são os existentes;
+por isso aportes debitam e retiradas creditam a conta, sem receita/despesa nem
+alteração artificial do patrimônio. “Atualizar saldo” reutiliza a avaliação manual
+da caixinha. “Atualizar cotação” chama `fetchBitcoinQuote`/`fetchUsdQuote`, que já
+respeitam cache de 60 minutos, requisições compartilhadas, timeout e espera após
+falhas: com cache válido informa o horário e quando nova consulta será possível;
+em falha mantém a última cotação e avisa que pode estar desatualizada. Só a
+cotação é gravada. “Editar” abre o cadastro em modo de edição. “Ver detalhes”
+mostra preço médio (BTC/USD), composição do custo, última avaliação, fonte da
+cotação, três operações recentes e “Excluir investimento”.
+
+Exclusões de movimentações, operações e investimentos passam a pedir confirmação
+(`DeleteConfirmation`). Formulários guardam um bloqueio após o primeiro envio
+bem-sucedido, evitando registros duplicados por cliques repetidos.
+
+### Limitações conhecidas
+
+- Ações e FIIs não têm quantidade rastreada na posição: vendas continuam usando
+  valor recebido (e custo resgatado opcional), sem quantidade vendida, e não há
+  preço médio por unidade. Mudar isso altera regras de posição e exige tarefa própria.
+- Rótulos dos campos permanecem os existentes (“Valor da operação (R$)”), mesmo
+  quando a operação é venda ou resgate.
+- Renda fixa e Outros não possuem cotação; o valor segue a última avaliação manual
+  registrada em “Contas, transferências e avaliações manuais”.
