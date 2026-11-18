@@ -82,6 +82,10 @@ tokens do tema, `data-area`, `.filter-button` e `CustomDatePicker` mensal. A pai
 tem alternativa SVG e tabela textual; o heatmap possui intensidades rotuladas,
 alvos de 44 px e rolagem local. Esses componentes de domínio não substituem o Radar.
 
+Interruptor liga/desliga: `label.strength-switch` com `input type="checkbox"`,
+`role="switch"`, nome acessível e `.strength-switch-track`, como no Modo Avançado
+de Treinos e na personalização de Estatísticas. Não crie outro estilo de switch.
+
 ## Modais, alertas e estados
 
 - `FinancialConfirmation` usa `<dialog>`, título associado, cancelamento por
