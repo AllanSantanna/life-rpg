@@ -3,6 +3,17 @@
 Ponto de entrada: [AGENTS.md](../../AGENTS.md). Índices:
 [design system](../design-system/README.md) e [arquitetura](../architecture/README.md).
 
+## Fluxo de Git obrigatório
+
+Siga o [guia de Git](git-workflow.md) em toda tarefa: verifique status, branch,
+sincronização e trabalho preexistente; desenvolva em uma branch específica fora
+da `main`; organize commits por responsabilidade com Conventional Commits.
+Preserve alterações anteriores e revise arquivos não rastreados e staging.
+Push, abertura de PR, merge/rebase e exclusão de branches exigem autorização
+explícita para a operação; implementar não autoriza publicar ou integrar.
+Não execute comandos Git destrutivos nem force push. O relatório final deve
+informar branch, commits com hashes, estado do Git e pendências.
+
 ## Antes e durante a implementação
 
 1. Leia as regras e o README do domínio. Inspecione o código vigente, incluindo
@@ -14,7 +25,7 @@ Ponto de entrada: [AGENTS.md](../../AGENTS.md). Índices:
 5. Não altere XP, Radar, níveis, classes ou Quests sem solicitação explícita.
 6. Teste a regra ou regressão relevante e revise o layout responsivo e acessível.
 7. Use o [checklist de funcionalidade](feature-checklist.md) e relate o resultado
-   das verificações, incluindo o que não pôde ser executado.
+   das verificações, incluindo o que não pôde ser executado, e o estado final do Git.
 
 ## Verificações disponíveis
 
@@ -27,6 +38,14 @@ Ponto de entrada: [AGENTS.md](../../AGENTS.md). Índices:
 | `npm run build`           | Compilação das aplicações e geração da PWA                                                                           |
 | `npm run check`           | Todos os passos acima, interrompendo no primeiro erro                                                                |
 | `npm run format:check`    | Formatação Prettier do repositório; não reescreve arquivos                                                           |
+| `npm run audit:visual`    | Auditoria responsiva em Chromium, medidas de geometria e capturas para revisão                                       |
+
+Priorize `npm run check`, `npm run format:check` e `npm run standards:check`.
+Para alterações visuais relevantes, execute também `npm run audit:visual`.
+Não declare testes aprovados sem executá-los; se um comando falhar ou não puder
+ser executado, registre a limitação e os passos que não chegaram a rodar.
+Não enfraqueça testes nem desative validações para obter aprovação. Falhas
+preexistentes devem ser identificadas com evidência, sem mudanças fora do escopo.
 
 O [CI](../../.github/workflows/quality.yml) executa `npm ci` e `npm run check` em
 push e pull request. A configuração de proteção da branch depende do repositório

@@ -15,6 +15,7 @@ export const requiredDocuments = [
   'docs/architecture/README.md',
   'docs/architecture/conventions.md',
   'docs/ai/development-rules.md',
+  'docs/ai/git-workflow.md',
   'docs/ai/feature-checklist.md',
   'docs/ai/review-checklist.md',
 ];
@@ -72,6 +73,7 @@ export function checkStandards(root) {
         'docs/design-system/README.md',
         'docs/architecture/README.md',
         'docs/ai/development-rules.md',
+        'docs/ai/git-workflow.md',
         'docs/ai/feature-checklist.md',
         'docs/ai/review-checklist.md',
       ])

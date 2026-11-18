@@ -8,6 +8,7 @@ implementação atual; propostas futuras devem ser identificadas como propostas.
 | Botões, campos, cartões e telas                 | [Design system](design-system/README.md)               |
 | Estado, módulos, persistência e testes          | [Arquitetura atual](architecture/README.md)            |
 | Fluxo de implementação e validações automáticas | [Regras para IAs](ai/development-rules.md)             |
+| Branches, commits e proteção da main            | [Fluxo obrigatório de Git](ai/git-workflow.md)         |
 | Encerrar uma implementação                      | [Checklist de funcionalidade](ai/feature-checklist.md) |
 | Revisar uma mudança                             | [Checklist de revisão](ai/review-checklist.md)         |
 
@@ -36,3 +37,7 @@ Uma mudança oficial deve atualizar código, documento correspondente e, quando
 aplicável, validação. Não copie contratos completos entre documentos: faça links.
 `npm run standards:check` verifica a estrutura obrigatória, os links locais deste
 índice e dos novos guias e as referências de tokens de cor no CSS.
+O [guia de Git](ai/git-workflow.md) é obrigatório e sua referência em `AGENTS.md`
+também é validada. Desenvolvimento ocorre fora da `main`; publicação e integração
+exigem autorização explícita. A proteção técnica no GitHub depende da configuração
+remota e não é criada pela documentação ou pelo verificador.

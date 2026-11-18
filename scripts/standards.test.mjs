@@ -70,6 +70,36 @@ test('rejeita links quebrados, externos ao repositório e codificação inválid
   });
 });
 
+test('exige guia de Git, referência no AGENTS e links locais válidos no guia', () => {
+  fixture((root) => {
+    rmSync(join(root, 'docs/ai/git-workflow.md'));
+    assert.ok(
+      checkStandards(root).includes(
+        'Documento obrigatório ausente: docs/ai/git-workflow.md',
+      ),
+    );
+  });
+  fixture((root, write) => {
+    write(
+      'AGENTS.md',
+      requiredDocuments
+        .slice(1)
+        .filter((file) => file !== 'docs/ai/git-workflow.md')
+        .map((file) => `[Guia](${file})`)
+        .join('\n'),
+    );
+    assert.deepEqual(checkStandards(root), [
+      'AGENTS.md deve apontar para docs/ai/git-workflow.md',
+    ]);
+  });
+  fixture((root, write) => {
+    write('docs/ai/git-workflow.md', '[Guia](inexistente.md)');
+    assert.deepEqual(checkStandards(root), [
+      'Link local inválido em docs/ai/git-workflow.md: inexistente.md',
+    ]);
+  });
+});
+
 test('detecta token desconhecido em CSS de módulo e aceita tokens existentes', () => {
   fixture((root, write) => {
     write(
