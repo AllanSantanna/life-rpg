@@ -4,7 +4,7 @@ import type { LifeRecords } from '../records/types';
 import { emptyLedger, type InvestmentEntry } from './types';
 import { monthlyBalance } from './calculations';
 
-import { position } from './position';
+import { position, positionMode } from './position';
 export { position, satoshis } from './position';
 export function valuationBasis(
   entries: readonly InvestmentEntry[],
@@ -36,7 +36,21 @@ export function investmentValue(
   );
   const bitcoin = investment?.category === 'Bitcoin';
   const usd = investment?.category === 'Dólar (USD)';
-  const holding = position(entries, usd ? 'USD' : bitcoin);
+  const holding = position(
+    entries,
+    investment ? positionMode(investment.category) : false,
+  );
+  // Ações/FIIs: cotação de mercado só vale a partir do dia em que foi observada.
+  const marketQuote = investment?.ticker
+    ? ledger.marketQuotes
+        ?.filter(
+          (q) =>
+            q.ticker === investment.ticker &&
+            localQuoteDate(q.observedAt) <= date,
+        )
+        .at(-1)
+    : undefined;
+  const marketPriced = !!marketQuote && holding.unitsKnown && holding.units > 0;
   const usdQuote = ledger.usdQuotes
     ?.filter((q) => localQuoteDate(q.observedAt) <= date)
     .at(-1);
@@ -62,7 +76,8 @@ export function investmentValue(
       : holding.cost === 0 && holding.costKnown;
   let known = box
     ? empty || boxBalanceValid
-    : empty || (usd ? !!usdQuote : bitcoin ? !!quote : !!manualValid);
+    : empty ||
+      (usd ? !!usdQuote : bitcoin ? !!quote : marketPriced || !!manualValid);
   let current =
     box && (projectedBox || manualValid)
       ? (projectedBox?.amount ?? valuation!.amountCents)
@@ -79,9 +94,15 @@ export function investmentValue(
                   50_000_000n) /
                   100_000_000n,
               )
-            : manualValid
-              ? valuation.amountCents
-              : holding.cost;
+            : marketPriced
+              ? Number(
+                  (BigInt(holding.units) * BigInt(marketQuote.priceCents) +
+                    50_000_000n) /
+                    100_000_000n,
+                )
+              : manualValid
+                ? valuation.amountCents
+                : holding.cost;
   const unsafe = !Number.isSafeInteger(current);
   if (unsafe) {
     current = holding.cost;
@@ -95,6 +116,8 @@ export function investmentValue(
     known,
     quote,
     usdQuote,
+    marketQuote,
+    marketPriced,
     unpriced: unsafe || (!holding.costKnown && !known),
     valuation,
     gain: current - holding.cost,
@@ -204,6 +227,7 @@ export function financialHistory(records: LifeRecords, today: string) {
     ].map((item) => item.date),
   );
   ledger.usdQuotes?.forEach((q) => dates.add(localQuoteDate(q.observedAt)));
+  ledger.marketQuotes?.forEach((q) => dates.add(localQuoteDate(q.observedAt)));
   ledger.quotes.forEach((item) => dates.add(localQuoteDate(item.observedAt)));
   return [...dates]
     .filter((date) => date <= today)

@@ -18,6 +18,8 @@ export const investmentCategories = [
 ] as const;
 export type InvestmentCategory = (typeof investmentCategories)[number];
 export interface Investment {
+  /** Código B3 (ex.: VALE3, HGLG11); somente Ações e Fundos imobiliários. */
+  ticker?: string;
   institution?: string;
   cdiPercentBasisPoints?: number;
   id: string;
@@ -70,7 +72,33 @@ export interface UsdQuote {
   updatedAt: number;
   observedAt: number;
 }
+/**
+ * Última cotação observada de um ativo da B3 (fonte: brapi.dev via apps/api).
+ * Guarda-se uma observação por ticker e por dia, como nas cotações de BTC/USD.
+ */
+export interface MarketQuote {
+  ticker: string;
+  priceCents: number;
+  /** Fechamento do pregão anterior, quando informado pela fonte. */
+  previousCloseCents?: number;
+  /** Horário da cotação na fonte (pode ter atraso). */
+  marketTime: number;
+  observedAt: number;
+}
+/** Fechamento diário vindo da fonte; não é persistido. */
+export interface MarketPricePoint {
+  date: string;
+  closeCents: number;
+}
+export const isMarketCategory = (category: InvestmentCategory) =>
+  category === 'Ações' || category === 'Fundos imobiliários';
+/** Formato de códigos da B3: VALE3, PETR4, B3SA3, HGLG11. */
+export const TICKER_PATTERN = /^[A-Z][A-Z0-9]{3}\d{1,2}$/;
+export function normalizeTicker(value: string) {
+  return value.trim().toUpperCase();
+}
 export interface FinanceLedger {
+  marketQuotes?: MarketQuote[];
   usdQuotes?: UsdQuote[];
   accounts: CashAccount[];
   transfers: AccountTransfer[];

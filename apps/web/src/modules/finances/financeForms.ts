@@ -1,11 +1,14 @@
 import type { RecordCommand } from '../records/types';
 import { formCents, formNumber, formText } from '../records/form';
 import { decimalToUnits } from './monetary';
-import type {
-  Investment,
-  InvestmentCategory,
-  InvestmentEntry,
-  MoneyMovement,
+import {
+  isMarketCategory,
+  normalizeTicker,
+  TICKER_PATTERN,
+  type Investment,
+  type InvestmentCategory,
+  type InvestmentEntry,
+  type MoneyMovement,
 } from './types';
 
 /**
@@ -21,6 +24,8 @@ export function entryFromForm(
   today = '',
 ): InvestmentEntry {
   const bitcoin = category === 'Bitcoin' || category === 'Dólar (USD)';
+  // Ações/FIIs: quantidade opcional na compra (com preço ou valor) e na venda.
+  const shares = isMarketCategory(category);
   const positionInitial =
     formText(data, 'positionType') === 'initial' &&
     formText(data, 'kind') !== 'withdrawal';
@@ -33,12 +38,24 @@ export function entryFromForm(
     !positionInitial &&
     !bitcoin &&
     hasUnits &&
-    (!formText(data, 'quantity') || !formText(data, 'price'))
+    (shares
+      ? !formText(data, 'quantity')
+      : !formText(data, 'quantity') || !formText(data, 'price'))
   )
-    throw new Error('Informe quantidade e preço de compra juntos.');
-  if (!bitcoin && hasUnits && kind === 'withdrawal')
     throw new Error(
-      'Retiradas usam o valor retirado, sem quantidade ou preço de compra.',
+      shares
+        ? 'Informe a quantidade junto com o preço de compra.'
+        : 'Informe quantidade e preço de compra juntos.',
+    );
+  if (
+    !bitcoin &&
+    kind === 'withdrawal' &&
+    (shares ? !!formText(data, 'price') : hasUnits)
+  )
+    throw new Error(
+      shares
+        ? 'Vendas usam a quantidade vendida e o valor recebido, sem preço de compra.'
+        : 'Retiradas usam o valor retirado, sem quantidade ou preço de compra.',
     );
   const units: Pick<
     Partial<InvestmentEntry>,
@@ -107,6 +124,10 @@ export function investmentCommand(
     id,
     name: formText(data, 'name'),
     category: formText(data, 'category') as InvestmentCategory,
+    ...(isMarketCategory(formText(data, 'category') as InvestmentCategory) &&
+    formText(data, 'ticker')
+      ? { ticker: tickerFromForm(data) }
+      : {}),
     ...(formText(data, 'category') === 'Caixinhas bancárias'
       ? {
           ...(formText(data, 'institution')
@@ -146,4 +167,14 @@ export function investmentCommand(
         ...(initialValuation ? { initialValuation } : {}),
       }
     : { type: 'saveInvestment', value };
+}
+
+/** Ticker B3 informado no cadastro; vazio mantém o investimento sem cotação. */
+export function tickerFromForm(data: FormData) {
+  const ticker = normalizeTicker(formText(data, 'ticker'));
+  if (!TICKER_PATTERN.test(ticker))
+    throw new Error(
+      'Ticker inválido. Use o código da B3, como VALE3, PETR4 ou HGLG11.',
+    );
+  return ticker;
 }

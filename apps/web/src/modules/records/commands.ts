@@ -4,8 +4,14 @@ import { isInitialPosition } from '../finances/initialPosition';
 import { removeAccount, resetFinances } from '../finances/management';
 import { localQuoteDate, valuationBasis } from '../finances/ledger';
 import type { LifeRecords, RecordCommand } from './types';
-import { position } from '../finances/position';
-import { emptyLedger } from '../finances/types';
+import { position, positionMode } from '../finances/position';
+import {
+  emptyLedger,
+  isMarketCategory,
+  TICKER_PATTERN,
+  type InvestmentCategory,
+  type MarketQuote,
+} from '../finances/types';
 import { investmentCategories } from '../finances/types';
 import { bookProgress } from '../knowledge/calculations';
 import { isDate } from './dates';
@@ -72,7 +78,11 @@ export function isLifeRecords(value: unknown): value is LifeRecords {
             Number.isSafeInteger(item.cdiPercentBasisPoints) &&
             Number(item.cdiPercentBasisPoints) >= 0 &&
             Number(item.cdiPercentBasisPoints) <= 100000)) &&
-        investmentCategories.some((category) => category === item.category),
+        investmentCategories.some((category) => category === item.category) &&
+        (item.ticker === undefined ||
+          (isMarketCategory(item.category as InvestmentCategory) &&
+            typeof item.ticker === 'string' &&
+            TICKER_PATTERN.test(item.ticker))),
     )
   )
     return false;
@@ -142,6 +152,19 @@ export function isLifeRecords(value: unknown): value is LifeRecords {
             cents(item.purchasePriceCents))
         );
       }
+      // Ações/FIIs: quantidade com valor informado (compra) ou vendida.
+      const shareUnits =
+        positive(item.quantity) &&
+        Number.isSafeInteger(Math.round(item.quantity * 1e8)) &&
+        Math.round(item.quantity * 1e8) > 0 &&
+        Math.abs(item.quantity * 1e8 - Math.round(item.quantity * 1e8)) <
+          0.00001;
+      if (
+        isMarketCategory(asset.category as InvestmentCategory) &&
+        shareUnits &&
+        item.purchasePriceCents === undefined
+      )
+        return true;
       return (
         (item.quantity === undefined &&
           item.purchasePriceCents === undefined) ||
@@ -175,11 +198,7 @@ export function isLifeRecords(value: unknown): value is LifeRecords {
         return false;
       position(
         selected as unknown as import('../finances/types').InvestmentEntry[],
-        investment.category === 'Bitcoin'
-          ? true
-          : investment.category === 'Dólar (USD)'
-            ? 'USD'
-            : false,
+        positionMode(investment.category as InvestmentCategory),
       );
     }
   } catch {
@@ -270,6 +289,24 @@ export function isLifeRecords(value: unknown): value is LifeRecords {
             positive(q.updatedAt) &&
             positive(q.observedAt) &&
             q.updatedAt <= q.observedAt + 60000,
+        ))
+    )
+      return false;
+    if (
+      ledger.marketQuotes !== undefined &&
+      (!Array.isArray(ledger.marketQuotes) ||
+        ledger.marketQuotes.length > 10000 ||
+        !ledger.marketQuotes.every(
+          (q: unknown) =>
+            record(q) &&
+            typeof q.ticker === 'string' &&
+            TICKER_PATTERN.test(q.ticker) &&
+            cents(q.priceCents) &&
+            (q.previousCloseCents === undefined ||
+              cents(q.previousCloseCents)) &&
+            positive(q.marketTime) &&
+            positive(q.observedAt) &&
+            q.marketTime <= q.observedAt + 60000,
         ))
     )
       return false;
@@ -498,6 +535,28 @@ export function applyRecordCommand(
         },
       };
       break;
+    case 'saveMarketQuote': {
+      const quote: MarketQuote = command.value;
+      // Só tickers da carteira; não gera receita, despesa nem XP.
+      if (!records.investments.some((item) => item.ticker === quote.ticker))
+        return records;
+      next = {
+        ...records,
+        finance: {
+          ...finance,
+          marketQuotes: [
+            ...(finance.marketQuotes ?? []).filter(
+              (item) =>
+                item.ticker !== quote.ticker ||
+                localQuoteDate(item.observedAt) !==
+                  localQuoteDate(quote.observedAt),
+            ),
+            quote,
+          ].sort((a, b) => a.observedAt - b.observedAt),
+        },
+      };
+      break;
+    }
     case 'saveQuote':
       if (!records.investments.some((item) => item.category === 'Bitcoin'))
         return records;
@@ -740,6 +799,19 @@ export function applyRecordCommand(
       };
       break;
     }
+  }
+  // Cotações de tickers removidos da carteira deixam de ser guardadas.
+  if (next.finance?.marketQuotes) {
+    const tickers = new Set(next.investments.map((item) => item.ticker));
+    const kept = next.finance.marketQuotes.filter((q) => tickers.has(q.ticker));
+    if (kept.length !== next.finance.marketQuotes.length)
+      next = {
+        ...next,
+        finance: {
+          ...next.finance,
+          ...(kept.length ? { marketQuotes: kept } : { marketQuotes: [] }),
+        },
+      };
   }
   assert(
     isLifeRecords(next),
