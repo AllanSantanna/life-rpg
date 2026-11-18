@@ -91,19 +91,32 @@ universal. Gráficos aceitam medidas calculadas inline, mas não novos temas inl
   Não anuncie “salvo” enquanto a operação ainda estiver pendente.
 
 Os cartões da carteira financeira ([InvestmentCard](../../apps/web/src/modules/finances/InvestmentCard.tsx))
-usam `.panel` e somente botões oficiais: a ação principal da categoria
-(“Aportar”, “Comprar mais”, “Comprar”) é `ActionButton` com ícone `plus`; as
-secundárias (“Retirar”, “Vender”, “Resgatar”, “Atualizar saldo/cotação”) usam
-`.filter-button`; “Editar” e “Excluir” repetem o padrão das contas (botão de
-`.record-actions` com `Icon edit` e `.financial-danger` com `Icon trash` e
-confirmação); “Ver detalhes” usa `.text-action`. Como o `ActionButton` tem largura
-fixa de 160 px, cada cartão tem uma única ação primária. Valores reutilizam a regra
-de `.record-summary dd` e as métricas seguem as linhas `dt/dd` do `MetricCard`. A
+usam `.panel` e mostram só duas ações: a principal da categoria (“Aportar”,
+“Comprar mais”, “Comprar”) com `ActionButton` e o gatilho “Mais ações”
+(`ActionMenu`), que reúne as secundárias, Editar e Excluir (com confirmação).
+“Ver detalhes” usa `.text-action` e concentra notas longas, horário da cotação,
+custos e operações recentes, sem repetir ações. Valores reutilizam a regra de
+`.record-summary dd` e as métricas seguem as linhas `dt/dd` do `MetricCard`. A
 grade usa `subgrid` para alinhar cabeçalho, conteúdo, ações e rodapé entre cartões
-da mesma linha. Um teste e a auditoria visual falham se surgir outro tipo de botão
-nos cartões ou se as ações da mesma linha ficarem desalinhadas. O nome do
+da mesma linha. Um teste e a auditoria visual falham se surgirem outros botões nos
+cartões ou se as ações da mesma linha ficarem desalinhadas. O nome do
 investimento fica no rótulo acessível e no título do cartão. Listas de
 registros e seus botões permitem quebra de títulos longos sem alargar a página.
+
+## Menu de ações
+
+[ActionMenu](../../apps/web/src/shared/components/ActionMenu.tsx) agrupa ações
+secundárias de um item. O gatilho é `.text-action` com seta (`chevron`),
+`aria-haspopup="menu"` e `aria-expanded`. O painel usa `useAnchoredPopover`
+(portal, posição dentro da viewport, clique fora, saída animada e movimento
+reduzido) e as classes visuais do popup de `CustomSelect`
+(`.custom-select__popup` e `.custom-select__option`), sem cores ou medidas novas.
+Itens são `menuitem` com ícone do catálogo e nome acessível iniciado pelo texto
+visível. Teclado: Enter, Espaço ou setas abrem; setas, Home e End percorrem as
+opções habilitadas; Escape fecha e devolve o foco ao gatilho; Tab fecha. Ações
+destrutivas continuam abrindo a confirmação correspondente. Use-o quando um item
+tiver uma ação principal e outras secundárias; não substitui `CustomSelect` para
+escolha de valores.
 
 ## Finanças: abas, áreas recolhíveis e formulários sob demanda
 

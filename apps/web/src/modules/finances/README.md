@@ -532,9 +532,10 @@ filtros de investimento, categoria, tipo de operação (compra/aporte,
 venda/retirada, posição inicial) e período. Editar, excluir e “Corrigir como
 posição inicial” continuam no histórico.
 
-A primeira ação de cada linha abaixo é a principal (`ActionButton`); as demais
-são secundárias (`.filter-button`). Editar e Excluir (com confirmação) aparecem em
-todos os cartões, como nas contas.
+A primeira ação de cada linha abaixo é a principal (`ActionButton`, sempre
+visível). As demais, Editar e Excluir (com confirmação) ficam no menu “Mais ações”
+(`ActionMenu`). A cotação de BTC/USD aparece como métrica; horário, fonte e notas
+explicativas ficam em “Ver detalhes”.
 
 | Categoria            | Ações do cartão                                 |
 | -------------------- | ----------------------------------------------- |

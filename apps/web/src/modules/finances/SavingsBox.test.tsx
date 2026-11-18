@@ -1,5 +1,6 @@
 import {
   cardDetails,
+  cardMenuAction,
   confirmDeletion,
   investmentCard,
   newInvestmentForm,
@@ -101,9 +102,7 @@ describe('Caixinhas pela interface', () => {
     const app = render(<App />);
     let card = register('Reserva', true);
     const before = structuredClone(stored());
-    fireEvent.click(
-      within(card).getByRole('button', { name: 'Atualizar saldo de Reserva' }),
-    );
+    cardMenuAction('Caixinha Reserva', 'Atualizar saldo de Reserva');
     let form = within(card).getByRole('form', {
       name: 'Atualizar saldo de Reserva',
     });
@@ -123,9 +122,7 @@ describe('Caixinhas pela interface', () => {
       within(chart).getByRole('button', { name: 'Patrimônio total' }),
     );
     expect(chart).toHaveTextContent('R$ 3.015,00');
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Editar investimento Reserva' }),
-    );
+    cardMenuAction('Caixinha Reserva', 'Editar investimento Reserva');
     form = screen.getByRole('form', { name: 'Editar investimento' });
     input(form, 'Instituição financeira (opcional)', 'Banco diferente');
     fireEvent.click(
@@ -138,11 +135,9 @@ describe('Caixinhas pela interface', () => {
     card = investmentCard('Caixinha Reserva');
     expect(card).toHaveTextContent('Banco diferente');
     expect(card).toHaveTextContent('R$ 1.015,00');
-    cardDetails('Caixinha Reserva', 'Reserva');
-    fireEvent.click(
-      screen.getByRole('button', {
-        name: 'Excluir investimento e operações de Reserva',
-      }),
+    cardMenuAction(
+      'Caixinha Reserva',
+      'Excluir investimento e operações de Reserva',
     );
     expect(stored().records.investmentEntries).toHaveLength(1);
     confirmDeletion();
@@ -154,9 +149,7 @@ describe('Caixinhas pela interface', () => {
     render(<App />);
     const card = register('Reserva');
     const before = structuredClone(stored());
-    fireEvent.click(
-      within(card).getByRole('button', { name: 'Atualizar saldo de Reserva' }),
-    );
+    cardMenuAction('Caixinha Reserva', 'Atualizar saldo de Reserva');
     fireEvent.click(
       within(card).getByRole('button', { name: 'Cancelar edição' }),
     );

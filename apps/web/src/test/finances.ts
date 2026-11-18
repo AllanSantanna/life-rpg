@@ -47,10 +47,27 @@ export function investmentCard(name: string) {
   return within(wallet()).getByRole('group', { name });
 }
 
-/** Clica em uma ação do cartão e devolve o formulário aberto nele. */
+/** Abre “Mais ações” do cartão e escolhe uma opção do menu. */
+export function cardMenuAction(card: string, action: string) {
+  const element = investmentCard(card);
+  fireEvent.click(
+    within(element).getByRole('button', { name: /^Mais ações de / }),
+  );
+  fireEvent.click(
+    within(screen.getByRole('menu')).getByRole('menuitem', { name: action }),
+  );
+  return element;
+}
+
+/**
+ * Executa uma ação do cartão (principal ou do menu “Mais ações”) e devolve o
+ * formulário aberto nele.
+ */
 export function cardAction(card: string, action: string) {
   const element = investmentCard(card);
-  fireEvent.click(within(element).getByRole('button', { name: action }));
+  const primary = within(element).queryByRole('button', { name: action });
+  if (primary) fireEvent.click(primary);
+  else cardMenuAction(card, action);
   return within(element).getByRole('form');
 }
 

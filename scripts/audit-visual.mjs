@@ -212,7 +212,9 @@ async function seed(page, populated) {
 async function capture(page, name, width) {
   if (
     !(await page
-      .locator('dialog[open], [role=listbox]:not([aria-hidden=true])')
+      .locator(
+        'dialog[open], [role=listbox]:not([aria-hidden=true]), [role=menu]:not([aria-hidden=true])',
+      )
       .count())
   )
     await page.evaluate(() => scrollTo(0, 0));
@@ -341,7 +343,7 @@ async function capture(page, name, width) {
         .map(info),
       dialogs: [
         ...document.querySelectorAll(
-          'dialog[open], [role=listbox]:not([aria-hidden=true])',
+          'dialog[open], [role=listbox]:not([aria-hidden=true]), [role=menu]:not([aria-hidden=true])',
         ),
       ]
         .filter(visible)
@@ -592,6 +594,13 @@ try {
       await capture(page, 'financas-investimentos', width);
       await page
         .getByRole('button', {
+          name: 'Mais ações de Caixinha de auditoria com nome extenso',
+          exact: true,
+        })
+        .click();
+      await capture(page, 'financas-menu', width);
+      await page
+        .getByRole('menuitem', {
           name: 'Atualizar saldo de Caixinha de auditoria com nome extenso',
           exact: true,
         })
@@ -605,7 +614,13 @@ try {
         .click();
       await capture(page, 'financas-aporte', width);
       await page
-        .getByRole('button', { name: 'Vender Bitcoin (BTC)', exact: true })
+        .getByRole('button', {
+          name: 'Mais ações de Bitcoin (BTC)',
+          exact: true,
+        })
+        .click();
+      await page
+        .getByRole('menuitem', { name: 'Vender Bitcoin (BTC)', exact: true })
         .click();
       await capture(page, 'financas-venda-btc', width);
       await page.getByRole('button', { name: 'Cancelar', exact: true }).click();
