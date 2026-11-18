@@ -9,7 +9,6 @@ import { useUsdQuote } from '../modules/finances/useUsdQuote';
 import { useBitcoinQuote } from '../modules/finances/useBitcoinQuote';
 import { applyRecordCommand } from '../modules/records/commands';
 import type { RecordCommand } from '../modules/records/types';
-import { weeklyRecordXP } from '../modules/records/progression';
 import { recordMetrics } from '../modules/records/metrics';
 import { useToday } from '../modules/records/useToday';
 import { displayDate } from '../modules/records/dates';
@@ -20,6 +19,7 @@ import { RestPage } from '../modules/rest/RestPage';
 import { KnowledgePage } from '../modules/knowledge/KnowledgePage';
 import { usePlayerState } from './usePlayerState';
 import { EvolutionPanel } from '../modules/evolution/EvolutionPanel';
+import { StatisticsPage } from '../modules/statistics/StatisticsPage';
 import { useEffect, useRef } from 'react';
 import { useUrlNavigation } from './useUrlNavigation';
 import { Navigation, type View } from './Navigation';
@@ -50,7 +50,6 @@ export function App() {
   recordsRef.current = state.records;
   const player = state.profile;
   const {
-    missions: realMissions,
     rewards: goalReward,
     progress,
     activities,
@@ -59,17 +58,6 @@ export function App() {
   } = facts;
   const heading = useRef<HTMLHeadingElement>(null);
   const attributes = realAttributes(dedication);
-  const weeklyActivity = weeklyRecordXP(state.records, realMissions, today).map(
-    (day) => ({
-      ...day,
-      xp:
-        day.xp +
-        goalReward.entries
-          .filter((entry) => entry.date === day.date)
-          .reduce((sum, entry) => sum + entry.xp, 0),
-    }),
-  );
-  const maxWeeklyXP = Math.max(100, ...weeklyActivity.map((day) => day.xp));
   const currentMetrics = recordMetrics(state.records, today, dedication);
   function changeRecords(command: RecordCommand): string | null {
     try {
@@ -188,20 +176,26 @@ export function App() {
               />
             )}
             {view === 'stats' && (
-              <>
-                <EvolutionPanel
-                  activities={activities}
-                  referenceDate={displayDate(today)}
-                  period={state.preferences.radarPeriod}
-                  onPeriodChange={(radarPeriod) =>
-                    setState((previous) => ({
-                      ...previous,
-                      preferences: { ...previous.preferences, radarPeriod },
-                    }))
-                  }
-                />
-                <AttributesPanel attributes={attributes} />
-              </>
+              <StatisticsPage
+                records={state.records}
+                activities={activities}
+                today={today}
+                onNavigate={navigate}
+                achievements={<AchievementsPanel achievements={achievements} />}
+                radar={
+                  <EvolutionPanel
+                    activities={activities}
+                    referenceDate={displayDate(today)}
+                    period={state.preferences.radarPeriod}
+                    onPeriodChange={(radarPeriod) =>
+                      setState((previous) => ({
+                        ...previous,
+                        preferences: { ...previous.preferences, radarPeriod },
+                      }))
+                    }
+                  />
+                }
+              />
             )}
             {view === 'home' && (
               <>
@@ -269,44 +263,6 @@ export function App() {
             {view === 'workouts' && <WorkoutsPage {...recordProps} />}
             {view === 'rest' && <RestPage {...recordProps} />}
             {view === 'knowledge' && <KnowledgePage {...recordProps} />}
-            {view === 'stats' && (
-              <div className="grid items-start gap-5 xl:grid-cols-2">
-                <section className="panel p-5 sm:p-6">
-                  <SectionHeading
-                    title="A constância deixa marcas"
-                    eyebrow="Atividade semanal"
-                  />
-                  <p className="mb-7 text-xs text-muted">
-                    XP por dia dos registros, quests e confirmações históricas.
-                    Cada atividade é contabilizada conforme os limites
-                    existentes.
-                  </p>
-                  <div className="flex h-56 items-end gap-3 sm:gap-5">
-                    {weeklyActivity.map((day) => (
-                      <div
-                        key={day.date}
-                        className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-2"
-                      >
-                        <span className="font-mono text-[10px] text-muted">
-                          {day.xp}
-                        </span>
-                        <div
-                          role="img"
-                          aria-label={`${day.day}: ${day.xp} XP`}
-                          className="weekly-bar w-full max-w-10 rounded-t-md"
-                          style={{ height: `${(day.xp / maxWeeklyXP) * 70}%` }}
-                        />
-                        <span className="text-xs text-muted">{day.day}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <p className="mt-6 border-t border-white/[0.06] pt-4 text-xs text-muted">
-                    Seu ritmo importa mais do que a velocidade.
-                  </p>
-                </section>
-                <AchievementsPanel achievements={achievements} />
-              </div>
-            )}
             {view === 'profile' && (
               <ProfilePage
                 state={state}
