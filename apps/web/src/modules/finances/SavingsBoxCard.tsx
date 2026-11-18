@@ -91,16 +91,19 @@ export function SavingsBoxCard({
           saldo real.
         </p>
       )}
-      <button
-        type="button"
-        className="record-primary"
-        onClick={() => {
-          setOpened(true);
-          setMessage('');
-        }}
-      >
-        Atualizar saldo de {investment.name}
-      </button>
+      <div className="record-actions">
+        <button
+          type="button"
+          className="record-primary"
+          aria-label={`Atualizar saldo de ${investment.name}`}
+          onClick={() => {
+            setOpened(true);
+            setMessage('');
+          }}
+        >
+          Atualizar saldo
+        </button>
+      </div>
       {opened && (
         <RecordForm
           title={`Atualizar saldo de ${investment.name}`}

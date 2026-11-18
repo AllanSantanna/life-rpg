@@ -35,6 +35,7 @@ export function PillarLinks({
     >
       {pillarLinks.map((pillar) => (
         <button
+          type="button"
           key={pillar.view}
           data-area={pillar.title}
           className={current === pillar.view ? 'selected' : ''}

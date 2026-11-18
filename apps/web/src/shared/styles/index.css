@@ -8,12 +8,42 @@
   --color-foreground: #f5f5f5;
   --color-muted: #a3a3a3;
   --color-positive: #a8c7ac;
+  --color-finances: #85c99a;
+  --color-workouts: #ed8989;
+  --color-rest: #bba0d7;
+  --color-knowledge: #d9bc82;
+  --color-bitcoin: #f7931a;
+  --color-action-start: #e33137;
+  --color-action-end: #a61920;
+  --color-action-border: #ee4c50;
+  --color-action-hover-start: #ed4449;
+  --color-action-hover-end: #bd2027;
+  --color-on-primary: #fff;
+  --color-focus: #fca5a5;
+  --color-error: #ffaaaa;
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
 }
 
 @layer base {
   :root {
     color-scheme: dark;
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-field: 14px;
+    --space-section: 18px;
+    --space-panel: 22px;
+    --control-height: 44px;
+    --control-radius: 8px;
+    --control-padding-y: 10px;
+    --control-padding-x: 12px;
+    --text-control: 12px;
+    --leading-control: 18px;
+    --action-width: 160px;
+    --radius-panel: 14px;
   }
   body {
     margin: 0;
@@ -41,8 +71,8 @@
     outline-offset: 4px;
   }
   ::selection {
-    background: #7f1d1d;
-    color: #f5f5f5;
+    background: var(--color-primary-dark);
+    color: var(--color-foreground);
   }
 }
 
@@ -55,7 +85,7 @@
   }
   .panel {
     border: 1px solid rgb(255 255 255 / 0.07);
-    border-radius: 14px;
+    border-radius: var(--radius-panel);
     background: var(--color-surface);
   }
   .sidebar {
@@ -104,7 +134,7 @@
     place-items: center;
     color: #f87171;
     background: linear-gradient(145deg, #451414, #170d0d);
-    border: 1px solid #7f1d1d;
+    border: 1px solid var(--color-primary-dark);
     border-radius: 12px;
   }
   .journey-note {
@@ -121,14 +151,14 @@
         rgb(127 29 29 / 0.19),
         transparent 60%
       ),
-      #171717;
+      var(--color-surface);
   }
   .player-banner::before {
     content: '';
     position: absolute;
     inset: 0 auto 0 0;
     width: 2px;
-    background: linear-gradient(transparent, #dc2626, transparent);
+    background: linear-gradient(transparent, var(--color-primary), transparent);
   }
   .player-banner::after {
     content: '';
@@ -169,11 +199,11 @@
   }
   .text-action {
     display: inline-flex;
-    min-height: 44px;
+    min-height: var(--control-height);
     align-items: center;
     gap: 7px;
     color: #fca5a5;
-    font-size: 12px;
+    font-size: var(--text-control);
   }
   .text-action:hover {
     color: #fecaca;
@@ -182,15 +212,15 @@
     border: 1px solid currentColor;
     border-radius: 16px 16px 20px 20px;
     background: linear-gradient(145deg, rgb(255 255 255 / 0.04), transparent);
-    box-shadow: inset 0 0 0 3px #171717;
+    box-shadow: inset 0 0 0 3px var(--color-surface);
   }
   .filter-button {
-    min-height: 44px;
+    min-height: var(--control-height);
     border: 1px solid rgb(255 255 255 / 0.1);
-    border-radius: 8px;
-    padding: 8px 16px;
+    border-radius: var(--control-radius);
+    padding: var(--space-2) var(--space-4);
     color: var(--color-muted);
-    font-size: 12px;
+    font-size: var(--text-control);
   }
   .filter-button.active {
     border-color: rgb(220 38 38 / 0.35);
@@ -198,7 +228,11 @@
     color: #fca5a5;
   }
   .weekly-bar {
-    background: linear-gradient(to top, #7f1d1d, #dc2626);
+    background: linear-gradient(
+      to top,
+      var(--color-primary-dark),
+      var(--color-primary)
+    );
   }
   .skip-link {
     position: fixed;
@@ -265,7 +299,8 @@
   .app-shell {
     min-height: 100vh;
     background:
-      radial-gradient(ellipse at 85% 0, #38101455, transparent 45%), #090909;
+      radial-gradient(ellipse at 85% 0, #38101455, transparent 45%),
+      var(--color-background);
   }
   .panel {
     background: linear-gradient(145deg, #191515, #0d0d0e 75%);
@@ -320,7 +355,7 @@
     filter: drop-shadow(0 0 12px #dc262633);
   }
   .player-avatar > span {
-    background: linear-gradient(#ed3939, #7f1d1d);
+    background: linear-gradient(#ed3939, var(--color-primary-dark));
     border: 1px solid #ff7861;
     right: 0;
     bottom: 0;
@@ -332,7 +367,7 @@
   }
   .xp-percentage {
     float: right;
-    color: #f5f5f5;
+    color: var(--color-foreground);
   }
   [role='progressbar'] {
     background-color: #392326;
@@ -347,7 +382,7 @@
   .metric-card {
     --accent: #ff5057;
     padding: 18px;
-    border-color: color-mix(in srgb, var(--accent) 45%, #171717);
+    border-color: color-mix(in srgb, var(--accent) 45%, var(--color-surface));
     background:
       radial-gradient(
         ellipse at 55% 0,
@@ -447,7 +482,7 @@
     box-shadow: none;
   }
   .achievements-panel {
-    background: linear-gradient(145deg, #17111166, #090909);
+    background: linear-gradient(145deg, #17111166, var(--color-background));
   }
   .achievement {
     padding: 12px 6px;
@@ -525,7 +560,7 @@
     display: none;
   }
   .sidebar {
-    background: linear-gradient(180deg, #171111, #090909);
+    background: linear-gradient(180deg, #171111, var(--color-background));
   }
   .nav-item.active {
     background: linear-gradient(145deg, #b91c1c, #570b11);
@@ -1079,16 +1114,16 @@
 
 @layer components {
   [data-area='Finanças'] {
-    --area-color: #85c99a;
+    --area-color: var(--color-finances);
   }
   [data-area='Treinos'] {
-    --area-color: #ed8989;
+    --area-color: var(--color-workouts);
   }
   [data-area='Descanso'] {
-    --area-color: #bba0d7;
+    --area-color: var(--color-rest);
   }
   [data-area='Conhecimento'] {
-    --area-color: #d9bc82;
+    --area-color: var(--color-knowledge);
   }
   .radar-label {
     fill: var(--area-color);
@@ -1096,7 +1131,7 @@
   }
   .radar-point {
     fill: var(--area-color);
-    stroke: #171717;
+    stroke: var(--color-surface);
     stroke-width: 1;
     transition:
       cx 400ms ease-out,
@@ -1213,7 +1248,7 @@
   }
   .record-form,
   .record-section {
-    padding: 22px;
+    padding: var(--space-panel);
     min-width: 0;
   }
   .record-form h2,
@@ -1236,16 +1271,16 @@
   .record-field input {
     width: 100%;
     min-width: 0;
-    min-height: 44px;
-    padding: 10px 12px;
-    color: #f5f5f5;
-    background: #090909;
+    min-height: var(--control-height);
+    padding: var(--control-padding-y) var(--control-padding-x);
+    color: var(--color-foreground);
+    background: var(--color-background);
     border: 1px solid #ffffff26;
-    border-radius: 8px;
+    border-radius: var(--control-radius);
     font-size: 14px;
   }
   .record-field input:focus {
-    border-color: var(--area-color, #dc2626);
+    border-color: var(--area-color, var(--color-primary));
   }
   .record-field input[readonly] {
     color: #aaa;
@@ -1254,7 +1289,7 @@
   .record-columns {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 14px;
+    gap: var(--space-field);
   }
   .record-columns {
     align-items: start;
@@ -1284,23 +1319,27 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 8px;
+    gap: var(--space-2);
+    min-width: 0;
+    max-width: 100%;
   }
   .record-actions button {
-    min-height: 44px;
-    font-size: 12px;
-    padding: 10px 12px;
+    min-height: var(--control-height);
+    font-size: var(--text-control);
+    padding: var(--control-padding-y) var(--control-padding-x);
     border: 1px solid #ffffff20;
-    border-radius: 8px;
+    border-radius: var(--control-radius);
+    max-width: 100%;
+    overflow-wrap: anywhere;
   }
   .record-actions button:hover {
-    border-color: var(--area-color, #dc2626);
+    border-color: var(--area-color, var(--color-primary));
   }
   .record-actions button[aria-pressed='true'] {
     box-shadow: inset 0 0 0 2px var(--area-color);
   }
   .record-primary {
-    background: linear-gradient(#ba2028, #7f1d1d);
+    background: linear-gradient(#ba2028, var(--color-primary-dark));
     border-color: #f8555555;
     color: #fff;
     font-weight: 600;
@@ -1318,7 +1357,7 @@
     padding: 20px 0;
   }
   .record-error {
-    color: #ffaaaa;
+    color: var(--color-error);
     font-size: 13px;
     margin-top: 12px;
     line-height: 1.7;
@@ -1330,6 +1369,7 @@
   }
   .record-list {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 12px;
   }
   .record-list > li {
@@ -1340,9 +1380,11 @@
     gap: 12px;
     padding: 14px 0;
     border-bottom: 1px solid #ffffff10;
+    min-width: 0;
   }
   .record-list > li > div {
     min-width: 0;
+    max-width: 100%;
   }
   .record-list strong {
     font-size: 14px;
@@ -1404,7 +1446,7 @@
     color: #e8a3a3;
   }
   .calendar-day.selected {
-    outline: 2px solid #f5f5f5;
+    outline: 2px solid var(--color-foreground);
     outline-offset: 1px;
   }
   .calendar-day:disabled {
@@ -1463,7 +1505,7 @@
 }
 
 .wealth-chart {
-  --wealth-color: #a3a3a3;
+  --wealth-color: var(--color-muted);
   overflow: hidden;
   background: linear-gradient(145deg, #1b1d1b 0%, #141514 70%);
   border: 1px solid #ffffff12;
@@ -1483,7 +1525,7 @@
   gap: 18px;
 }
 .wealth-chart__eyebrow {
-  color: #a3a3a3;
+  color: var(--color-muted);
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.15em;
@@ -1505,7 +1547,7 @@
   padding: 8px 15px;
   border-radius: 7px;
   font-size: 12px;
-  color: #a3a3a3;
+  color: var(--color-muted);
   transition:
     background 0.2s,
     color 0.2s;
@@ -1541,7 +1583,7 @@
   letter-spacing: -0.04em;
   font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
-  color: #f5f5f5;
+  color: var(--color-foreground);
 }
 .wealth-chart__variation {
   display: grid;
@@ -1558,7 +1600,7 @@
 }
 .wealth-chart__context {
   margin-top: 12px;
-  color: #a3a3a3;
+  color: var(--color-muted);
   font-size: 11px;
   line-height: 1.6;
 }
@@ -1577,7 +1619,7 @@
   stroke-dasharray: 3 5;
 }
 .wealth-chart__axis {
-  fill: #a3a3a3;
+  fill: var(--color-muted);
   font-size: 10px;
   font-variant-numeric: tabular-nums;
 }
@@ -1666,7 +1708,7 @@
   border: 1px dashed #ffffff17;
   border-radius: 12px;
   padding: 24px;
-  color: #a3a3a3;
+  color: var(--color-muted);
   background: #ffffff02;
 }
 .wealth-chart__empty h3 {
@@ -1681,7 +1723,7 @@
 .wealth-chart__note {
   font-size: 11px;
   line-height: 1.6;
-  color: #a3a3a3;
+  color: var(--color-muted);
   margin-top: 10px;
 }
 .wealth-chart__drawing {
@@ -1762,6 +1804,9 @@
   font-size: 12px;
   line-height: 1.7;
 }
+.financial-settings .record-error {
+  color: var(--color-error);
+}
 .financial-confirmation {
   position: fixed;
   inset: 0;
@@ -1772,8 +1817,8 @@
   padding: 24px;
   border: 1px solid #f8717155;
   border-radius: 16px;
-  background: #171717;
-  color: #f5f5f5;
+  background: var(--color-surface);
+  color: var(--color-foreground);
   box-shadow: 0 20px 80px #0008;
 }
 .financial-confirmation::backdrop {
@@ -1811,7 +1856,7 @@
   height: 20px;
   flex-shrink: 0;
   margin-top: 2px;
-  accent-color: #dc2626;
+  accent-color: var(--color-primary);
 }
 
 .wealth-chart__views {
@@ -1842,7 +1887,7 @@
   gap: 8px;
 }
 .savings-box__heading > span {
-  color: #a3a3a3;
+  color: var(--color-muted);
   font-size: 12px;
 }
 .savings-box__balance {
@@ -1856,7 +1901,7 @@
 }
 .savings-box__balance > strong {
   font-size: clamp(24px, 4vw, 32px);
-  color: #f5f5f5;
+  color: var(--color-foreground);
   font-variant-numeric: tabular-nums;
 }
 .savings-box__metrics {
@@ -1875,11 +1920,8 @@
   font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
 }
-.savings-box > button {
-  min-height: 44px;
-  padding: 10px 14px;
-  border-radius: 8px;
-  margin-top: 10px;
+.savings-box > .record-actions {
+  margin-top: var(--space-3);
 }
 .savings-box form {
   margin-top: 16px;
@@ -1896,7 +1938,7 @@
 }
 
 .goals-page {
-  --area-color: #dc2626;
+  --area-color: var(--color-primary);
   gap: 24px;
 }
 .goals-page [data-area='Geral'],
@@ -1959,7 +2001,7 @@
   border: 1px solid #ffffff16;
   border-radius: 9px;
   padding: 0 12px;
-  background: #090909;
+  background: var(--color-background);
 }
 .quest-search:focus-within {
   border-color: #f87171;
@@ -2546,7 +2588,7 @@
   border-radius: 8px;
   padding: 10px;
   background: #111;
-  color: #f5f5f5;
+  color: var(--color-foreground);
 }
 @media (max-width: 479px) {
   .sidebar nav {
@@ -2603,7 +2645,7 @@
 }
 .custom-select__trigger:hover:not(:disabled) {
   border-color: #ffffff40;
-  background: #171717;
+  background: var(--color-surface);
 }
 .custom-select__trigger:focus-visible,
 .custom-select__trigger[aria-expanded='true'] {
@@ -2639,7 +2681,7 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
-  scrollbar-color: #555 #171717;
+  scrollbar-color: #555 var(--color-surface);
   padding: 5px;
   border: 1px solid #ffffff25;
   border-radius: 11px;
@@ -2697,7 +2739,7 @@
 }
 .custom-select--compact .custom-select__trigger {
   font-size: 12px;
-  background: #171717;
+  background: var(--color-surface);
 }
 @keyframes select-open {
   from {
@@ -2896,7 +2938,7 @@ input.custom-date-picker__validation {
   border: 1px solid #f87171;
 }
 .custom-calendar button[data-selected='true']:hover {
-  background: #dc2626;
+  background: var(--color-primary);
 }
 .custom-calendar__choices > div {
   display: grid;
@@ -2931,7 +2973,7 @@ input.custom-date-picker__validation {
   min-height: 36px;
   border: 1px solid #ffffff20;
   border-radius: 8px;
-  background: #090909;
+  background: var(--color-background);
   color: #e4e4e7;
   padding: 8px 10px;
   font-size: 12px;

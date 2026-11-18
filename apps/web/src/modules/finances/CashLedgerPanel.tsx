@@ -251,10 +251,11 @@ export function CashLedgerPanel({
               {money(item.amountCents)}
             </span>
             <div className="record-actions">
-              <button onClick={() => setTransferId(item.id)}>
+              <button type="button" onClick={() => setTransferId(item.id)}>
                 Editar transferência
               </button>
               <button
+                type="button"
                 onClick={() => run({ type: 'deleteTransfer', id: item.id })}
               >
                 Excluir transferência
@@ -343,10 +344,11 @@ export function CashLedgerPanel({
               · {displayDate(item.date)} · {money(item.amountCents)}
             </span>
             <div className="record-actions">
-              <button onClick={() => setValuationId(item.id)}>
+              <button type="button" onClick={() => setValuationId(item.id)}>
                 Editar avaliação
               </button>
               <button
+                type="button"
                 onClick={() => run({ type: 'deleteValuation', id: item.id })}
               >
                 Excluir avaliação
@@ -408,7 +410,11 @@ export function CashLedgerPanel({
           ) : (
             <p>Esta conta não possui movimentações vinculadas.</p>
           )}
-          {deleteError && <p role="alert">{deleteError}</p>}
+          {deleteError && (
+            <p role="alert" className="record-error">
+              {deleteError}
+            </p>
+          )}
           <button
             type="button"
             className="financial-danger"

@@ -41,6 +41,7 @@ export function Navigation({
       >
         {links.map((link) => (
           <button
+            type="button"
             key={link.id}
             className={`nav-item ${current === link.id || (link.id === 'pillars' && pillarViews.includes(current)) ? 'active' : ''}`}
             onClick={() => onNavigate(link.id)}

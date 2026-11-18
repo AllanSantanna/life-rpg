@@ -280,6 +280,7 @@ export function SessionPanel({
                     >
                       <label className="set-kind">
                         <span className="sr-only">{`Tipo · exercício ${exerciseIndex + 1}, série ${index + 1}`}</span>
+                        {/* eslint-disable-next-line design-system/no-visual-drift -- Exceção existente: tipo de série na célula compacta; ver docs/design-system/components.md. */}
                         <select
                           title="Válida ou aquecimento"
                           aria-label={`Tipo · exercício ${exerciseIndex + 1}, série ${index + 1}`}

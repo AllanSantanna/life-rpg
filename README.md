@@ -14,7 +14,7 @@ atuais. O projeto também contém uma base de API para evoluções futuras.
   quests do usuário e medalhas, com layout dark/vermelho e navegação responsiva.
 - **Finanças:** receitas e despesas com edição/exclusão, histórico mensal e saldo;
   contas com saldo inicial, transferências, posições preexistentes sem débito e compras reais de investimentos; correção confirmada de compras antigas e avaliações manuais;
-  Bitcoin em BTC/sats e Dólar (USD), com cotações de referência, custo médio e vendas parciais. Campos monetários com máscara durante a digitação. Caixinhas por instituição,
+  Bitcoin em BTC/sats e dólar (USD), com cotações de referência, custo médio e vendas parciais. Campos monetários com máscara durante a digitação. Caixinhas por instituição,
   contrato CDI informativo e atualização manual do saldo/rendimento, sem juros automáticos. Gráficos distinguem
   fluxo mensal, dinheiro disponível, investimentos e patrimônio sem duplicação.
 - **Treinos:** um registro Sim/Não por dia, calendário, frequência e consistência.
@@ -36,7 +36,7 @@ atuais. O projeto também contém uma base de API para evoluções futuras.
   preservando registros reais, quests, XP e nível. O perfil antigo perde apenas os campos cosméticos descontinuados.
 - **Navegação:** URLs próprias, acesso direto, recarga e Voltar/Avançar.
 - **Acessibilidade/PWA:** seletores e calendários customizados dark em todo o aplicativo,
-  foco de teclado, formulários rotulados, respeito a
+  foco de teclado, formulários rotulados, respeito à preferência por
   movimento reduzido, manifesto e cache de arquivos estáticos no build.
 
 Todo jogador novo começa no **nível 1, com 0 XP**. XP e níveis usam somente
@@ -105,8 +105,8 @@ verificar a continuidade do progresso.
 | Descanso     | `/descanso`     |
 | Conhecimento | `/conhecimento` |
 
-O dashboard mostra **Minhas Quests** somente quando há objetivos em andamento, até
-cinco por prazo. Cada quest abre seus detalhes em `/quests?quest=<id>`, com os mesmos
+O painel **Minhas Quests** do dashboard mostra até cinco quests em andamento,
+ordenadas por prazo. Cada quest abre seus detalhes em `/quests?quest=<id>`, com os mesmos
 controles de progresso da página Quests. Sem quests ativas, as conquistas usam o espaço
 disponível. O endereço antigo `/missoes` redireciona para `/quests`; não há novas
 conclusões ou recompensas de missões fixas. Links antigos de `/metas` também
@@ -140,7 +140,7 @@ npm run db:down
 A API atende em **http://localhost:3001/health** e o PostgreSQL em
 `localhost:5432`. Os processos de desenvolvimento usam loopback. A API não abre
 conexões com o banco na inicialização. `VITE_API_URL` está reservado para o futuro
-cliente HTTP; nunca use prefixo `VITE_` para segredos.
+cliente HTTP; nunca use o prefixo `VITE_` para segredos.
 
 `db:down` preserva o volume. Alterar credenciais no `.env` não altera usuários de
 um volume PostgreSQL já existente. Não há migrações ou tabelas de negócio nesta etapa.
@@ -153,8 +153,11 @@ npm run lint
 npm test
 npm run build
 
-# Executa os quatro passos acima:
+# Executa padrões, TypeScript, lint, testes e build:
 npm run check
+
+# Verificação da documentação, links e tokens de cor:
+npm run standards:check
 
 # Verificação de formatação:
 npm run format:check
@@ -206,6 +209,10 @@ docs/                       Produto, arquitetura e regras implementadas
 
 ## Documentação técnica
 
+- [Entrada obrigatória para agentes de programação](AGENTS.md)
+- [Índice oficial de desenvolvimento](docs/README.md)
+- [Design system e componentes](docs/design-system/README.md)
+- [Arquitetura atual e convenções](docs/architecture/README.md)
 - [Visão do produto](docs/product.md)
 - [Arquitetura e integrações futuras](docs/architecture.md)
 - [Quatro pilares: regras, migração e verificação manual](docs/four-pillars.md)
@@ -215,9 +222,9 @@ docs/                       Produto, arquitetura e regras implementadas
 - [Persistência local](apps/web/src/shared/storage/README.md)
 - [Radar de Evolução](apps/web/src/modules/evolution/README.md)
 
-A identidade visual fica em `apps/web/src/shared/styles/index.css`: preto
-`#090909`, grafite `#171717` e vermelho `#DC2626`, com verde, roxo e dourado nos
-pilares. A documentação e os READMEs dos módulos permanecem no projeto.
+A identidade visual e sua fonte CSS estão documentadas no
+[design system](docs/design-system/README.md). Os READMEs dos módulos mantêm os
+contratos de domínio. O CI executa `npm run check` em push e pull request.
 
 ## Arquivos locais e credenciais
 

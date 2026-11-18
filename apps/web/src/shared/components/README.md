@@ -1,5 +1,11 @@
 Componentes visuais reutilizáveis sem regras de domínio.
 
+O [catálogo oficial](../../../../../docs/design-system/components.md) orienta a
+escolha de controles. `ActionButton.tsx` fornece a ação primária padronizada,
+usada por “Importar Treino” e “Nova ficha”; suas medidas e tokens estão no
+[guia de espaçamentos](../../../../../docs/design-system/spacing.md).
+Os detalhes de interação de seleção e calendário permanecem abaixo.
+
 ## CustomSelect
 
 `CustomSelect.tsx` é o seletor compartilhado do aplicativo, sem dependências adicionais.

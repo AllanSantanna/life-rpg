@@ -21,9 +21,12 @@
     "lint": "eslint . --max-warnings 0",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "npm run test --workspaces --if-present",
+    "standards:check": "node scripts/check-standards.mjs",
+    "audit:visual": "node scripts/audit-visual.mjs",
+    "test:standards": "node scripts/standards.test.mjs",
+    "test": "npm run test:standards && npm run test --workspaces --if-present",
     "build": "npm run build --workspaces --if-present",
-    "check": "npm run typecheck && npm run lint && npm run test && npm run build"
+    "check": "npm run standards:check && npm run typecheck && npm run lint && npm run test && npm run build"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",

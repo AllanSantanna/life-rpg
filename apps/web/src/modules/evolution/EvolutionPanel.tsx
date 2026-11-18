@@ -32,6 +32,7 @@ export function EvolutionPanel({
         <div className="flex gap-2" role="group" aria-label="Período do radar">
           {([7, 30, 90] as const).map((days) => (
             <button
+              type="button"
               key={days}
               className={`filter-button ${period === days ? 'active' : ''}`}
               aria-pressed={period === days}

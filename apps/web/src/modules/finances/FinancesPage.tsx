@@ -334,10 +334,11 @@ export function FinancesPage({
                   </p>
                 </div>
                 <div className="record-actions">
-                  <button onClick={() => setMovementId(item.id)}>
+                  <button type="button" onClick={() => setMovementId(item.id)}>
                     Editar {item.description}
                   </button>
                   <button
+                    type="button"
                     onClick={() => run({ type: 'deleteMovement', id: item.id })}
                   >
                     Excluir {item.description}
@@ -622,6 +623,7 @@ export function FinancesPage({
               )}
               <div className="record-actions">
                 <button
+                  type="button"
                   onClick={() => {
                     setInvestmentId(item.id);
                     setDraftCategory(item.category);
@@ -630,6 +632,7 @@ export function FinancesPage({
                   Editar investimento {item.name}
                 </button>
                 <button
+                  type="button"
                   onClick={() => run({ type: 'deleteInvestment', id: item.id })}
                 >
                   Excluir investimento e operações de {item.name}
@@ -672,6 +675,7 @@ export function FinancesPage({
                     {item.kind === 'contribution' &&
                       !isInitialPosition(item) && (
                         <button
+                          type="button"
                           onClick={() => {
                             setConversionError('');
                             setPendingConversion({
@@ -685,6 +689,7 @@ export function FinancesPage({
                         </button>
                       )}
                     <button
+                      type="button"
                       onClick={() => {
                         setEntryId(item.id);
                         setDraftEntryInvestment(item.investmentId);
@@ -694,6 +699,7 @@ export function FinancesPage({
                       Editar operação
                     </button>
                     <button
+                      type="button"
                       onClick={() =>
                         run({ type: 'deleteInvestmentEntry', id: item.id })
                       }

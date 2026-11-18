@@ -18,7 +18,7 @@ export function CategoryIcon({ category }: { category: InvestmentCategory }) {
         display: 'inline-block',
         verticalAlign: 'middle',
         marginRight: 6,
-        color: category === 'Bitcoin' ? '#f7931a' : 'currentColor',
+        color: category === 'Bitcoin' ? 'var(--color-bitcoin)' : 'currentColor',
       }}
     />
   );

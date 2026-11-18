@@ -164,11 +164,12 @@ export function KnowledgePage({ records, today, onCommand }: RecordPageProps) {
                       />
                     </div>
                     <div className="record-actions">
-                      <button onClick={() => setBookId(item.id)}>
+                      <button type="button" onClick={() => setBookId(item.id)}>
                         Editar livro {item.title}
                       </button>
                       {!completed && (
                         <button
+                          type="button"
                           onClick={() =>
                             run({
                               type: 'finishBook',
@@ -224,12 +225,14 @@ export function KnowledgePage({ records, today, onCommand }: RecordPageProps) {
                   </div>
                   <div className="record-actions">
                     <button
+                      type="button"
                       onClick={() => setReadingId(item.id)}
                       aria-label={`Editar leitura de ${title}, ${displayDate(item.date)}, ${item.pages} páginas`}
                     >
                       Editar leitura
                     </button>
                     <button
+                      type="button"
                       onClick={() =>
                         run({ type: 'deleteReading', id: item.id })
                       }

@@ -75,7 +75,11 @@ export function FinancialSettings({
                 onChange={(event) => setConfirmation(event.target.value)}
               />
             </Field>
-            {error && <p role="alert">{error}</p>}
+            {error && (
+              <p role="alert" className="record-error">
+                {error}
+              </p>
+            )}
             <button
               type="submit"
               className="financial-danger"

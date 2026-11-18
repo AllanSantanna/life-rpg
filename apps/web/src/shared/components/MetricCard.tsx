@@ -66,7 +66,7 @@ export function MetricCard({
         <span>{metric.progress.text}</span>
       </div>
       {onOpen && (
-        <button className="metric-open" onClick={onOpen}>
+        <button type="button" className="metric-open" onClick={onOpen}>
           Registrar {metric.title} <span aria-hidden="true">↗</span>
         </button>
       )}
