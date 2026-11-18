@@ -1,3 +1,11 @@
+import {
+  cardAction,
+  cardDetails,
+  confirmDeletion,
+  investmentCard,
+  investmentHistory,
+  newInvestmentForm,
+} from '../../test/finances';
 import { selectDate, selectOption } from '../../test/selectOption';
 import { fetchBitcoinQuote } from './bitcoinQuote';
 vi.mock('./bitcoinQuote', async (importOriginal) => ({
@@ -64,7 +72,7 @@ describe('Finanças pela interface', () => {
     input(form, 'Saldo inicial (R$)', '1000');
     input(form, 'Data', '2026-01-01');
     click(form, 'Cadastrar saldo inicial');
-    form = screen.getByRole('form', { name: 'Cadastrar investimento' });
+    form = newInvestmentForm();
     input(form, 'Nome do investimento', 'Minha reserva BTC');
     input(form, 'Categoria do investimento', 'Bitcoin');
     input(form, 'Tipo de registro do investimento', 'Nova compra ou aporte');
@@ -74,20 +82,17 @@ describe('Finanças pela interface', () => {
     await waitFor(() =>
       expect(stored().records.finance.quotes).toHaveLength(1),
     );
-    expect(
-      screen.getByRole('region', { name: 'Carteira cadastrada' }),
-    ).toHaveTextContent('0.00200000 BTC');
-    form = screen.getByRole('form', { name: 'Aportes e retiradas' });
-    input(form, 'Operação', 'Retirada / venda');
+    const btc = 'Investimento Minha reserva BTC';
+    expect(investmentCard(btc)).toHaveTextContent('0.00200000 BTC');
+    form = cardAction(btc, 'Vender Minha reserva BTC');
     input(form, 'Valor da operação (R$)', '150');
     input(form, 'Quantidade em BTC', '0.001');
     click(form, 'Registrar operação');
-    expect(
-      screen.getByRole('region', { name: 'Carteira cadastrada' }),
-    ).toHaveTextContent('0.00100000 BTC');
+    expect(investmentCard(btc)).toHaveTextContent('0.00100000 BTC');
     expect(stored().records.movements).toEqual([]);
     const entries = stored().records.investmentEntries;
     expect(entries).toHaveLength(2);
+    investmentHistory();
     const operations = screen.getAllByRole('button', {
       name: /Editar operação de/,
     });
@@ -98,19 +103,15 @@ describe('Finanças pela interface', () => {
     expect(stored().records.investmentEntries[1].amountCents).toBe(17500);
     app.unmount();
     app = open();
-    expect(
-      screen.getByRole('region', { name: 'Carteira cadastrada' }),
-    ).toHaveTextContent('0.00100000 BTC');
-    expect(
-      screen.getByRole('region', { name: 'Cotação Bitcoin' }),
-    ).toHaveTextContent('200.000,00');
+    expect(investmentCard(btc)).toHaveTextContent('0.00100000 BTC');
+    expect(investmentCard(btc)).toHaveTextContent('200.000,00');
     expect(stored().records.finance.quotes).toHaveLength(1);
+    investmentHistory();
     fireEvent.click(
       screen.getAllByRole('button', { name: /Excluir operação de/ })[1]!,
     );
-    expect(
-      screen.getByRole('region', { name: 'Carteira cadastrada' }),
-    ).toHaveTextContent('0.00200000 BTC');
+    confirmDeletion();
+    expect(investmentCard(btc)).toHaveTextContent('0.00200000 BTC');
     const graph = screen.getByRole('region', { name: 'Evolução financeira' });
     click(graph, 'Patrimônio total');
     click(graph, 'Anual');
@@ -200,13 +201,16 @@ describe('Finanças pela interface', () => {
     vi.mocked(fetchBitcoinQuote).mockRejectedValue(new Error('offline'));
     open();
     await waitFor(() =>
-      expect(
-        screen.getByRole('region', { name: 'Cotação Bitcoin' }),
-      ).toHaveTextContent('Cotação indisponível'),
+      expect(investmentCard('Investimento BTC')).toHaveTextContent(
+        'Cotação indisponível',
+      ),
     );
-    expect(
-      screen.getByRole('region', { name: 'Cotação Bitcoin' }),
-    ).toHaveTextContent('Desatualizada');
+    expect(investmentCard('Investimento BTC')).toHaveTextContent(
+      'Desatualizada',
+    );
+    expect(cardDetails('Investimento BTC', 'BTC')).toHaveTextContent(
+      'Fonte: CoinGecko',
+    );
     expect(stored().records.investmentEntries).toHaveLength(1);
     expect(stored().records.finance.quotes).toHaveLength(1);
   });

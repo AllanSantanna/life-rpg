@@ -1,3 +1,9 @@
+import {
+  cardDetails,
+  confirmDeletion,
+  investmentCard,
+  newInvestmentForm,
+} from '../../test/finances';
 import { selectDate, selectOption } from '../../test/selectOption';
 import {
   cleanup,
@@ -51,7 +57,7 @@ function stored() {
   return JSON.parse(localStorage.getItem(PLAYER_STORAGE_KEY)!).data;
 }
 function register(name: string, checked = false) {
-  const form = screen.getByRole('form', { name: 'Cadastrar investimento' });
+  const form = newInvestmentForm();
   input(form, 'Nome do investimento', name);
   input(form, 'Categoria do investimento', 'Caixinhas bancárias');
   expect(
@@ -66,7 +72,7 @@ function register(name: string, checked = false) {
   fireEvent.click(
     within(form).getByRole('button', { name: 'Adicionar investimento' }),
   );
-  return screen.getByRole('group', { name: `Caixinha ${name}` });
+  return investmentCard(`Caixinha ${name}`);
 }
 describe('Caixinhas pela interface', () => {
   it('cadastra múltiplas caixinhas existentes, sem débito ou rendimento presumido', () => {
@@ -74,14 +80,16 @@ describe('Caixinhas pela interface', () => {
     render(<App />);
     const card = register('Reserva');
     expect(card).toHaveTextContent('Itaú');
+    expect(card).not.toHaveTextContent('100% do CDI');
+    cardDetails('Caixinha Reserva', 'Reserva');
     expect(card).toHaveTextContent('100% do CDI');
     expect(card).toHaveTextContent('R$ 1.008,00');
     expect(card).toHaveTextContent('Diferença saldo/custo');
     expect(card).toHaveTextContent('A diferença não comprova rendimento');
     register('Viagem', true);
-    expect(
-      screen.getByRole('group', { name: 'Caixinha Viagem' }),
-    ).toHaveTextContent('Rendimento acumulado');
+    expect(investmentCard('Caixinha Viagem')).toHaveTextContent(
+      'Rendimento acumulado',
+    );
     expect(stored().records.investments).toHaveLength(2);
     expect(stored().records.movements).toEqual([]);
     expect(
@@ -127,14 +135,17 @@ describe('Caixinhas pela interface', () => {
     expect(card).toHaveTextContent('R$ 1.015,00');
     app.unmount();
     render(<App />);
-    card = screen.getByRole('group', { name: 'Caixinha Reserva' });
+    card = investmentCard('Caixinha Reserva');
     expect(card).toHaveTextContent('Banco diferente');
     expect(card).toHaveTextContent('R$ 1.015,00');
+    cardDetails('Caixinha Reserva', 'Reserva');
     fireEvent.click(
       screen.getByRole('button', {
         name: 'Excluir investimento e operações de Reserva',
       }),
     );
+    expect(stored().records.investmentEntries).toHaveLength(1);
+    confirmDeletion();
     expect(stored().records.finance.valuations).toEqual([]);
     expect(stored().records.investmentEntries).toEqual([]);
   });

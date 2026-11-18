@@ -1887,73 +1887,173 @@
   flex-wrap: wrap;
 }
 
-.savings-box {
-  flex: 1 1 400px;
+/* Finanças: visão geral, abas e áreas sob demanda. */
+.finance-overview,
+.finance-area,
+.finance-tabs {
+  display: grid;
+  gap: var(--space-5);
+  min-width: 0;
+}
+.finance-tabs__list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+  max-width: 480px;
+}
+.finance-tabs__panel {
+  min-width: 0;
+}
+.finance-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.finance-toolbar > .record-hint {
+  flex: 1 1 240px;
+  margin: 0;
+}
+.finance-inline-form {
+  min-width: 0;
+}
+.finance-disclosure > .finance-disclosure__heading {
+  margin: 0;
+}
+.finance-disclosure__heading button {
+  display: flex;
+  width: 100%;
+  min-height: var(--control-height);
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+.finance-disclosure__chevron {
+  flex-shrink: 0;
+  transform: rotate(90deg);
+  transition: transform 0.2s ease;
+}
+.finance-disclosure__heading
+  button[aria-expanded='true']
+  .finance-disclosure__chevron {
+  transform: rotate(-90deg);
+}
+.finance-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+  gap: var(--space-field);
+  margin-block: var(--space-3) var(--space-2);
+}
+.finance-more {
+  margin-top: var(--space-3);
+}
+@media (prefers-reduced-motion: reduce) {
+  .finance-disclosure__chevron {
+    transition: none;
+  }
+}
+
+/* Cartão único da carteira (antes restrito às caixinhas). */
+.investment-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+  gap: var(--space-3);
+  align-items: start;
+}
+.investment-card {
   min-width: 0;
   padding: 18px;
   border: 1px solid #ffffff15;
   border-radius: 12px;
   background: #121212;
 }
-.savings-box__heading {
+.investment-card--active {
+  grid-column: 1 / -1;
+}
+.investment-card__heading {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
 }
-.savings-box__heading > div {
+.investment-card__heading h3 {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 650;
+  overflow-wrap: anywhere;
 }
-.savings-box__heading > span {
+.investment-card__heading > span {
   color: var(--color-muted);
   font-size: 12px;
 }
-.savings-box__balance {
+.investment-card__value {
   display: grid;
   gap: 5px;
   margin-block: 20px;
 }
-.savings-box__balance > span {
+.investment-card__value > span {
   font-size: 12px;
   color: #b5b5b5;
 }
-.savings-box__balance > strong {
+.investment-card__value > strong {
   font-size: clamp(24px, 4vw, 32px);
   color: var(--color-foreground);
   font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
 }
-.savings-box__metrics {
+.investment-card__metrics {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
   margin-bottom: 16px;
 }
-.savings-box__metrics dt {
+.investment-card__metrics dt {
   color: #b5b5b5;
   font-size: 11px;
 }
-.savings-box__metrics dd {
+.investment-card__metrics dd {
   margin-top: 4px;
   font-size: 15px;
   font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
 }
-.savings-box > .record-actions {
+.investment-card__actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   margin-top: var(--space-3);
 }
-.savings-box form {
+.investment-card form {
   margin-top: 16px;
 }
-.record-list > li:has(.savings-box) {
-  flex-wrap: wrap;
-  align-items: stretch;
+.investment-card__details {
+  margin-top: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid #ffffff10;
+}
+.investment-card__details .finance-disclosure__heading button {
+  color: var(--color-muted);
+  font-size: var(--text-control);
+}
+.investment-card__subtitle {
+  margin-top: var(--space-2);
+  color: var(--color-muted);
+  font-size: 12px;
+}
+.investment-card__recent {
+  margin-bottom: var(--space-3);
+  color: #b4a7a7;
+  font-size: 12px;
+  line-height: 1.8;
 }
 @media (max-width: 640px) {
-  .savings-box {
-    flex-basis: 100%;
+  .investment-card {
     padding: 14px;
   }
 }

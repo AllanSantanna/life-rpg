@@ -1,3 +1,4 @@
+import { cardAction, movementHistory, newMovementForm } from '../test/finances';
 import {
   cleanup,
   fireEvent,
@@ -69,7 +70,7 @@ describe('Seletores customizados nos módulos do aplicativo', () => {
     window.history.replaceState(null, '', '/financas');
     const app = render(<App />);
     expect(document.querySelector('select')).toBeNull();
-    let form = screen.getByRole('form', { name: 'Receitas e despesas' });
+    let form = newMovementForm();
     expect(
       within(form).getByRole('combobox', { name: 'Conta' }),
     ).toHaveTextContent('Conta principal');
@@ -86,6 +87,7 @@ describe('Seletores customizados nos módulos do aplicativo', () => {
       accountId: 'other',
       amountCents: 10000,
     });
+    movementHistory();
     fireEvent.click(screen.getByRole('button', { name: 'Editar Recebimento' }));
     form = screen.getByRole('form', { name: 'Editar movimentação' });
     expect(
@@ -128,8 +130,10 @@ describe('Seletores customizados nos módulos do aplicativo', () => {
       investmentId: 'stock',
       amountCents: 12500,
     });
-    form = screen.getByRole('form', { name: 'Aportes e retiradas' });
-    choose(form, 'Investimento', 'Carteira de ações');
+    form = cardAction(
+      'Investimento Carteira de ações',
+      'Comprar mais Carteira de ações',
+    );
     input(form, 'Valor da operação (R$)', '10000');
     submit(form, 'Registrar operação');
     expect(stored().records.investmentEntries[0]).toMatchObject({
