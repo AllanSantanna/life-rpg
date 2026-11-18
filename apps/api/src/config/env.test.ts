@@ -10,4 +10,12 @@ describe('Configuração do ambiente', () => {
       loadConfig({ WEB_ORIGIN: 'http://localhost:5173/path' }),
     ).toThrow();
   });
+  it('aceita token opcional da brapi e exige origem HTTPS', () => {
+    expect(loadConfig({}).brapiToken).toBeUndefined();
+    expect(loadConfig({ BRAPI_TOKEN: '  abcdefgh123  ' }).brapiToken).toBe(
+      'abcdefgh123',
+    );
+    expect(() => loadConfig({ BRAPI_TOKEN: 'com espaço inválido' })).toThrow();
+    expect(() => loadConfig({ BRAPI_BASE_URL: 'http://brapi.dev' })).toThrow();
+  });
 });
