@@ -458,7 +458,7 @@ describe('Organização da página Finanças', () => {
     });
     form = cardAction('Investimento Fundo XP', 'Vender Fundo XP');
     expect(
-      within(form).queryByLabelText('Quantidade (opcional)'),
+      within(form).queryByLabelText('Quantidade vendida (opcional)'),
     ).toBeInTheDocument();
     input(form, 'Valor da operação (R$)', '300,00');
     submit(form);

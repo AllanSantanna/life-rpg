@@ -12,6 +12,7 @@ import { BitcoinQuantity } from './BitcoinQuantity';
 import { MoneyInput } from './MoneyInput';
 import { money } from './calculations';
 import { unitsToDecimal } from './monetary';
+import { isMarketCategory } from './types';
 import type {
   BitcoinQuote,
   UsdQuote,
@@ -44,6 +45,7 @@ export function InvestmentFields({
   const bitcoin = category === 'Bitcoin',
     usd = category === 'Dólar (USD)';
   const box = category === 'Caixinhas bancárias';
+  const shares = isMarketCategory(category);
   const [previewBtc, setPreviewBtc] = useState<BitcoinQuote>();
   const [previewUsd, setPreviewUsd] = useState<UsdQuote>();
   const [previewError, setPreviewError] = useState('');
@@ -179,28 +181,44 @@ export function InvestmentFields({
         </Field>
       ) : (
         <>
-          {(!box ||
-            entry?.quantity !== undefined ||
-            entry?.purchasePriceCents !== undefined) && (
+          {shares && kind === 'withdrawal' ? (
             <>
-              <Field label="Quantidade (opcional)">
+              <Field label="Quantidade vendida (opcional)">
                 <input
                   name="quantity"
                   inputMode="decimal"
                   defaultValue={entry?.quantity}
                 />
               </Field>
-              <Field label="Preço de compra por unidade (R$, opcional)">
-                <MoneyInput
-                  name="price"
-                  defaultValue={
-                    entry?.purchasePriceCents !== undefined
-                      ? unitsToDecimal(entry.purchasePriceCents, 2)
-                      : ''
-                  }
-                />
-              </Field>
+              <p className="record-hint">
+                Informe a quantidade vendida para manter o valor de mercado e o
+                preço médio. O custo da parcela vendida sai pelo preço médio.
+              </p>
             </>
+          ) : (
+            (!box ||
+              entry?.quantity !== undefined ||
+              entry?.purchasePriceCents !== undefined) && (
+              <>
+                <Field label="Quantidade (opcional)">
+                  <input
+                    name="quantity"
+                    inputMode="decimal"
+                    defaultValue={entry?.quantity}
+                  />
+                </Field>
+                <Field label="Preço de compra por unidade (R$, opcional)">
+                  <MoneyInput
+                    name="price"
+                    defaultValue={
+                      entry?.purchasePriceCents !== undefined
+                        ? unitsToDecimal(entry.purchasePriceCents, 2)
+                        : ''
+                    }
+                  />
+                </Field>
+              </>
+            )
           )}
           {!initial && kind === 'withdrawal' && (
             <Field label="Custo de aquisição resgatado (R$, opcional)">

@@ -148,20 +148,79 @@ describe('conversão dos formulários extraídos', () => {
     });
   });
   it('mantém as validações de quantidade/preço e de retiradas sem unidades', () => {
-    expect(() =>
-      entryFromForm(
-        form({ kind: 'contribution', positionType: 'purchase', quantity: '3' }),
-        'x',
-        'a',
-      ),
-    ).toThrow('Informe quantidade e preço de compra juntos.');
-    expect(() =>
-      entryFromForm(
-        form({ kind: 'withdrawal', quantity: '3', price: '10.00' }),
-        'x',
-        'a',
-      ),
-    ).toThrow('Retiradas usam o valor retirado');
+    for (const category of ['Renda fixa', 'Outros'] as const) {
+      expect(() =>
+        entryFromForm(
+          form({
+            kind: 'contribution',
+            positionType: 'purchase',
+            quantity: '3',
+          }),
+          'x',
+          'a',
+          category,
+        ),
+      ).toThrow('Informe quantidade e preço de compra juntos.');
+      expect(() =>
+        entryFromForm(
+          form({ kind: 'withdrawal', quantity: '3', price: '10.00' }),
+          'x',
+          'a',
+          category,
+        ),
+      ).toThrow('Retiradas usam o valor retirado');
+    }
+  });
+  it('aceita compra com quantidade e valor pago e venda por quantidade em ações e FIIs', () => {
+    for (const category of ['Ações', 'Fundos imobiliários'] as const) {
+      expect(
+        entryFromForm(
+          form({
+            kind: 'contribution',
+            positionType: 'purchase',
+            quantity: '3',
+            amount: '183.60',
+            date: '2026-11-10',
+          }),
+          'buy',
+          'a',
+          category,
+        ),
+      ).toMatchObject({ quantity: 3, amountCents: 18360 });
+      expect(
+        entryFromForm(
+          form({
+            kind: 'withdrawal',
+            quantity: '1',
+            amount: '65.00',
+            date: '2026-11-11',
+          }),
+          'sell',
+          'a',
+          category,
+        ),
+      ).toMatchObject({ kind: 'withdrawal', quantity: 1, amountCents: 6500 });
+      expect(() =>
+        entryFromForm(
+          form({ kind: 'withdrawal', quantity: '1', price: '10.00' }),
+          'x',
+          'a',
+          category,
+        ),
+      ).toThrow('Vendas usam a quantidade vendida');
+      expect(() =>
+        entryFromForm(
+          form({
+            kind: 'contribution',
+            positionType: 'purchase',
+            price: '10.00',
+          }),
+          'x',
+          'a',
+          category,
+        ),
+      ).toThrow('Informe a quantidade junto com o preço de compra.');
+    }
   });
   it('gera os mesmos comandos de movimentação e cadastro', () => {
     expect(
