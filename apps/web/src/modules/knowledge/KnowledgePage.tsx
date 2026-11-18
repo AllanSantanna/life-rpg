@@ -15,6 +15,7 @@ import {
 import { displayDate } from '../records/dates';
 import { bookProgress, readingStats } from './calculations';
 import { ProgressBar } from '../../shared/components/ProgressBar';
+import { plural } from '../../shared/lib/plural';
 export function KnowledgePage({ records, today, onCommand }: RecordPageProps) {
   const [bookId, setBookId] = useState<string | null>(null);
   const [readingId, setReadingId] = useState<string | null>(null);
@@ -154,8 +155,13 @@ export function KnowledgePage({ records, today, onCommand }: RecordPageProps) {
                     <div>
                       <strong>{item.title}</strong>
                       <p>
-                        {progress.pages} / {item.totalPages} páginas ·{' '}
-                        {progress.remaining} restantes · {progress.percent}%
+                        {plural(
+                          item.totalPages,
+                          'página',
+                          'páginas',
+                          `${progress.pages} / ${item.totalPages}`,
+                        )}{' '}
+                        · {progress.remaining} restantes · {progress.percent}%
                       </p>
                       <ProgressBar
                         label={`Leitura de ${item.title}`}
@@ -164,8 +170,12 @@ export function KnowledgePage({ records, today, onCommand }: RecordPageProps) {
                       />
                     </div>
                     <div className="record-actions">
-                      <button type="button" onClick={() => setBookId(item.id)}>
-                        Editar livro {item.title}
+                      <button
+                        type="button"
+                        onClick={() => setBookId(item.id)}
+                        aria-label={`Editar livro ${item.title}`}
+                      >
+                        Editar livro
                       </button>
                       {!completed && (
                         <button
@@ -178,8 +188,9 @@ export function KnowledgePage({ records, today, onCommand }: RecordPageProps) {
                               entryId: newId(),
                             })
                           }
+                          aria-label={`Concluir ${item.title}`}
                         >
-                          Concluir {item.title}
+                          Concluir
                         </button>
                       )}
                     </div>
@@ -220,7 +231,8 @@ export function KnowledgePage({ records, today, onCommand }: RecordPageProps) {
                   <div>
                     <strong>{title}</strong>
                     <p>
-                      {displayDate(item.date)} · {item.pages} páginas
+                      {displayDate(item.date)} ·{' '}
+                      {plural(item.pages, 'página', 'páginas')}
                     </p>
                   </div>
                   <div className="record-actions">

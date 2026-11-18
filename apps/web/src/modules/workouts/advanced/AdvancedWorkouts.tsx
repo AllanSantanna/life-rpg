@@ -11,35 +11,35 @@ import { HistoryPanel } from './HistoryPanel';
 import { StatisticsPanels } from './StatisticsPanels';
 import type { AdvancedCommandHandler, AdvancedWorkoutState } from './types';
 const tabs = [
-  { id: 'plans', label: 'Minhas Fichas', short: 'Fichas', icon: 'dumbbell' },
+  { id: 'plans', label: 'Minhas fichas', short: 'Fichas', icon: 'dumbbell' },
   {
     id: 'session',
-    label: 'Registrar Treino',
+    label: 'Registrar treino',
     short: 'Registrar',
     icon: 'play',
   },
   { id: 'history', label: 'Histórico', short: 'Histórico', icon: 'history' },
   {
     id: 'progress',
-    label: 'Evolução de Cargas',
+    label: 'Evolução de cargas',
     short: 'Evolução',
     icon: 'chart',
   },
   {
     id: 'records',
-    label: 'Recordes Pessoais',
+    label: 'Recordes pessoais',
     short: 'Recordes',
     icon: 'trophy',
   },
   {
     id: 'volume',
-    label: 'Volume de Treinamento',
+    label: 'Volume de treinamento',
     short: 'Volume',
     icon: 'layers',
   },
   {
     id: 'muscles',
-    label: 'Mapa Muscular',
+    label: 'Mapa muscular',
     short: 'Mapa muscular',
     icon: 'body',
   },
@@ -124,7 +124,7 @@ export function AdvancedWorkouts({
               icon="plus"
               onClick={() => setImporting(true)}
             >
-              Importar Treino
+              Importar treino
             </ActionButton>
           </div>
           <div role="tablist" aria-label="Musculação" className="strength-tabs">

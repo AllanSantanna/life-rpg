@@ -26,6 +26,12 @@
 .import-set:disabled {
   opacity: 0.6;
 }
+/* A ação de remover ocupa a própria linha, alinhada à direita como "Remover
+   exercício", em vez de disputar uma célula com os campos. */
+.workout-import .import-set .text-action {
+  grid-column: 1 / -1;
+  justify-self: end;
+}
 @media (max-width: 640px) {
   .workout-import .strength-fields {
     grid-template-columns: minmax(0, 1fr);
@@ -36,5 +42,17 @@
   }
   .workout-import .record-actions > button {
     flex: 1 1 100%;
+  }
+}
+@media (max-width: 359px) {
+  /* Mantém o placeholder "Opcional" do RIR legível na grade de duas colunas:
+     menos padding e sem as setas do campo numérico, que ocupam espaço. */
+  .workout-import .import-set input {
+    padding-inline: var(--space-2);
+    appearance: textfield;
+  }
+  .workout-import .import-set input::-webkit-inner-spin-button,
+  .workout-import .import-set input::-webkit-outer-spin-button {
+    appearance: none;
   }
 }

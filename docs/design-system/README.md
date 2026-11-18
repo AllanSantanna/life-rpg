@@ -27,7 +27,7 @@ principais e cores por pilar. Não há biblioteca externa de componentes.
   `.filter-button` também recebe regras específicas no treino avançado. Não
   existe ainda um único componente para todas as variantes de botão.
 - `ActionButton` consolida somente as ações primárias de 160 × 44 px. Foi aplicado
-  a “Importar Treino” e “Nova ficha”, preservando suas dimensões e cores.
+  a “Importar treino” e “Nova ficha”, preservando suas dimensões e cores.
 - `Field`, `RecordForm` e `Actions` são reutilizados entre pilares, mas permanecem
   em `modules/records/RecordUI.tsx`. Não há componente genérico `Input` ou `Card`.
 - O CSS contém valores literais, regras repetidas e ajustes históricos após

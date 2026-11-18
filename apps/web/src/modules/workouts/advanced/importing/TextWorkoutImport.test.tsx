@@ -68,14 +68,14 @@ function open(player?: PlayerState) {
 }
 function interpret(text: string) {
   change('Texto do treino', text);
-  button('Interpretar Treino');
+  button('Interpretar treino');
 }
 
 describe('importação de treinos na interface real', () => {
   it('só grava após confirmação e permite cancelar sem modificar qualquer registro', () => {
     open(seeded());
     const before = saved();
-    button('Importar Treino');
+    button('Importar treino');
     interpret('Supno reto:60x10,65x8');
     expect(
       screen.getByRole('heading', { name: 'Prévia do treino' }),
@@ -84,14 +84,14 @@ describe('importação de treinos na interface real', () => {
     button('Cancelar importação');
     expect(saved()).toEqual(before);
     expect(
-      screen.getByRole('button', { name: 'Importar Treino' }),
+      screen.getByRole('button', { name: 'Importar treino' }),
     ).toBeInTheDocument();
   });
   it('edita exercícios, carga, repetições, RIR e tipo na prévia, salva a ficha escolhida e recarrega', () => {
     const player = seeded();
     const beforeFacts = projectCharacter(player, today);
     const app = open(player);
-    button('Importar Treino');
+    button('Importar treino');
     choose('Destino da importação', 'Nova sessão · Treino A');
     interpret('Supno reto:60x10 rir2\nElevação lateral:12,5kg x12');
     change('Carga (kg) · prévia, exercício 1, série 1', '62.5');
@@ -102,7 +102,7 @@ describe('importação de treinos na interface real', () => {
     button('Adicionar série ao exercício 2');
     change('Carga (kg) · prévia, exercício 2, série 2', '15');
     change('Repetições · prévia, exercício 2, série 2', '10');
-    button('Confirmar Importação');
+    button('Confirmar importação');
     const session = advanced().sessions[1]!;
     expect(session.planId).toBe('a');
     expect(session.exercises.map((e) => e.exercise.id)).toEqual([
@@ -128,25 +128,25 @@ describe('importação de treinos na interface real', () => {
     open();
     expect(advanced()).toEqual(persisted);
     expect(
-      screen.getByRole('heading', { name: 'Registrar Treino' }),
+      screen.getByRole('heading', { name: 'Registrar treino' }),
     ).toBeInTheDocument();
   });
   it('exige escolha manual para um nome ambíguo e bloqueia valores ausentes/fora dos limites', () => {
     open(seeded());
-    button('Importar Treino');
+    button('Importar treino');
     interpret('Supino:60x10\nRosca direta:x12');
     expect(screen.getByText(/Nome ambíguo/)).toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: 'Confirmar Importação' }),
+      screen.getByRole('button', { name: 'Confirmar importação' }),
     ).toBeDisabled();
     choose('Exercício 1', 'Supino reto');
     change('Carga (kg) · prévia, exercício 2, série 1', '20');
     change('RIR · prévia, exercício 2, série 1', '11');
     expect(
-      screen.getByRole('button', { name: 'Confirmar Importação' }),
+      screen.getByRole('button', { name: 'Confirmar importação' }),
     ).toBeDisabled();
     change('RIR · prévia, exercício 2, série 1', '');
-    button('Confirmar Importação');
+    button('Confirmar importação');
     expect(advanced().sessions[1]!.exercises[1]!.sets[0]!.rir).toBeNull();
   });
   it.each([
@@ -155,14 +155,14 @@ describe('importação de treinos na interface real', () => {
     ['Acrescentar apenas as novas séries', [20, 30]],
   ] as const)('resolve conflitos explicitamente: %s', (choice, weights) => {
     open(seeded());
-    button('Importar Treino');
+    button('Importar treino');
     choose('Destino da importação', `Treino A · 13/11/2026 · concluída`);
     interpret('Supino reto:20x10,30x8');
     expect(
-      screen.getByRole('button', { name: 'Confirmar Importação' }),
+      screen.getByRole('button', { name: 'Confirmar importação' }),
     ).toBeDisabled();
     choose('Conflito · exercício 1', choice);
-    button('Confirmar Importação');
+    button('Confirmar importação');
     expect(advanced().sessions).toHaveLength(1);
     expect(
       advanced().sessions[0]!.exercises[0]!.sets.map((s) => s.weight),
@@ -173,25 +173,25 @@ describe('importação de treinos na interface real', () => {
     const player = seeded();
     player.records.advancedWorkouts!.sessions[0]!.status = 'in_progress';
     open(player);
-    button('Importar Treino');
+    button('Importar treino');
     interpret('Supino reto:20x10');
     choose('Conflito · exercício 1', 'Acrescentar apenas as novas séries');
     expect(screen.getByText(/0 série\(s\) nova/)).toBeInTheDocument();
-    button('Confirmar Importação');
-    button('Importar Treino');
+    button('Confirmar importação');
+    button('Importar treino');
     interpret('Supino reto:20x10');
     choose('Conflito · exercício 1', 'Acrescentar apenas as novas séries');
-    button('Confirmar Importação');
+    button('Confirmar importação');
     expect(advanced().sessions).toHaveLength(1);
     expect(advanced().sessions[0]!.exercises[0]!.sets).toHaveLength(1);
   });
   it('remove linhas inválidas e séries, mantendo a ordem do restante', () => {
     open(seeded());
-    button('Importar Treino');
+    button('Importar treino');
     interpret('Supino reto:60x10,65x8\nNome desconhecido\nRosca direta:20x12');
     button('Remover exercício 2');
     button('Remover série 1 do exercício 1');
-    button('Confirmar Importação');
+    button('Confirmar importação');
     expect(advanced().sessions[1]!.exercises.map((e) => e.exercise.id)).toEqual(
       ['bench', 'curl'],
     );
@@ -201,19 +201,19 @@ describe('importação de treinos na interface real', () => {
   });
   it('reinterpreta ao alterar texto/destino e não grava a prévia anterior', () => {
     open(seeded());
-    button('Importar Treino');
+    button('Importar treino');
     interpret('Supino reto:60x10');
     choose('Destino da importação', 'Nova sessão · Treino A');
     expect(
-      screen.queryByRole('button', { name: 'Confirmar Importação' }),
+      screen.queryByRole('button', { name: 'Confirmar importação' }),
     ).not.toBeInTheDocument();
-    button('Interpretar Treino');
+    button('Interpretar treino');
     change('Texto do treino', 'Rosca direta:20x10');
     expect(
-      screen.queryByRole('button', { name: 'Confirmar Importação' }),
+      screen.queryByRole('button', { name: 'Confirmar importação' }),
     ).not.toBeInTheDocument();
-    button('Interpretar Treino');
-    button('Confirmar Importação');
+    button('Interpretar treino');
+    button('Confirmar importação');
     expect(advanced().sessions[1]!.exercises[0]!.exercise.id).toBe('curl');
   });
   it('protege contra dois cliques e exibe erros do comando sem perder a prévia', () => {
@@ -230,8 +230,8 @@ describe('importação de treinos na interface real', () => {
       />,
     );
     interpret('Supino reto:60x10');
-    button('Confirmar Importação');
-    button('Confirmar Importação');
+    button('Confirmar importação');
+    button('Confirmar importação');
     expect(onCommand).toHaveBeenCalledTimes(1);
     expect(onSaved).toHaveBeenCalledTimes(1);
     view.unmount();
@@ -246,7 +246,7 @@ describe('importação de treinos na interface real', () => {
       />,
     );
     interpret('Supino reto:60x10');
-    button('Confirmar Importação');
+    button('Confirmar importação');
     expect(screen.getByRole('alert')).toHaveTextContent('Falha na sessão');
     expect(
       screen.getByLabelText('Carga (kg) · prévia, exercício 1, série 1'),
@@ -281,7 +281,7 @@ describe('importação de treinos na interface real', () => {
         onCancel={() => {}}
       />,
     );
-    button('Confirmar Importação');
+    button('Confirmar importação');
     expect(onCommand.mock.calls[0]![0]).toMatchObject({
       expected: state.sessions[0],
     });
@@ -297,7 +297,7 @@ describe('importação de treinos na interface real', () => {
       equipment: 'Polia',
     });
     open(player);
-    button('Importar Treino');
+    button('Importar treino');
     interpret('Puxda pessoal:30x10');
     const preview = screen.getByRole('region', {
       name: 'Prévia do exercício 1',
@@ -305,7 +305,7 @@ describe('importação de treinos na interface real', () => {
     expect(
       within(preview).getByRole('heading', { name: 'Puxada pessoal' }),
     ).toBeInTheDocument();
-    button('Confirmar Importação');
+    button('Confirmar importação');
     expect(advanced().sessions[1]!.exercises[0]!.exercise.id).toBe('custom');
     expect(advanced().exercises).toEqual(
       player.records.advancedWorkouts!.exercises,

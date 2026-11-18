@@ -412,7 +412,7 @@ try {
       }
       await page.goto(base + '/treinos');
       await page
-        .getByRole('button', { name: 'Importar Treino', exact: true })
+        .getByRole('button', { name: 'Importar treino', exact: true })
         .click();
       await capture(page, 'importacao', width);
       const beforePreview = await page.evaluate(() =>
@@ -423,7 +423,7 @@ try {
         .fill(
           'Treino A - Peito\nData: 16/11/2026\nSupino reto:60x10,65x8 rir2\nElevação lateral:12kg x12',
         );
-      await page.getByRole('button', { name: 'Interpretar Treino' }).click();
+      await page.getByRole('button', { name: 'Interpretar treino' }).click();
       await capture(page, 'importacao-previa', width);
       check(
         (await page.evaluate(() =>
@@ -464,15 +464,15 @@ try {
         .click();
       for (const [name, label] of Object.entries({
         historico: 'Histórico',
-        cargas: 'Evolução de Cargas',
-        recordes: 'Recordes Pessoais',
-        volume: 'Volume de Treinamento',
-        muscular: 'Mapa Muscular',
+        cargas: 'Evolução de cargas',
+        recordes: 'Recordes pessoais',
+        volume: 'Volume de treinamento',
+        muscular: 'Mapa muscular',
       })) {
         await page.getByRole('tab', { name: label, exact: true }).click();
         await capture(page, `treinos-${name}`, width);
       }
-      await page.getByRole('tab', { name: 'Minhas Fichas' }).click();
+      await page.getByRole('tab', { name: 'Minhas fichas' }).click();
       await page
         .getByRole('button', { name: 'Iniciar treino', exact: true })
         .click();

@@ -261,13 +261,14 @@ export function ImportPreview({
                   <button
                     type="button"
                     className="text-action"
+                    aria-label={`Remover série ${index + 1} do exercício ${exerciseIndex + 1}`}
                     onClick={() =>
                       patch(row.id, {
                         sets: row.sets.filter((s) => s.id !== set.id),
                       })
                     }
                   >
-                    Remover série {index + 1} do exercício {exerciseIndex + 1}
+                    Remover série {index + 1}
                   </button>
                 </fieldset>
               );

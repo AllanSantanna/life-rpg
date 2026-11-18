@@ -334,14 +334,19 @@ export function FinancesPage({
                   </p>
                 </div>
                 <div className="record-actions">
-                  <button type="button" onClick={() => setMovementId(item.id)}>
-                    Editar {item.description}
+                  <button
+                    type="button"
+                    onClick={() => setMovementId(item.id)}
+                    aria-label={`Editar ${item.description}`}
+                  >
+                    Editar
                   </button>
                   <button
                     type="button"
                     onClick={() => run({ type: 'deleteMovement', id: item.id })}
+                    aria-label={`Excluir ${item.description}`}
                   >
-                    Excluir {item.description}
+                    Excluir
                   </button>
                 </div>
               </li>
@@ -628,14 +633,16 @@ export function FinancesPage({
                     setInvestmentId(item.id);
                     setDraftCategory(item.category);
                   }}
+                  aria-label={`Editar investimento ${item.name}`}
                 >
-                  Editar investimento {item.name}
+                  Editar investimento
                 </button>
                 <button
                   type="button"
                   onClick={() => run({ type: 'deleteInvestment', id: item.id })}
+                  aria-label={`Excluir investimento e operações de ${item.name}`}
                 >
-                  Excluir investimento e operações de {item.name}
+                  Excluir investimento
                 </button>
               </div>
             </li>

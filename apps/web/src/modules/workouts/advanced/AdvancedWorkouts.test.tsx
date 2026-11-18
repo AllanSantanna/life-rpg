@@ -102,7 +102,7 @@ describe('musculação opcional na aplicação real', () => {
       false,
     );
     expect(saved().records.workouts).toHaveLength(1);
-    tab('Recordes Pessoais');
+    tab('Recordes pessoais');
     expect(
       screen.getByText(/Seus recordes aparecerão após a primeira série válida/),
     ).toBeInTheDocument();
@@ -137,11 +137,11 @@ describe('musculação opcional na aplicação real', () => {
       screen.getByRole('form', { name: 'Treinou hoje?' }),
     ).toBeInTheDocument();
     expect(saved().records.workouts).toEqual([]);
-    const plansTab = screen.getByRole('tab', { name: 'Minhas Fichas' });
+    const plansTab = screen.getByRole('tab', { name: 'Minhas fichas' });
     fireEvent.keyDown(plansTab, { key: 'ArrowRight' });
-    expect(screen.getByRole('tab', { name: 'Registrar Treino' })).toHaveFocus();
+    expect(screen.getByRole('tab', { name: 'Registrar treino' })).toHaveFocus();
     expect(
-      screen.getByRole('tab', { name: 'Registrar Treino' }),
+      screen.getByRole('tab', { name: 'Registrar treino' }),
     ).toHaveAttribute('aria-selected', 'true');
     app.unmount();
     open();
@@ -220,7 +220,7 @@ describe('musculação opcional na aplicação real', () => {
     const app = open(state);
     button('Iniciar Peito');
     expect(
-      screen.getByRole('heading', { name: 'Registrar Treino' }),
+      screen.getByRole('heading', { name: 'Registrar treino' }),
     ).toBeInTheDocument();
     fireEvent.change(
       screen.getByRole('combobox', { name: 'Tipo · exercício 1, série 1' }),
@@ -279,7 +279,7 @@ describe('musculação opcional na aplicação real', () => {
     app.unmount();
     open();
     expect(
-      screen.getByRole('tab', { name: 'Registrar Treino' }),
+      screen.getByRole('tab', { name: 'Registrar treino' }),
     ).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByLabelText('RIR · exercício 1, série 1')).toHaveValue(0);
     expect(advanced().sessions[0]!.id).toBe(id);
@@ -303,7 +303,7 @@ describe('musculação opcional na aplicação real', () => {
       testSession('one', today, [testSet('s', 20, 10, 'working', 0)]),
     ];
     open(state);
-    tab('Evolução de Cargas');
+    tab('Evolução de cargas');
     expect(
       screen.getByRole('group', { name: 'Maior carga: 1 ponto registrado' }),
     ).toBeInTheDocument();
@@ -356,22 +356,22 @@ describe('musculação opcional na aplicação real', () => {
       ]),
     ];
     open(state);
-    tab('Recordes Pessoais');
+    tab('Recordes pessoais');
     expect(screen.getByText('30 kg')).toBeInTheDocument();
     tab('Histórico');
     fireEvent.click(
       screen.getAllByRole('button', { name: 'Corrigir sessão' })[0]!,
     );
     change('Carga (kg) · exercício 1, série 2', '20');
-    tab('Recordes Pessoais');
+    tab('Recordes pessoais');
     expect(screen.getByText('20 kg')).toBeInTheDocument();
-    tab('Volume de Treinamento');
+    tab('Volume de treinamento');
     expect(screen.getAllByText('200 kg·rep')).toHaveLength(3);
     fireEvent.click(
       screen.getByRole('checkbox', { name: 'Incluir aquecimento no volume' }),
     );
     expect(screen.getAllByText('250 kg·rep')).toHaveLength(3);
-    tab('Mapa Muscular');
+    tab('Mapa muscular');
     expect(
       screen.getByRole('group', { name: 'Mapa muscular · visão frontal' }),
     ).toBeInTheDocument();
@@ -390,7 +390,7 @@ describe('musculação opcional na aplicação real', () => {
       screen.getAllByRole('button', { name: 'Excluir sessão' })[0]!,
     );
     button('Confirmar exclusão');
-    tab('Recordes Pessoais');
+    tab('Recordes pessoais');
     expect(screen.getByText('10 kg')).toBeInTheDocument();
     expect(saved().records.workouts).toEqual(state.records.workouts);
   });
@@ -405,7 +405,7 @@ describe('musculação opcional na aplicação real', () => {
     });
     open();
     toggle();
-    tab('Registrar Treino');
+    tab('Registrar treino');
     button('Iniciar sessão');
     expect(screen.getByText(/Em andamento/)).toBeInTheDocument();
     expect(
@@ -414,7 +414,7 @@ describe('musculação opcional na aplicação real', () => {
     expect(
       screen.getByRole('form', { name: 'Treinou hoje?' }),
     ).toBeInTheDocument();
-    tab('Mapa Muscular');
+    tab('Mapa muscular');
     expect(
       screen.getByText('Nenhuma série válida concluída neste período.'),
     ).toBeInTheDocument();
@@ -462,7 +462,7 @@ describe('musculação opcional na aplicação real', () => {
     change('Repetições · exercício 1, série 1', '10');
     fireEvent.click(screen.getAllByRole('checkbox', { name: 'Concluída' })[0]!);
     button('Concluir sessão');
-    tab('Minhas Fichas');
+    tab('Minhas fichas');
     expect(advanced().rotation?.cursor).toBe(1);
     expect(
       screen.getByText('PRÓXIMO NA SEQUÊNCIA').parentElement,
@@ -519,11 +519,11 @@ describe('musculação opcional na aplicação real', () => {
       screen.getByLabelText('Carga (kg) · exercício 1, série 2'),
     ).toHaveValue(40);
     tab('Histórico');
-    tab('Registrar Treino');
+    tab('Registrar treino');
     expect(
       screen.getByLabelText('Carga (kg) · exercício 1, série 2'),
     ).toHaveValue(40);
-    tab('Minhas Fichas');
+    tab('Minhas fichas');
     button('Iniciar Peito');
     expect(advanced().sessions).toHaveLength(2);
     app.unmount();

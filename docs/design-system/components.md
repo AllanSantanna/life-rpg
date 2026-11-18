@@ -94,6 +94,16 @@ A caixinha financeira reutiliza `.record-actions` para “Atualizar saldo”; o 
 do investimento fica no rótulo acessível e no título do cartão. Listas de
 registros e seus botões permitem quebra de títulos longos sem alargar a página.
 
+Ações de item em listas exibem só a ação (“Editar”, “Editar livro”, “Excluir
+investimento”) e levam o nome do item no `aria-label`, que começa pelo texto
+visível (ex.: `Editar livro Meditações`). Não repita títulos longos no texto do
+botão. Rótulos de botões e abas usam maiúscula só na primeira palavra
+(“Importar treino”), exceto nomes próprios como Quests e os pilares.
+
+Quantidades com substantivo usam `plural` de
+[shared/lib/plural.ts](../../apps/web/src/shared/lib/plural.ts): `1 treino`,
+`2 treinos`, `1 série válida`.
+
 Na importação, `.strength-stack` combinado com `.strength-confirm` mantém a pilha
 vertical. A criação de fichas mostra somente a barra de ações do seletor enquanto
 ele está aberto; a barra da etapa fica oculta nesse estado.

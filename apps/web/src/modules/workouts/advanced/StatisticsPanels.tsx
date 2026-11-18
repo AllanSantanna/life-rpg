@@ -20,6 +20,7 @@ import { PeriodControl } from './Controls';
 import { MuscleMap } from './MuscleMap';
 import { ProgressChart } from './ProgressChart';
 import type { AdvancedWorkoutState } from './types';
+import { plural } from '../../../shared/lib/plural';
 export function StatisticsPanels({
   state,
   today,
@@ -87,7 +88,7 @@ export function StatisticsPanels({
       )}
       {view === 'progress' && (
         <>
-          <h3>Evolução de Cargas</h3>
+          <h3>Evolução de cargas</h3>
           <div className="strength-fields">
             <CustomSelect
               label="Indicador de evolução"
@@ -139,7 +140,7 @@ export function StatisticsPanels({
       )}
       {view === 'records' && (
         <>
-          <h3>Recordes Pessoais</h3>
+          <h3>Recordes pessoais</h3>
           <details className="strength-catalog">
             <summary>Como os recordes são calculados</summary>
             <p className="record-hint">
@@ -192,7 +193,8 @@ export function StatisticsPanels({
               {records.byLoad.map((r) => (
                 <li className="strength-heading" key={r.weight}>
                   <span>
-                    {number(r.weight)} kg · <strong>{r.reps} repetições</strong>
+                    {number(r.weight)} kg ·{' '}
+                    <strong>{plural(r.reps, 'repetição', 'repetições')}</strong>
                   </span>
                   <time dateTime={r.date}>{displayDate(r.date)}</time>
                 </li>
@@ -208,7 +210,7 @@ export function StatisticsPanels({
       )}
       {view === 'volume' && (
         <>
-          <h3>Volume de Treinamento</h3>
+          <h3>Volume de treinamento</h3>
           <label className="strength-check">
             <input
               type="checkbox"

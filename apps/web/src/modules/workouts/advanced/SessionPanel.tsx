@@ -21,6 +21,7 @@ import type {
   WorkoutSession,
   WorkoutSet,
 } from './types';
+import { plural } from '../../../shared/lib/plural';
 export function SessionPanel({
   state,
   today,
@@ -138,7 +139,7 @@ export function SessionPanel({
     );
   return (
     <div className="strength-stack workout-session">
-      <h3>Registrar Treino</h3>
+      <h3>Registrar treino</h3>
       {!session ? (
         <>
           <p className="record-hint">
@@ -231,8 +232,12 @@ export function SessionPanel({
               value={done}
             />
             <small>
-              {completedExercises} exercícios concluídos · {done} de {total}{' '}
-              séries
+              {plural(
+                completedExercises,
+                'exercício concluído',
+                'exercícios concluídos',
+              )}{' '}
+              · {plural(total, 'série', 'séries', `${done} de ${total}`)}
             </small>
           </div>
           {session.exercises.map((ex, exerciseIndex) => {

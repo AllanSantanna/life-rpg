@@ -9,6 +9,7 @@ import {
   type AdvancedCommandHandler,
   type Exercise,
 } from './types';
+import { plural } from '../../../shared/lib/plural';
 
 export function ExercisePicker({
   state,
@@ -125,7 +126,11 @@ export function ExercisePicker({
       )}
       <div>
         <p className="picker-section-title" role="status">
-          {results.length} exercícios encontrados
+          {plural(
+            results.length,
+            'exercício encontrado',
+            'exercícios encontrados',
+          )}
         </p>
         <ul className="exercise-results">{results.map(row)}</ul>
         {!results.length && (

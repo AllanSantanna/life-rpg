@@ -9,6 +9,7 @@ import {
   type AdvancedCommandHandler,
   type WorkoutPlan,
 } from './types';
+import { plural } from '../../../shared/lib/plural';
 export function PlanWizard({
   state,
   onCommand,
@@ -271,7 +272,10 @@ export function PlanWizard({
                   aria-pressed={active === i}
                   onClick={() => setActive(i)}
                 >
-                  {planLetter(i)} <small>{p.exercises.length} exercícios</small>
+                  {planLetter(i)}{' '}
+                  <small>
+                    {plural(p.exercises.length, 'exercício', 'exercícios')}
+                  </small>
                 </button>
               ))}
             </div>

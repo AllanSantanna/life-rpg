@@ -141,7 +141,7 @@ export function EvolutionRadar({
               data-area={area}
             >
               {area}
-              <tspan x={labelX} dy="15" className="radar-value">
+              <tspan x={labelX} dy="1.35em" className="radar-value">
                 {scores[area]}
               </tspan>
             </text>

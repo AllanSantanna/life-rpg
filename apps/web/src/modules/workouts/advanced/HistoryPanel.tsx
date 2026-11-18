@@ -2,6 +2,7 @@ import { displayDate } from '../../records/dates';
 import { consideredSets, number, sessionVolume } from './calculations';
 import { DeleteAction } from './Controls';
 import type { AdvancedCommandHandler, AdvancedWorkoutState } from './types';
+import { plural } from '../../../shared/lib/plural';
 export function HistoryPanel({
   state,
   onCommand,
@@ -39,7 +40,13 @@ export function HistoryPanel({
               {session.exercises.map((ex) => (
                 <div key={ex.id} className="strength-history-exercise">
                   <h5>{ex.exercise.name}</h5>
-                  <p>{consideredSets(ex).length} séries válidas concluídas</p>
+                  <p>
+                    {plural(
+                      consideredSets(ex).length,
+                      'série válida concluída',
+                      'séries válidas concluídas',
+                    )}
+                  </p>
                   <ul>
                     {ex.sets.map((set, i) => (
                       <li key={set.id}>

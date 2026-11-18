@@ -43,10 +43,10 @@ describe('ActionButton', () => {
 
   it('expõe a ref nativa para restaurar o foco após uma interação', () => {
     const ref = createRef<HTMLButtonElement>();
-    render(<ActionButton ref={ref}>Importar Treino</ActionButton>);
+    render(<ActionButton ref={ref}>Importar treino</ActionButton>);
     ref.current?.focus();
     expect(
-      screen.getByRole('button', { name: 'Importar Treino' }),
+      screen.getByRole('button', { name: 'Importar treino' }),
     ).toHaveFocus();
   });
 });

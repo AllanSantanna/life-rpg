@@ -14,36 +14,36 @@ não há banco, autenticação, recomendações automáticas de carga ou cronôm
 As sete abas usam navegação por teclado, seletores/calendários existentes e
 formulários responsivos. O registro diário permanece disponível fora das abas.
 
-- **Minhas Fichas:** nome, descrição, exercícios ordenáveis, séries e repetições
+- **Minhas fichas:** nome, descrição, exercícios ordenáveis, séries e repetições
   planejadas, observações; criação, edição, duplicação e exclusão confirmada.
   O catálogo inicial contém 17 exercícios. O cadastro aceita exercícios próprios,
   grupos principais/secundários e equipamento opcional. Nomes são comparados sem
   acentos, diferenças de maiúsculas ou espaços repetidos para evitar duplicatas.
-- **Registrar Treino:** ficha reutilizável ou treino livre, data, exercícios,
+- **Registrar treino:** ficha reutilizável ou treino livre, data, exercícios,
   séries de aquecimento/válidas, carga em kg, repetições, RIR opcional e conclusão.
   Campos e observações da sessão são salvos a cada alteração. Uma sessão em
   andamento reaparece ao abrir as ferramentas novamente.
 - **Histórico:** consulta, correção e exclusão confirmada de sessões. Cada sessão
   contém uma cópia do nome da ficha, exercícios, grupos musculares e planejamento.
   Editar/excluir fichas ou editar o catálogo não reescreve as sessões existentes.
-- **Evolução de Cargas:** maior carga, mais repetições **com a mesma carga**, volume
+- **Evolução de cargas:** maior carga, mais repetições **com a mesma carga**, volume
   válido ou RIR médio por sessão. Os filtros Semanal, Mensal e Anual correspondem
   aos últimos 7, 30 e 365 dias, incluindo hoje. Só há pontos de sessões registradas;
   não existem preenchimento de lacunas ou histórico inventado. Valores são
   consultáveis por toque, mouse, Tab e setas. Os pontos seguem a ordem das sessões,
   sem usar o espaçamento horizontal como duração entre treinos.
-- **Recordes Pessoais:** maior carga, mais repetições por carga, maior volume de
+- **Recordes pessoais:** maior carga, mais repetições por carga, maior volume de
   uma série e melhor sessão por exercício. Não mistura exercícios diferentes.
-- **Volume de Treinamento:** volume por exercício, sessão, últimos 7 e últimos
+- **Volume de treinamento:** volume por exercício, sessão, últimos 7 e últimos
   30 dias. Oferece consulta com aquecimento incluído.
-- **Mapa Muscular:** SVG frontal/traseiro original do projeto, sem recurso externo.
+- **Mapa muscular:** SVG frontal/traseiro original do projeto, sem recurso externo.
   Cada série válida concluída soma uma participação ao grupo principal e a cada
   grupo secundário associado. Um grupo nunca é contado duas vezes na mesma série.
 
 ## Importação Rápida de Treinos
 
-No Modo Avançado, **Importar Treino → Colar texto → Interpretar Treino →
-Conferir/editar → Confirmar Importação** registra uma sessão inteira. O destino
+No Modo Avançado, **Importar treino → Colar texto → Interpretar treino →
+Conferir/editar → Confirmar importação** registra uma sessão inteira. O destino
 pode ser uma nova sessão livre, qualquer ficha (A–E ou personalizada) ou uma
 sessão existente, inclusive concluída. O título escrito no texto não decide o
 destino automaticamente.

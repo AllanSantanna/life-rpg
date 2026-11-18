@@ -56,8 +56,9 @@ export function AliasManager({
               type="button"
               className="filter-button"
               onClick={() => edit(alias)}
+              aria-label={`Editar apelido ${alias.name}`}
             >
-              Editar apelido {alias.name}
+              Editar apelido
             </button>
             <button
               type="button"
@@ -70,8 +71,9 @@ export function AliasManager({
                 setError(message ?? '');
                 if (!message && editing?.id === alias.id) setEditing(null);
               }}
+              aria-label={`Excluir apelido ${alias.name}`}
             >
-              Excluir apelido {alias.name}
+              Excluir apelido
             </button>
           </div>
         </div>

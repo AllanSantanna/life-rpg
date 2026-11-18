@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { muscleActivity, number, type TrainingPeriod } from './calculations';
 import { muscleLabels, type Muscle, type WorkoutSession } from './types';
+import { plural } from '../../../shared/lib/plural';
 const front: Partial<Record<Muscle, string[]>> = {
   chest: [
     'M70 75 Q83 69 97 77 L97 103 Q78 107 66 95Z',
@@ -105,7 +106,7 @@ function Body({
                   strokeWidth={selected === muscle ? 2 : 1.5}
                   role="button"
                   tabIndex={0}
-                  aria-label={`${side} · ${muscleLabels[muscle]}: ${counts[muscle]} séries válidas`}
+                  aria-label={`${side} · ${muscleLabels[muscle]}: ${plural(counts[muscle], 'série válida', 'séries válidas')}`}
                   onClick={() => onSelect(muscle)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
@@ -115,7 +116,8 @@ function Body({
                   }}
                 >
                   <title>
-                    {muscleLabels[muscle]}: {counts[muscle]} séries válidas
+                    {muscleLabels[muscle]}:{' '}
+                    {plural(counts[muscle], 'série válida', 'séries válidas')}
                   </title>
                 </path>
               ))}
@@ -139,7 +141,7 @@ export function MuscleMap({
   const [selected, setSelected] = useState<Muscle | null>(null);
   return (
     <div className="strength-stack">
-      <h3>Mapa Muscular</h3>
+      <h3>Mapa muscular</h3>
       <details className="strength-catalog">
         <summary>Sobre o mapa muscular</summary>
         <p className="record-hint">

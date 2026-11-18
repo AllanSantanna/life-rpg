@@ -2,7 +2,7 @@
 
 ## Funcionalidades
 
-- Botão **Importar Treino** disponível em todas as abas do modo avançado.
+- Botão **Importar treino** disponível em todas as abas do modo avançado.
 - Fluxo **colar → interpretar → revisar/editar → confirmar → salvar**.
 - Seleção de ficha A–E/personalizada, treino livre ou sessão existente; data
   selecionável para novas sessões.

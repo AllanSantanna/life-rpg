@@ -13,6 +13,7 @@ import {
 } from '../records/RecordUI';
 import { displayDate, monthDates } from '../records/dates';
 import { workoutStats } from './calculations';
+import { plural } from '../../shared/lib/plural';
 export function WorkoutsPage({ records, today, onCommand }: RecordPageProps) {
   const [date, setDate] = useState(today);
   const [month, setMonth] = useState(today.slice(0, 7));
@@ -29,11 +30,11 @@ export function WorkoutsPage({ records, today, onCommand }: RecordPageProps) {
       values={[
         {
           label: 'Últimos 7 dias',
-          value: `${stats.weekly} treinos`,
+          value: plural(stats.weekly, 'treino', 'treinos'),
         },
         {
           label: 'Mês selecionado',
-          value: `${stats.monthly} treinos`,
+          value: plural(stats.monthly, 'treino', 'treinos'),
         },
         { label: 'Total de dias treinados', value: stats.total },
         { label: 'Consistência no mês', value: `${stats.consistency}%` },

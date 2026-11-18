@@ -19,6 +19,7 @@ import type {
   AdvancedWorkoutState,
   WorkoutPlan,
 } from './types';
+import { plural } from '../../../shared/lib/plural';
 export function PlansPanel({
   state,
   onCommand,
@@ -108,7 +109,9 @@ export function PlansPanel({
           <div>
             <h3>{opened.name}</h3>
             {opened.description && <p>{opened.description}</p>}
-            <small>{opened.exercises.length} exercícios</small>
+            <small>
+              {plural(opened.exercises.length, 'exercício', 'exercícios')}
+            </small>
           </div>
         </div>
         <button
@@ -129,7 +132,10 @@ export function PlansPanel({
                   {catalog.find((e) => e.id === ex.exerciseId)?.name}
                 </strong>
                 <small>
-                  {ex.sets} séries{ex.reps ? ` · ${ex.reps} repetições` : ''}
+                  {plural(ex.sets, 'série', 'séries')}
+                  {ex.reps
+                    ? ` · ${plural(ex.reps, 'repetição', 'repetições')}`
+                    : ''}
                 </small>
                 {ex.notes && <p className="record-hint">{ex.notes}</p>}
               </div>
@@ -178,7 +184,7 @@ export function PlansPanel({
       <div className="strength-heading">
         <div>
           <p className="workout-eyebrow">SEU TREINO, SEU RITMO</p>
-          <h3>Minhas Fichas</h3>
+          <h3>Minhas fichas</h3>
         </div>
         <ActionButton icon="plus" onClick={() => setCreating(true)}>
           Nova ficha
@@ -193,7 +199,10 @@ export function PlansPanel({
             <div>
               <small>PRÓXIMO NA SEQUÊNCIA</small>
               <h4>{next.name}</h4>
-              <p>{next.description || `${next.exercises.length} exercícios`}</p>
+              <p>
+                {next.description ||
+                  plural(next.exercises.length, 'exercício', 'exercícios')}
+              </p>
             </div>
           </div>
           <button
@@ -237,10 +246,13 @@ export function PlansPanel({
               <span>
                 <strong>{plan.name}</strong>
                 <small>
-                  {plan.description || `${plan.exercises.length} exercícios`}
+                  {plan.description ||
+                    plural(plan.exercises.length, 'exercício', 'exercícios')}
                 </small>
                 {plan.description && (
-                  <small>{plan.exercises.length} exercícios</small>
+                  <small>
+                    {plural(plan.exercises.length, 'exercício', 'exercícios')}
+                  </small>
                 )}
               </span>
               <span aria-hidden="true">›</span>

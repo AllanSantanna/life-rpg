@@ -257,7 +257,7 @@ export function TextWorkoutImport({
         disabled={!text.trim()}
         onClick={interpret}
       >
-        Interpretar Treino
+        Interpretar treino
       </button>
       {preview && (
         <>
@@ -350,7 +350,7 @@ export function TextWorkoutImport({
               disabled={invalid}
               onClick={confirm}
             >
-              Confirmar Importação
+              Confirmar importação
             </button>
             <button type="button" className="filter-button" onClick={onCancel}>
               Cancelar importação

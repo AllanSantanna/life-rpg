@@ -13,12 +13,14 @@ O body tem largura mínima de 320 px. O conteúdo usa `min-width: 0`, grades
 | Navegação abaixo de 1024 px           | Barra inferior fixa com `safe-area-inset-bottom`; conteúdo reserva `pb-28` |
 | Navegação a partir de 1024 px         | Sidebar de 240 px; conteúdo `lg:ml-60`                                     |
 | Resumos abaixo de 768 px              | Quatro → duas colunas; painéis de registros com padding de 16 px           |
+| Resumos abaixo de 480 px              | Uma coluna; valores não quebram no meio (ex.: “R$ 11.000,00”)              |
 | Colunas de registros abaixo de 768 px | Uma coluna                                                                 |
 | Campos de registro abaixo de 480 px   | Uma coluna                                                                 |
 | Seletor compacto de Quests até 640 px | Ocupa a linha inteira                                                      |
 | Treino avançado até 600 px            | Padding de 14 px; abas em quatro colunas, altura mínima de 65 px           |
 | Treino avançado em telas maiores      | Sete abas em colunas iguais                                                |
 | Gráfico de evolução de carga          | Rolagem local, SVG com largura mínima de 520 px                            |
+| Radar com menos de 400 px de largura  | Container query `radar`: rótulos e escala maiores no viewBox               |
 
 Tailwind usa `sm`, `md`, `lg`, `xl` padrão (640/768/1024/1280 px). O CSS também
 possui limites históricos em 359/479/480/600/639/640/767 px. Não invente um novo

@@ -22,7 +22,7 @@ mudanças em XP, Radar, níveis, classes ou Quests.
 | `npm run standards:check`                        | Aprovado com este relatório publicado       |
 | `npm run typecheck`                              | Aprovado                                    |
 | `npm run lint`                                   | Aprovado                                    |
-| `npm test`                                       | 411 testes aprovados (403 web, 8 contracts) |
+| `npm test`                                       | 413 testes aprovados (405 web, 8 contracts) |
 | `npm run build`                                  | Aprovado                                    |
 | `npm run audit:visual` (matriz 320 a 1440 px)    | Aprovado: 240 capturas, 0 erros, 0 falhas   |
 
@@ -64,7 +64,51 @@ programático intencional, estilo global de `:focus-visible`); botões
 para `ActionButton`); contorno interno do campo de busca do seletor de
 exercícios (indicador de foco do campo aberto com foco).
 
+## Segunda rodada: pendências corrigidas (18/11/2026)
+
+As sete pendências da primeira rodada foram reproduzidas antes da correção,
+corrigidas e verificadas em uma nova matriz de 240 capturas.
+
+| Pendência                 | Causa confirmada                                                                                       | Correção                                                                                                                                                                                                                       |
+| ------------------------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Valores monetários        | `overflow-wrap: anywhere` em `.record-summary dd` e colunas estreitas demais para "R$ 11.000,00"       | `overflow-wrap: break-word` (o espaço inseparável da moeda mantém o valor inteiro); uma coluna abaixo de 480 px, inclusive no treino avançado; fonte `clamp(18px, 1.6vw, 25px)`                                                |
+| Botões com títulos longos | Título do item no texto visível                                                                        | Texto visível curto ("Editar", "Editar livro", "Concluir", "Excluir investimento", "Editar apelido") e nome completo no `aria-label`, que começa pelo texto visível; nomes acessíveis inalterados                              |
+| Espaçamentos (~60 px)     | `RecordFeedback` vazio (`aria-live`, `min-height: 20px`) ocupava uma linha da grade: gap + 20 px + gap | `.record-feedback:empty { position: absolute }`: continua no DOM e acessível, sem ocupar linha                                                                                                                                 |
+| Importação de treinos     | "Remover série" ocupava uma célula; setas do campo numérico e padding reduziam o RIR                   | Ação em linha própria, alinhada à direita, com texto "Remover série N" e `aria-label` completo; abaixo de 360 px, padding `--space-2` e campos sem setas                                                                       |
+| Radar                     | Textos em unidades do viewBox encolhiam com o SVG (cerca de 6 a 8 px)                                  | Container query `radar`: abaixo de 400 px de largura do gráfico, rótulos 17 e escala 12 unidades; `dy` do valor em `em`. Dados, formas e proporções inalterados                                                                |
+| Assistente de fichas      | Fundo `#101010f5` da barra fixa                                                                        | Mesmo tom, opaco (`#101010`)                                                                                                                                                                                                   |
+| Textos                    | Plural fixo e capitalização de título                                                                  | Utilitário `shared/lib/plural.ts`, com teste, em 18 pontos (treinos, exercícios, séries, repetições, páginas); botões e abas em formato de frase ("Importar treino", "Confirmar importação", "Minhas fichas", "Mapa muscular") |
+
+Mantidos por serem nomes oficiais: "Modo Avançado", "Minhas Quests", Quests e
+os nomes dos pilares em "Registrar Treinos".
+
+Verificação: matriz completa com 240 capturas, 0 erros de página, 0 falhas de
+layout e 0 rolagem horizontal. Uma medição adicional (cópia temporária do
+script, sem alterar `scripts/audit-visual.mjs`) confirmou 0 valores de resumo
+cortados. A inspeção visual confirmou: valores inteiros em 320, 390, 768, 1024
+e 1440 px; botões curtos e alinhados em Conhecimento e Finanças; ~20 px entre
+painéis em Treinos, Descanso, Conhecimento e Finanças; RIR "Opcional" legível
+em 320 px; rótulos do Radar legíveis em 320, 390, 768 e 1024 px; barra do
+assistente opaca; "1 treino". Durante a verificação, foram encontradas e
+corrigidas duas regressões da própria correção: valores do treino avançado
+vazando do cartão em 320 px e textos explicativos cortados em resumos de
+Finanças vazias com `white-space: nowrap`, substituído por `break-word`.
+
+Documentação atualizada: [responsividade](../design-system/responsive.md) e
+[catálogo](../design-system/components.md).
+
 ## Pendências
+
+Nenhuma das sete pendências da primeira rodada permanece aberta. Limites
+conhecidos:
+
+- Valores acima de cerca de R$ 1.000.000,00 em 1024 px ainda podem não caber
+  na coluna e, nesse caso, quebram como último recurso para não transbordar.
+- Os números da escala do Radar (0 a 100) seguem menores que os rótulos, como
+  informação secundária.
+- A matriz usa Chromium headless; Safari e Firefox não foram verificados.
+
+## Histórico: pendências da primeira rodada
 
 Propostas que exigem decisão de design ou alteram texto visível; não foram
 aplicadas para evitar redesign.
