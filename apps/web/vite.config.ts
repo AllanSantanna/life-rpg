@@ -46,6 +46,19 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        // O renderer 3D é baixado somente ao abrir Estatísticas com WebGL.
+        globIgnores: ['**/LandscapeScene-*.js'],
+        runtimeCaching: [
+          {
+            urlPattern: /\/assets\/LandscapeScene-[^/]+\.js$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'statistics-3d-assets',
+              expiration: { maxEntries: 2, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              cacheableResponse: { statuses: [200] },
+            },
+          },
+        ],
         navigateFallbackDenylist: [/^\/api(?:\/|$)/],
         cleanupOutdatedCaches: true,
       },
