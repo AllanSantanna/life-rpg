@@ -127,6 +127,7 @@ async function seed(page, populated) {
           name: 'Investimento de renda fixa',
           category: 'Renda fixa',
         },
+        { id: 'btc', name: 'Bitcoin (BTC)', category: 'Bitcoin' },
       ];
       state.records.investmentEntries = [
         {
@@ -147,6 +148,20 @@ async function seed(page, populated) {
           accountId: 'principal',
           positionInitial: false,
         },
+        {
+          id: 'entry-btc',
+          investmentId: 'btc',
+          kind: 'contribution',
+          amountCents: 23954,
+          quantity: 0.00061258,
+          date: today,
+          positionInitial: true,
+        },
+      ];
+      // Cotação fixa da fixture: a auditoria bloqueia chamadas externas.
+      const observed = new Date('2026-11-17T11:00:00-03:00').getTime();
+      state.records.finance.quotes = [
+        { priceCents: 39000000, updatedAt: observed, observedAt: observed },
       ];
       state.records.advancedWorkouts = testState();
       state.records.advancedWorkouts.plans = [
@@ -510,12 +525,58 @@ try {
       await capture(page, 'financas-reset-dialog', width);
       await page.keyboard.press('Escape');
       await page
+        .getByRole('button', { name: 'Nova movimentação', exact: true })
+        .click();
+      await capture(page, 'financas-movimentacao', width);
+      await page.getByRole('button', { name: 'Cancelar', exact: true }).click();
+      await page
+        .getByRole('button', {
+          name: 'Histórico de movimentações',
+          exact: true,
+        })
+        .click();
+      await capture(page, 'financas-historico', width);
+      await page
+        .getByRole('tab', { name: 'Investimentos', exact: true })
+        .click();
+      await capture(page, 'financas-investimentos', width);
+      await page
         .getByRole('button', {
           name: 'Atualizar saldo de Caixinha de auditoria com nome extenso',
           exact: true,
         })
         .click();
       await capture(page, 'financas-caixinha', width);
+      await page
+        .getByRole('button', {
+          name: 'Aportar em Caixinha de auditoria com nome extenso',
+          exact: true,
+        })
+        .click();
+      await capture(page, 'financas-aporte', width);
+      await page
+        .getByRole('button', { name: 'Vender Bitcoin (BTC)', exact: true })
+        .click();
+      await capture(page, 'financas-venda-btc', width);
+      await page.getByRole('button', { name: 'Cancelar', exact: true }).click();
+      await page
+        .getByRole('button', {
+          name: 'Ver detalhes de Bitcoin (BTC)',
+          exact: true,
+        })
+        .click();
+      await capture(page, 'financas-detalhes', width);
+      await page
+        .getByRole('button', {
+          name: 'Histórico de investimentos',
+          exact: true,
+        })
+        .click();
+      await capture(page, 'financas-historico-investimentos', width);
+      await page
+        .getByRole('button', { name: 'Novo investimento', exact: true })
+        .click();
+      await capture(page, 'financas-novo-investimento', width);
       await page.goto(base + '/descanso');
       await page
         .getByRole('combobox', { name: 'Data', exact: true })
@@ -533,6 +594,12 @@ try {
         'Calendário não restaurou o foco.',
       );
       await page.goto(base + '/financas');
+      await page
+        .getByRole('tab', { name: 'Investimentos', exact: true })
+        .click();
+      await page
+        .getByRole('button', { name: 'Novo investimento', exact: true })
+        .click();
       await page
         .getByRole('combobox', {
           name: 'Categoria do investimento',
