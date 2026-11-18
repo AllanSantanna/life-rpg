@@ -590,4 +590,60 @@ describe('Organização da página Finanças', () => {
     );
     expect(stored().investmentEntries).toHaveLength(3);
   });
+
+  it('usa somente os botões oficiais do Design System em todas as categorias', () => {
+    seed();
+    const raw = JSON.parse(localStorage.getItem(PLAYER_STORAGE_KEY)!);
+    const extra = [
+      ['stock', 'Ações'],
+      ['fixed', 'Renda fixa'],
+      ['usd', 'Dólar (USD)'],
+      ['other', 'Outros'],
+    ] as const;
+    for (const [id, category] of extra) {
+      raw.data.records.investments.push({ id, name: category, category });
+      raw.data.records.investmentEntries.push({
+        id: `${id}-initial`,
+        investmentId: id,
+        kind: 'contribution',
+        amountCents: 10000,
+        date: '2026-11-01',
+        positionInitial: true,
+        ...(category === 'Dólar (USD)' ? { quantity: 20 } : {}),
+      });
+    }
+    localStorage.setItem(PLAYER_STORAGE_KEY, JSON.stringify(raw));
+    render(<App />);
+    financeTab('Investimentos');
+    const cards = within(
+      screen.getByRole('region', { name: 'Carteira cadastrada' }),
+    ).getAllByRole('group');
+    expect(cards).toHaveLength(7);
+    for (const card of cards) {
+      const buttons = within(card).getAllByRole('button');
+      // Exatamente uma ação primária, sempre com o componente oficial.
+      const primary = buttons.filter((button) =>
+        button.classList.contains('action-button'),
+      );
+      expect(primary).toHaveLength(1);
+      expect(primary[0]!.className).toBe('action-button');
+      for (const button of buttons) {
+        const name = button.getAttribute('aria-label') ?? '';
+        const kind = button.className;
+        if (button === primary[0]) continue;
+        if (name.startsWith('Editar investimento')) expect(kind).toBe('');
+        else if (name.startsWith('Excluir investimento'))
+          expect(kind).toBe('financial-danger');
+        else if (name.startsWith('Ver detalhes'))
+          expect(kind).toBe('text-action');
+        else expect(kind).toBe('filter-button');
+        // Botões de cartão nunca usam classes próprias de Finanças.
+        expect(kind).not.toMatch(/investment|finance-/);
+      }
+      expect(
+        within(card).getByRole('button', { name: /^Editar investimento/ })
+          .parentElement,
+      ).toHaveClass('record-actions');
+    }
+  });
 });
