@@ -12,7 +12,7 @@ export function AttributesPanel({ attributes }: { attributes: Attribute[] }) {
         {attributes.map((attribute) => (
           <article className="panel p-4 sm:p-5" key={attribute.name}>
             <div className="mb-4 flex items-center gap-2 text-muted">
-              <Icon name={attribute.icon} size={16} />
+              <Icon name={attribute.icon} size={16} className="shrink-0" />
               <h3 className="text-sm">{attribute.name}</h3>
             </div>
             <div className="mb-3 flex items-baseline gap-1.5">

@@ -2506,7 +2506,8 @@
   .quest-suggestions {
     padding: 16px;
   }
-  .quest-card-actions button {
+  .quest-card-actions button,
+  .quest-card-actions .quest-progress-action {
     min-height: 44px;
   }
   .quest-card-tools .quest-icon-button {

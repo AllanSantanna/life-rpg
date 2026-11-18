@@ -55,7 +55,11 @@ function AchievementMedal({ item }: { item: Achievement }) {
         {item.description}
       </p>
       <p className="mt-3 flex items-center justify-center gap-1 text-[10px] text-muted">
-        <Icon name={item.unlocked ? 'check' : 'lock'} size={11} />
+        <Icon
+          name={item.unlocked ? 'check' : 'lock'}
+          size={11}
+          className="shrink-0"
+        />
         {item.progress}
       </p>
     </article>

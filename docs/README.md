@@ -13,6 +13,7 @@ implementação atual; propostas futuras devem ser identificadas como propostas.
 
 ## Contratos de produto e domínio
 
+- [Auditoria visual e estrutural de 17/11/2026](audits/frontend-standardization-2026-11-17.md).
 - [Produto](product.md) e [quatro pilares](four-pillars.md).
 - [Finanças](../apps/web/src/modules/finances/README.md).
 - [Treinos](../apps/web/src/modules/workouts/README.md) e

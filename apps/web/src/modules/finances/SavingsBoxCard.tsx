@@ -28,7 +28,7 @@ export function SavingsBoxCard({
     >
       <div className="savings-box__heading">
         <div>
-          <Icon name="safe" size={20} />
+          <Icon name="safe" size={20} className="shrink-0" />
           <strong>{investment.name}</strong>
         </div>
         <span>{investment.institution ?? 'Instituição não informada'}</span>
