@@ -34,19 +34,20 @@ Interface → onCommand → comando puro/validação → novo estado
           → projeções de personagem, XP, Radar e indicadores → interface
 ```
 
-| Módulo         | Responsabilidade atual                                              |
-| -------------- | ------------------------------------------------------------------- |
-| `finances`     | Movimentos, contas, investimentos, cotações e cálculos monetários   |
-| `workouts`     | Registro diário, calendário e musculação opcional em `advanced/`    |
-| `rest`         | Sono diário, meta e médias                                          |
-| `knowledge`    | Biblioteca, leituras e progresso                                    |
-| `records`      | `LifeRecords`, união de comandos, validação e projeções comuns      |
-| `goals`        | Quests, comandos, ciclos, progresso, recompensas e apresentação     |
-| `gamification` | XP, níveis, atributos e conquistas derivados                        |
-| `evolution`    | Dedicação por pilar, períodos e Radar                               |
-| `profile`      | Perfil, avatar, classe e projeção do personagem                     |
-| `missions`     | Compatibilidade de confirmações históricas; sem novas missões fixas |
-| `auth`         | Reserva; não há autenticação implementada                           |
+| Módulo         | Responsabilidade atual                                                                    |
+| -------------- | ----------------------------------------------------------------------------------------- |
+| `finances`     | Movimentos, contas, investimentos, cotações e cálculos monetários                         |
+| `workouts`     | Registro diário, calendário e musculação opcional em `advanced/`                          |
+| `rest`         | Sono diário, meta e médias                                                                |
+| `knowledge`    | Biblioteca, leituras e progresso                                                          |
+| `records`      | `LifeRecords`, união de comandos, validação e projeções comuns                            |
+| `goals`        | Quests, comandos, ciclos, progresso, recompensas e apresentação                           |
+| `gamification` | XP, níveis, atributos e conquistas derivados                                              |
+| `evolution`    | Dedicação por pilar, períodos e Radar                                                     |
+| `statistics`   | Projeções somente de leitura, paisagem 3D sob demanda, calendário e indicadores por pilar |
+| `profile`      | Perfil, avatar, classe e projeção do personagem                                           |
+| `missions`     | Compatibilidade de confirmações históricas; sem novas missões fixas                       |
+| `auth`         | Reserva; não há autenticação implementada                                                 |
 
 Integração entre pilares passa por `LifeRecords`, comandos e projeções comuns.
 Quests consultam fontes reais; não alteram registros dos pilares. O treino
