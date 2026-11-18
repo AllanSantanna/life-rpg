@@ -29,6 +29,54 @@
   gap: var(--space-2);
   align-items: center;
 }
+.statistics-toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+.statistics-customize-trigger {
+  display: inline-flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+.statistics-customize-panel {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-4);
+}
+.statistics-customize-panel .statistics-copy {
+  margin-top: 0;
+}
+.statistics-customize-panel fieldset {
+  display: grid;
+  gap: 0 var(--space-6);
+  min-width: 0;
+}
+.statistics-customize-panel legend {
+  margin-bottom: var(--space-2);
+}
+.statistics-switch {
+  min-height: var(--control-height);
+  padding-block: var(--space-2);
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--color-muted) 12%, transparent);
+}
+.statistics-switch[data-area] strong {
+  color: var(--area-color);
+}
+.statistics-customize-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+.statistics-empty-view {
+  padding: var(--space-6);
+  color: var(--color-muted);
+  font-size: 14px;
+  line-height: 1.7;
+}
 .statistics-dashboard .filter-button {
   min-height: var(--control-height);
 }
@@ -380,6 +428,10 @@
   margin-top: auto;
   min-height: var(--control-height);
 }
+/* Com um cartão visível, ele ocupa a linha inteira em qualquer largura. */
+.statistics-pillar-grid[data-count='1'] {
+  grid-template-columns: minmax(0, 1fr);
+}
 .statistics-card-note {
   margin-top: var(--space-4);
 }
@@ -408,6 +460,9 @@
   .statistics-day-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+  .statistics-customize-panel fieldset {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 @media (min-width: 768px) {
   .statistics-pillar-grid {
@@ -416,7 +471,13 @@
 }
 @media (min-width: 1280px) {
   .statistics-pillar-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(var(--cards, 4), minmax(0, 1fr));
+  }
+  .statistics-pillar-grid[data-count='3'] {
+    --cards: 3;
+  }
+  .statistics-pillar-grid[data-count='2'] {
+    --cards: 2;
   }
 }
 @media (prefers-reduced-motion: reduce) {

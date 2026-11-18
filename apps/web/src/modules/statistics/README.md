@@ -9,6 +9,27 @@ alteram recompensas, Quests, personagem ou contratos de storage.
 O painel de conquistas existente permanece após os indicadores, preservando o
 acesso pelo atalho do perfil.
 
+## Personalização da visualização
+
+O botão “Personalizar visualização”, no cabeçalho da visão geral, abre um painel
+em largura total com interruptores (`input type="checkbox" role="switch"`, estilo
+`.strength-switch`) para o Radar, a paisagem, o calendário e cada um dos quatro
+cartões. Tudo começa visível; “Mostrar todas as seções” restaura o padrão. Escape
+e “Concluir” fecham o painel e devolvem o foco ao botão.
+
+As escolhas ficam em `life-rpg:statistics-view` (envelope `{ version: 1, data }`),
+gravadas pelo adaptador `createLocalStateStorage` somente quando o usuário altera
+um interruptor. A chave é separada de `life-rpg:player-state`: preferências visuais
+não mudam o esquema, a validação, as migrações nem os registros. Valor ausente ou
+inválido mostra todas as seções e não é sobrescrito na leitura.
+
+Ocultar remove apenas a interface. Projeções, filtros e cálculos continuam iguais;
+o Radar é o mesmo `EvolutionPanel`, apenas não montado. Sem a paisagem, o
+`React.lazy` não solicita `LandscapeScene` (o renderer WebGL). O filtro 7/30/90 só
+aparece quando a paisagem ou algum cartão está visível. A grade de cartões usa a
+quantidade visível (`data-count`) para ocupar a linha sem colunas vazias, e uma
+mensagem explica quando todas as seções estão ocultas.
+
 ## Dados, indicadores e comparação
 
 - `aggregation.ts` contém projeções puras; `types.ts` define o contrato da UI.

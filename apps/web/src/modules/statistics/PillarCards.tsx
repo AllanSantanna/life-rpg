@@ -33,10 +33,10 @@ export function PillarCards({
   return (
     <section aria-label="Estatísticas individuais">
       <SectionHeading
-        title="Seus quatro pilares"
+        title={summaries.length === 4 ? 'Seus quatro pilares' : 'Seus pilares'}
         eyebrow={`Indicadores · últimos ${period} dias`}
       />
-      <div className="statistics-pillar-grid">
+      <div className="statistics-pillar-grid" data-count={summaries.length}>
         {summaries.map((summary) => {
           const config = presentation[summary.area];
           const delta = summary.score - summary.previous;
