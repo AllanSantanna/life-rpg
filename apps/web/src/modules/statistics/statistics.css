@@ -285,6 +285,19 @@
   scrollbar-color: color-mix(in srgb, var(--color-muted) 35%, transparent)
     transparent;
 }
+.statistics-calendar-scroll.is-dragging {
+  cursor: grabbing;
+  box-shadow: inset 0 0 0 1px
+    color-mix(in srgb, var(--color-primary) 35%, transparent);
+}
+.statistics-calendar-scroll.is-dragging .statistics-heat-cell {
+  cursor: grabbing;
+}
+@media (pointer: fine) {
+  .statistics-calendar-scroll {
+    cursor: grab;
+  }
+}
 .statistics-heatmap {
   border-collapse: separate;
   border-spacing: 0;

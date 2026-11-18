@@ -49,7 +49,8 @@ Não execute fixtures de auditoria contra um site remoto ou um perfil real.
 O roteiro percorre 320, 390, 768, 1024 e 1440 px, com dados vazios, preenchidos,
 textos longos, formulários e popovers. `AUDIT_WIDTHS` permite restringir larguras.
 Estatísticas inclui filtros, modos, camadas, seleção, calendário, teclado,
-preservação do estado e alternativa 2D. O teste de câmera e perda de contexto
+preservação do estado, alternativa 2D, geometria compacta do calendário, arraste
+com mouse, deslize por toque, rolagem vertical e personalização persistida. O teste de câmera e perda de contexto
 depende de WebGL disponível; sua ausência é registrada no log.
 
 O comando verifica geometria e gera capturas e `results.json`; não faz comparação

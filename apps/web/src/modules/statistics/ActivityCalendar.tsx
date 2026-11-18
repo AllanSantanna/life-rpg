@@ -1,4 +1,10 @@
-import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type KeyboardEvent,
+} from 'react';
 import { CustomDatePicker } from '../../shared/components/CustomDatePicker';
 import { SectionHeading } from '../../shared/components/SectionHeading';
 import { months, shiftMonth } from '../../shared/dates/picker';
@@ -7,6 +13,41 @@ import { displayDate, monthDates } from '../records/dates';
 import { intensityLabels } from './aggregation';
 import { DayDetails } from './DayDetails';
 import type { ActivityIndex } from './types';
+import { useDragScroll } from './useDragScroll';
+
+const navigationKeys = [
+  'Home',
+  'End',
+  'ArrowLeft',
+  'ArrowRight',
+  'ArrowUp',
+  'ArrowDown',
+];
+
+/** Largura ocupada pela coluna fixa dos pilares dentro da área rolável. */
+function stickyWidth(container: HTMLElement) {
+  return container.querySelector<HTMLElement>('tbody th')?.offsetWidth ?? 0;
+}
+function cellOffset(container: HTMLElement, cell: HTMLElement) {
+  return (
+    cell.getBoundingClientRect().left -
+    container.getBoundingClientRect().left +
+    container.scrollLeft
+  );
+}
+function scrollArea(container: HTMLElement, left: number, smooth: boolean) {
+  const reduced =
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const value = Math.max(0, left);
+  // Somente a área do calendário rola; a página permanece onde está.
+  if (typeof container.scrollTo === 'function')
+    container.scrollTo({
+      left: value,
+      behavior: smooth && !reduced ? 'smooth' : 'auto',
+    });
+  else container.scrollLeft = value;
+}
 
 export function ActivityCalendar({
   index,
@@ -17,40 +58,57 @@ export function ActivityCalendar({
 }) {
   const [selected, setSelected] = useState(today);
   const [month, setMonth] = useState(today.slice(0, 7));
+  // Cada pedido centraliza uma data uma vez: ao abrir o mês ou ao tocar em Hoje.
+  const [reveal, setReveal] = useState({ date: today, smooth: false });
   const table = useRef<HTMLTableElement>(null);
   const scroller = useRef<HTMLDivElement>(null);
+  const dragging = useDragScroll(scroller);
   const dates = monthDates(month);
   const active = selected.startsWith(month) ? selected : dates[0];
-  // Em telas estreitas, a data inicial do mês fica visível na rolagem local,
-  // sem mover a página nem reagir a cada clique.
   useEffect(() => {
     const container = scroller.current;
-    const target = month === today.slice(0, 7) ? today : `${month}-01`;
     const cell = container?.querySelector<HTMLElement>(
-      `[data-date="${target}"]`,
+      `[data-date="${reveal.date}"]`,
     );
-    if (!container || !cell) return;
-    const sticky =
-      container.querySelector<HTMLElement>('tbody th')?.offsetWidth ?? 0;
-    const offset =
-      cell.getBoundingClientRect().left -
-      container.getBoundingClientRect().left +
-      container.scrollLeft;
-    container.scrollLeft = Math.max(
-      0,
-      offset - sticky - (container.clientWidth - sticky - cell.offsetWidth) / 2,
+    if (!container || !cell || dragging.current) return;
+    const sticky = stickyWidth(container);
+    scrollArea(
+      container,
+      cellOffset(container, cell) -
+        sticky -
+        (container.clientWidth - sticky - cell.offsetWidth) / 2,
+      reveal.smooth,
     );
-  }, [month, today]);
-  function changeMonth(next: string) {
+  }, [reveal, dragging]);
+  function changeMonth(next: string, smooth = false) {
     if (!next || monthDates(next).length === 0) return;
+    const date = next === today.slice(0, 7) ? today : `${next}-01`;
     setMonth(next);
-    setSelected(next === today.slice(0, 7) ? today : `${next}-01`);
+    setSelected(date);
+    setReveal({ date, smooth });
+  }
+  /** Mantém a célula focada visível ao lado da coluna fixa, sem mover a página. */
+  function revealCell(cell: HTMLElement) {
+    const container = scroller.current;
+    if (!container) return;
+    const sticky = stickyWidth(container);
+    const left = cellOffset(container, cell);
+    const start = container.scrollLeft + sticky;
+    const end = container.scrollLeft + container.clientWidth;
+    if (left < start) scrollArea(container, left - sticky, false);
+    else if (left + cell.offsetWidth > end)
+      scrollArea(
+        container,
+        left + cell.offsetWidth - container.clientWidth,
+        false,
+      );
   }
   function move(
     event: KeyboardEvent<HTMLButtonElement>,
     date: string,
     row: number,
   ) {
+    if (!navigationKeys.includes(event.key)) return;
     const position = dates.indexOf(date);
     const column =
       event.key === 'Home'
@@ -65,26 +123,16 @@ export function ActivityCalendar({
                 : 0);
     const nextRow =
       row + (event.key === 'ArrowDown' ? 1 : event.key === 'ArrowUp' ? -1 : 0);
-    if (
-      ![
-        'Home',
-        'End',
-        'ArrowLeft',
-        'ArrowRight',
-        'ArrowUp',
-        'ArrowDown',
-      ].includes(event.key)
-    )
-      return;
     event.preventDefault();
     const next = dates[Math.max(0, Math.min(dates.length - 1, column))];
     if (!next) return;
     setSelected(next);
-    table.current
-      ?.querySelector<HTMLButtonElement>(
-        `[data-date="${next}"][data-row="${Math.max(0, Math.min(3, nextRow))}"]`,
-      )
-      ?.focus();
+    const cell = table.current?.querySelector<HTMLButtonElement>(
+      `[data-date="${next}"][data-row="${Math.max(0, Math.min(3, nextRow))}"]`,
+    );
+    if (!cell) return;
+    cell.focus({ preventScroll: true });
+    revealCell(cell);
   }
   const title = `${months[Number(month.slice(5)) - 1]} de ${month.slice(0, 4)}`;
   return (
@@ -108,7 +156,7 @@ export function ActivityCalendar({
             mode="month"
             value={month}
             required
-            onChange={changeMonth}
+            onChange={(next) => changeMonth(next)}
           />
           <button
             type="button"
@@ -122,7 +170,7 @@ export function ActivityCalendar({
           <button
             type="button"
             className="filter-button"
-            onClick={() => changeMonth(today.slice(0, 7))}
+            onClick={() => changeMonth(today.slice(0, 7), true)}
           >
             Hoje
           </button>
@@ -136,10 +184,14 @@ export function ActivityCalendar({
         ref={scroller}
         className="statistics-calendar-scroll"
         role="region"
-        aria-label="Dias e pilares do mês; rolagem horizontal"
+        aria-label="Dias e pilares do mês; arraste para os lados ou use as setas"
         tabIndex={0}
       >
-        <table ref={table} className="statistics-heatmap">
+        <table
+          ref={table}
+          className="statistics-heatmap"
+          style={{ '--heat-days': dates.length } as CSSProperties}
+        >
           <caption className="sr-only">
             Atividade registrada em {title}. Use as setas para explorar dias e
             pilares.

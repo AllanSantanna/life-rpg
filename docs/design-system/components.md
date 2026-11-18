@@ -80,7 +80,8 @@ pontuado usam “—” e explicação explícita. Não preencha `trend` com exe
 O [painel de Estatísticas](../../apps/web/src/modules/statistics/README.md) usa
 tokens do tema, `data-area`, `.filter-button` e `CustomDatePicker` mensal. A paisagem
 tem alternativa SVG e tabela textual; o heatmap possui intensidades rotuladas,
-alvos de 44 px e rolagem local. Esses componentes de domínio não substituem o Radar.
+grade compacta, arraste horizontal e rolagem local. Esses componentes de domínio
+não substituem o Radar.
 
 Interruptor liga/desliga: `label.strength-switch` com `input type="checkbox"`,
 `role="switch"`, nome acessível e `.strength-switch-track`, como no Modo Avançado
