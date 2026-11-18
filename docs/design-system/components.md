@@ -64,6 +64,7 @@ largura, teclado, toque e contraste no celular.
 | Listas e resumos          | `.record-list` e `Summary` com `dl/dt/dd`                                                                                                                     |
 | Linhas de séries          | `SessionPanel`, grade CSS com grupos rotulados e cabeçalho visual; não é tabela HTML genérica                                                                 |
 | Gráfico financeiro        | [FinancialChart](../../apps/web/src/modules/finances/FinancialChart.tsx), modelo separado em `chartModel.ts`                                                  |
+| Cotação de ativos         | [MarketCharts](../../apps/web/src/modules/finances/MarketCharts.tsx): `PriceSparkline` no cartão e `MarketChart` com classes do `FinancialChart`              |
 | Radar                     | [EvolutionRadar](../../apps/web/src/modules/evolution/EvolutionRadar.tsx), SVG e valores acessíveis                                                           |
 | Evolução/volume de treino | [ProgressChart](../../apps/web/src/modules/workouts/advanced/ProgressChart.tsx) e [VolumeChart](../../apps/web/src/modules/workouts/advanced/VolumeChart.tsx) |
 

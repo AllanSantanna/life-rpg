@@ -37,6 +37,7 @@ const quote: InvestmentAction = {
  */
 export function investmentActions(
   category: InvestmentCategory,
+  { ticker }: { ticker?: string | undefined } = {},
 ): InvestmentAction[] {
   switch (category) {
     case 'Caixinhas bancárias':
@@ -57,7 +58,13 @@ export function investmentActions(
       return [contribute('Comprar', ''), withdraw('Vender', ''), quote, edit];
     case 'Ações':
     case 'Fundos imobiliários':
-      return [contribute('Comprar mais', ''), withdraw('Vender', ''), edit];
+      // A cotação de mercado só existe para ativos com ticker vinculado.
+      return [
+        contribute('Comprar mais', ''),
+        withdraw('Vender', ''),
+        ...(ticker ? [quote] : []),
+        edit,
+      ];
     case 'Renda fixa':
       return [contribute('Aportar'), withdraw('Resgatar', ''), edit];
     case 'Outros':

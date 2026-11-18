@@ -567,10 +567,84 @@ bem-sucedido, evitando registros duplicados por cliques repetidos.
 
 ### Limitações conhecidas
 
-- Ações e FIIs não têm quantidade rastreada na posição: vendas continuam usando
-  valor recebido (e custo resgatado opcional), sem quantidade vendida, e não há
-  preço médio por unidade. Mudar isso altera regras de posição e exige tarefa própria.
+- Ações e FIIs registram quantidade nas compras e vendas (seção “Cotações de
+  ações e FIIs”); operações antigas sem quantidade continuam com a regra anterior.
 - Rótulos dos campos permanecem os existentes (“Valor da operação (R$)”), mesmo
   quando a operação é venda ou resgate.
 - Renda fixa e Outros não possuem cotação; o valor segue a última avaliação manual
   registrada em “Contas, transferências e avaliações manuais”.
+
+## Cotações de ações e FIIs (brapi.dev)
+
+Ações e fundos imobiliários podem ter um **ticker da B3** (`Investment.ticker`,
+ex.: `VALE3`, `HGLG11`). O ticker é informado no cadastro ou depois, em Editar,
+com verificação opcional pela fonte. Nenhum ticker é associado automaticamente
+pelo nome. Registros antigos sem ticker continuam válidos e sem cotação.
+
+### Fonte, chave e limites
+
+A fonte é a [brapi.dev](https://brapi.dev/docs/acoes), consultada somente pelo
+`apps/api` (`GET /market/quotes/:ticker` e `GET /market/tickers?search=`). O token
+fica em `BRAPI_TOKEN` no `.env` do servidor e segue no header `Authorization`; ele
+nunca vai ao navegador, ao repositório ou ao `localStorage`. Sem token, a brapi
+atende apenas os tickers de teste (PETR4, MGLU3, VALE3, ITUB4). O frontend usa
+`VITE_API_URL` (padrão `http://localhost:3001`); sem o `apps/api` rodando, os
+cartões mostram “cotação indisponível” e o restante da página funciona.
+
+Conforme a documentação consultada em 18/11/2026, o plano gratuito oferece
+15.000 requisições por mês, 1 ticker por requisição, 1 requisição simultânea,
+histórico de até 3 meses com intervalo diário e atualização a cada ~30 minutos.
+**Não é tempo real.** “1 ano” e “Histórico completo” mostram apenas o que a fonte
+devolver e avisam o início real dos dados. Os termos de uso não puderam ser lidos
+(página indisponível); confirme-os antes de uso comercial.
+
+### Cache e consultas
+
+- Servidor: cache por ticker de 30 minutos, requisições iguais compartilhadas,
+  uma consulta por vez à fonte, espera de 5 minutos após falha e reaproveitamento
+  da última resposta válida marcada como desatualizada.
+- Navegador: `useMarketQuotes` (no `App`) consulta somente tickers cadastrados,
+  um por vez, ao abrir e a cada 30 minutos enquanto o app está aberto; cache em
+  memória com as mesmas regras. “Atualizar cotação” (Mais ações) respeita um
+  intervalo mínimo de 5 minutos.
+- Persistência: `records.finance.marketQuotes` (extensão opcional, sem mudança de
+  versão) guarda a última cotação de cada ticker por dia, como BTC/USD. Cotações de
+  tickers removidos são descartadas. O histórico diário não é persistido.
+
+### Quantidade, valor e resultado
+
+Ações e FIIs passam a usar a posição por quantidade (`positionMode = 'shares'`),
+com o mesmo rateio do BTC/USD: a compra informa quantidade e valor pago (o preço
+unitário continua opcional) e a venda informa quantidade vendida e valor
+recebido; o custo da parcela vendida sai pelo **preço médio**. Venda acima da
+quantidade é rejeitada. Operações antigas sem quantidade mantêm a regra anterior
+(custo baixado pelo valor ou pelo custo resgatado) e deixam a quantidade
+“incompleta”; nesse caso não há valor de mercado nem gráfico de posição até a
+quantidade ser informada em todas as operações.
+
+- Valor estimado = quantidade × última cotação observada até a data.
+- Resultado não realizado = valor estimado − custo restante (quando conhecido).
+- Variação do dia = cotação − fechamento anterior da fonte; é do ativo, não do
+  investimento.
+- Cotações não alteram custo, quantidades, contas, dinheiro disponível, XP ou
+  Radar. Afetam somente o valor de mercado do patrimônio, a partir da data
+  observada (mesma regra do BTC). Metas de patrimônio já usam esse valor.
+
+### Gráficos
+
+O cartão mostra um gráfico compacto dos últimos 7 pregões ao lado do valor (cor
+pela tendência do período, via `.wealth-chart--up/down`), sem aumentar a altura.
+“Ver detalhes” traz o gráfico interativo (`MarketChart`, com as classes do
+`FinancialChart`): Preço do ativo ou Valor da posição; 7, 30 e 90 dias, 1 ano e
+histórico completo; mouse, toque e teclado. A posição usa a quantidade possuída
+em cada pregão (compras e vendas até a data), sem aplicar a quantidade atual ao
+passado; posições iniciais sem data original começam na data do registro. Dias
+sem negociação não ganham pontos. Dividendos e rendimentos de FIIs não foram
+implementados: o modelo de cotação é separado e pode receber esse registro no
+futuro.
+
+### Configuração
+
+1. Crie um token em https://brapi.dev/dashboard.
+2. Defina `BRAPI_TOKEN` no `.env` local (veja `.env.example`); nunca o versione.
+3. Execute `npm run dev` (web e api juntos) e cadastre o ticker em Finanças.

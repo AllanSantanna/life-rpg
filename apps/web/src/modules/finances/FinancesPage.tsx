@@ -12,6 +12,7 @@ import { FinancialSettings } from './FinancialSettings';
 import { InvestmentsPanel } from './InvestmentsPanel';
 import { financialSummary } from './ledger';
 import { MovementsPanel } from './MovementsPanel';
+import type { MarketTracker } from './useMarketQuotes';
 
 type FinanceArea = 'movements' | 'investments';
 const areas = [
@@ -27,7 +28,9 @@ export function FinancesPage({
   quoteStale = false,
   usdError = '',
   usdStale = false,
+  market,
 }: RecordPageProps & {
+  market?: MarketTracker;
   quoteError?: string;
   quoteStale?: boolean;
   usdError?: string;
@@ -155,6 +158,7 @@ export function FinancesPage({
             onDelete={setPendingDeletion}
             btcStatus={{ error: quoteError, stale: quoteStale }}
             usdStatus={{ error: usdError, stale: usdStale }}
+            market={market}
           />
         )}
       </FinanceTabs>
