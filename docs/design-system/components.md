@@ -90,9 +90,28 @@ universal. Gráficos aceitam medidas calculadas inline, mas não novos temas inl
   assíncrona, indique status, evite reenvio duplicado e mantenha o nome acessível.
   Não anuncie “salvo” enquanto a operação ainda estiver pendente.
 
-A caixinha financeira reutiliza `.record-actions` para “Atualizar saldo”; o nome
-do investimento fica no rótulo acessível e no título do cartão. Listas de
+Os cartões da carteira financeira ([InvestmentCard](../../apps/web/src/modules/finances/InvestmentCard.tsx),
+classe `.investment-card`) reutilizam `.record-actions` em duas colunas para as
+ações da categoria (“Aportar”, “Comprar mais”, “Atualizar saldo” etc.); o nome do
+investimento fica no rótulo acessível e no título do cartão. Listas de
 registros e seus botões permitem quebra de títulos longos sem alargar a página.
+
+## Finanças: abas, áreas recolhíveis e formulários sob demanda
+
+Componentes locais de [FinanceLayout](../../apps/web/src/modules/finances/FinanceLayout.tsx),
+restritos ao módulo Finanças até que outra tela precise do mesmo contrato:
+
+| Componente           | Uso                                                                                                                   |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `FinanceTabs`        | `tablist/tab/tabpanel`, roving tabIndex, setas, Home/End; botões com `.filter-button` e `.active`                     |
+| `Disclosure`         | Título com botão `aria-expanded` e seta (`chevron`); conteúdo montado só quando aberto; `label` evita nomes repetidos |
+| `InlineForm`         | Envolve um `RecordForm` aberto sob demanda: foca o primeiro campo e devolve o foco ao controle que o abriu            |
+| `DeleteConfirmation` | Exclusões financeiras via `FinancialConfirmation`, com “Confirmar exclusão” e cancelamento sem alterar dados          |
+
+`Actions` aceita `cancel` para o rótulo do cancelamento (padrão “Cancelar edição”;
+formulários de criação usam “Cancelar”). A seta gira sem transição com
+`prefers-reduced-motion: reduce`. Formulários continuam inline: popovers de
+`CustomSelect`/`CustomDatePicker` usam portal e não devem ficar sob um `<dialog>` modal.
 
 Ações de item em listas exibem só a ação (“Editar”, “Editar livro”, “Excluir
 investimento”) e levam o nome do item no `aria-label`, que começa pelo texto
