@@ -18,6 +18,8 @@ atuais. O projeto também contém uma base de API para evoluções futuras.
   contrato CDI informativo e atualização manual do saldo/rendimento, sem juros automáticos. Gráficos distinguem
   fluxo mensal, dinheiro disponível, investimentos e patrimônio sem duplicação.
 - **Treinos:** um registro Sim/Não por dia, calendário, frequência e consistência.
+  Modo Avançado opcional com fichas, exercícios personalizados, séries, cargas, RIR,
+  histórico, gráficos, recordes, volumes e mapa muscular, sem XP adicional.
 - **Descanso:** registro diário de horas, valores decimais, meta pessoal e médias.
 - **Conhecimento:** biblioteca, leituras por data, progresso e livros concluídos.
 - **Quests personalizadas:** objetivos livres ou modelos editáveis, acompanhamento
@@ -209,6 +211,7 @@ docs/                       Produto, arquitetura e regras implementadas
 - [Quatro pilares: regras, migração e verificação manual](docs/four-pillars.md)
 - [Finanças: contas, Bitcoin, gráficos e verificação manual](apps/web/src/modules/finances/README.md)
 - [Quests personalizadas: ciclos, acompanhamento e XP](apps/web/src/modules/goals/README.md)
+- [Treinos: modo avançado, volumes, recordes e integração diária](apps/web/src/modules/workouts/README.md)
 - [Persistência local](apps/web/src/shared/storage/README.md)
 - [Radar de Evolução](apps/web/src/modules/evolution/README.md)
 

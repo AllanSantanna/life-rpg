@@ -1,6 +1,10 @@
 import type { CSSProperties } from 'react';
 
 const paths = {
+  history: 'M3 11a9 9 0 1 1 2 7M3 4v7h7M12 7v5l3 2',
+  layers: 'm3 7 9-4 9 4-9 4ZM3 12l9 4 9-4M3 17l9 4 9-4',
+  body: 'M12 3v1M8 7h8l3 7M8 7l-3 7M10 8v7l-2 6M14 8v7l2 6M10 15h4',
+  back: 'm14 5-7 7 7 7M7 12h14',
   search: 'M21 21l-5-5M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z',
   sort: 'M8 4v16m-4-4 4 4 4-4M15 5h6m-6 5h4m-4 5h2',
   plus: 'M12 5v14M5 12h14',

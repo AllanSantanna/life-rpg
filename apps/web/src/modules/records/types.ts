@@ -1,4 +1,8 @@
 import type {
+  AdvancedWorkoutState,
+  AdvancedWorkoutCommand,
+} from '../workouts/advanced/types';
+import type {
   FinanceLedger,
   CashAccount,
   AccountTransfer,
@@ -13,6 +17,7 @@ import type { WorkoutDay } from '../workouts/types';
 import type { SleepDay } from '../rest/types';
 import type { Book, ReadingEntry } from '../knowledge/types';
 export interface LifeRecords {
+  advancedWorkouts?: AdvancedWorkoutState;
   finance?: FinanceLedger;
   movements: MoneyMovement[];
   investments: Investment[];
@@ -24,6 +29,7 @@ export interface LifeRecords {
   readings: ReadingEntry[];
 }
 export type RecordCommand =
+  | { type: 'advancedWorkout'; command: AdvancedWorkoutCommand }
   | { type: 'deleteAccount'; id: string; confirmed: boolean }
   | { type: 'resetFinances'; confirmation: string }
   | { type: 'saveAccount'; value: CashAccount }

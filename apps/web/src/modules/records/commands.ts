@@ -1,3 +1,5 @@
+import { applyAdvancedWorkoutCommand } from '../workouts/advanced/commands';
+import { isAdvancedWorkoutState } from '../workouts/advanced/validation';
 import { isInitialPosition } from '../finances/initialPosition';
 import { removeAccount, resetFinances } from '../finances/management';
 import { localQuoteDate, valuationBasis } from '../finances/ledger';
@@ -36,6 +38,8 @@ function list(
 export function isLifeRecords(value: unknown): value is LifeRecords {
   if (
     !record(value) ||
+    (value.advancedWorkouts !== undefined &&
+      !isAdvancedWorkoutState(value.advancedWorkouts)) ||
     !positive(value.sleepGoalHours) ||
     value.sleepGoalHours < 1 ||
     value.sleepGoalHours > 24
@@ -365,6 +369,29 @@ export function applyRecordCommand(
   let next: LifeRecords = records;
   const finance = records.finance ?? emptyLedger();
   switch (command.type) {
+    case 'advancedWorkout': {
+      const advancedWorkouts = applyAdvancedWorkoutCommand(
+        records.advancedWorkouts,
+        command.command,
+        today,
+      );
+      next = { ...records, advancedWorkouts };
+      if (command.command.type === 'finishSession' && command.command.markDay) {
+        const sessionId = command.command.id;
+        const session = advancedWorkouts.sessions.find(
+          (s) => s.id === sessionId,
+        )!;
+        next = {
+          ...next,
+          workouts: upsert(
+            records.workouts,
+            { date: session.date, trained: true },
+            'date',
+          ),
+        };
+      }
+      break;
+    }
     case 'deleteAccount':
       assert(
         command.confirmed === true,

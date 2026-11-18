@@ -1,3 +1,5 @@
+import { AdvancedWorkouts } from './advanced/AdvancedWorkouts';
+import { emptyAdvancedWorkouts } from './advanced/types';
 import { CustomDatePicker } from '../../shared/components/CustomDatePicker';
 import { useCommand } from '../records/useCommand';
 import { useState } from 'react';
@@ -15,22 +17,68 @@ export function WorkoutsPage({ records, today, onCommand }: RecordPageProps) {
   const [date, setDate] = useState(today);
   const [month, setMonth] = useState(today.slice(0, 7));
   const { run, message } = useCommand(onCommand);
+  const advanced = records.advancedWorkouts ?? emptyAdvancedWorkouts();
   const selected = records.workouts.find((item) => item.date === date);
   const stats = workoutStats(records.workouts, today, month);
   const calendar = monthDates(month);
   const firstDay = calendar[0]
     ? new Date(`${calendar[0]}T12:00:00`).getDay()
     : 0;
+  const frequencySummary = (
+    <Summary
+      values={[
+        {
+          label: 'Últimos 7 dias',
+          value: `${stats.weekly} treinos`,
+        },
+        {
+          label: 'Mês selecionado',
+          value: `${stats.monthly} treinos`,
+        },
+        { label: 'Total de dias treinados', value: stats.total },
+        { label: 'Consistência no mês', value: `${stats.consistency}%` },
+      ]}
+    />
+  );
   return (
-    <div className="pillar-page" data-area="Treinos">
-      <Summary
-        values={[
-          { label: 'Últimos 7 dias', value: `${stats.weekly} treinos` },
-          { label: 'Mês selecionado', value: `${stats.monthly} treinos` },
-          { label: 'Total de dias treinados', value: stats.total },
-          { label: 'Consistência no mês', value: `${stats.consistency}%` },
-        ]}
-      />
+    <div
+      className={`pillar-page ${advanced.enabled ? 'advanced-training-page' : ''}`}
+      data-area="Treinos"
+    >
+      <section
+        className="panel strength-mode"
+        aria-label="Modo Avançado de Treinos"
+      >
+        <label className="strength-switch">
+          <span>
+            <strong>Modo Avançado</strong>
+            <small>Fichas, histórico, evolução e mais</small>
+          </span>
+          <input
+            type="checkbox"
+            role="switch"
+            aria-label="Modo Avançado"
+            checked={advanced.enabled}
+            onChange={(event) =>
+              run({
+                type: 'advancedWorkout',
+                command: { type: 'setEnabled', enabled: event.target.checked },
+              })
+            }
+          />
+          <span aria-hidden="true" className="strength-switch-track" />
+        </label>
+      </section>
+      <RecordFeedback message={message} />
+      {advanced.enabled && (
+        <AdvancedWorkouts
+          state={advanced}
+          today={today}
+          onCommand={(command) => run({ type: 'advancedWorkout', command })}
+        />
+      )}
+
+      {frequencySummary}
       <RecordForm title="Treinou hoje?" onSubmit={() => null}>
         <Field label="Dia do treino">
           <CustomDatePicker
@@ -83,7 +131,7 @@ export function WorkoutsPage({ records, today, onCommand }: RecordPageProps) {
             : 'Nenhum registro para este dia.'}
         </p>
       </RecordForm>
-      <RecordFeedback message={message} />
+
       <section
         className="panel record-section"
         aria-label="Calendário de treinos"
