@@ -271,12 +271,35 @@
   margin-top: var(--space-4);
   border-radius: var(--control-radius);
 }
+/* Calendário compacto: quadrados próximos, colunas fluidas no desktop e
+   rolagem local (arraste, toque, teclado ou barra) quando os dias não cabem. */
+.statistics-calendar {
+  --heat-label: 84px;
+  --heat-min: 34px;
+  --heat-square: 28px;
+  --heat-gap: 6px;
+}
+.statistics-calendar-scroll {
+  margin-top: var(--space-3);
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--color-muted) 35%, transparent)
+    transparent;
+}
 .statistics-heatmap {
   border-collapse: separate;
   border-spacing: 0;
   table-layout: fixed;
-  width: max-content;
+  /* Ocupa a largura disponível; abaixo do mínimo por dia, rola localmente. */
+  width: max(
+    100%,
+    calc(var(--heat-label) + var(--heat-days, 31) * var(--heat-min))
+  );
   font-size: 12px;
+  user-select: none;
+}
+.statistics-heatmap th,
+.statistics-heatmap td {
+  padding: 0;
 }
 .statistics-heatmap th {
   font-weight: 500;
@@ -287,16 +310,18 @@
   position: sticky;
   left: 0;
   z-index: 1;
-  width: 112px;
-  padding-right: var(--space-3);
+  width: var(--heat-label);
+  padding-right: var(--space-2);
   text-align: left;
+  font-size: 11px;
   background: var(--color-surface);
+  overflow-wrap: anywhere;
 }
 .statistics-heatmap tbody th {
   color: var(--area-color);
 }
 .statistics-heatmap thead th {
-  height: var(--control-height);
+  height: 28px;
 }
 .statistics-heatmap th[data-today='true'] {
   color: var(--color-focus);
@@ -304,26 +329,31 @@
   text-underline-offset: var(--space-1);
 }
 .statistics-heat-cell {
-  width: var(--control-height);
-  height: var(--control-height);
+  /* Altura acompanha a largura da coluna: vãos iguais na horizontal e vertical. */
+  width: 100%;
+  aspect-ratio: 1;
+  max-height: calc(var(--heat-square) + var(--heat-gap));
   display: grid;
   place-items: center;
   border-radius: var(--control-radius);
-  border: 1px solid transparent;
 }
-.statistics-heat-cell[aria-pressed='true'] {
-  border-color: var(--color-foreground);
-}
-.statistics-heat-cell[aria-current='date'] {
-  box-shadow: inset 0 -2px var(--color-primary);
+.statistics-heat-cell:focus-visible {
+  outline-offset: -2px;
 }
 .statistics-heat-square {
   display: inline-block;
-  width: 24px;
-  height: 24px;
+  width: min(calc(100% - var(--heat-gap)), var(--heat-square));
+  aspect-ratio: 1;
   border-radius: var(--space-1);
   border: 1px solid color-mix(in srgb, var(--color-muted) 22%, transparent);
   background: color-mix(in srgb, var(--color-muted) 6%, transparent);
+}
+.statistics-heat-cell[aria-pressed='true'] .statistics-heat-square {
+  outline: 2px solid var(--color-foreground);
+  outline-offset: 1px;
+}
+.statistics-heat-cell[aria-current='date'] .statistics-heat-square {
+  box-shadow: inset 0 -3px var(--color-primary);
 }
 .statistics-calendar [data-intensity='1'] .statistics-heat-square {
   background: color-mix(
@@ -352,8 +382,8 @@
 .statistics-calendar-legend {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-4);
-  margin-block: var(--space-4);
+  gap: var(--space-2) var(--space-4);
+  margin-block: var(--space-3);
   color: var(--color-muted);
   font-size: 12px;
 }
@@ -364,7 +394,6 @@
 }
 .statistics-calendar-legend .statistics-heat-square {
   width: 14px;
-  height: 14px;
 }
 .statistics-month-controls .custom-date-picker {
   width: 150px;
@@ -452,15 +481,25 @@
   border-bottom: 1px solid
     color-mix(in srgb, var(--color-muted) 15%, transparent);
 }
+@media (max-width: 639px) {
+  .statistics-calendar {
+    padding: var(--space-3);
+  }
+}
 @media (min-width: 640px) {
   .statistics-landscape,
   .statistics-calendar {
     padding: var(--space-6);
   }
-  .statistics-day-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .statistics-calendar {
+    --heat-label: 112px;
+    --heat-min: 30px;
+    --heat-square: 30px;
   }
   .statistics-customize-panel fieldset {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .statistics-day-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
