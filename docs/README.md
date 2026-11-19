@@ -21,6 +21,7 @@ implementação atual; propostas futuras devem ser identificadas como propostas.
   [importação de treinos](workout-text-import.md).
 - [Quests](../apps/web/src/modules/goals/README.md).
 - [Radar](../apps/web/src/modules/evolution/README.md).
+- [Painel de Estatísticas, paisagem 3D e calendário](../apps/web/src/modules/statistics/README.md).
 - [Personagem e classes](../apps/web/src/modules/profile/README.md).
 - [Persistência e migrações](../apps/web/src/shared/storage/README.md).
 - [Detalhes dos seletores e calendários](../apps/web/src/shared/components/README.md).

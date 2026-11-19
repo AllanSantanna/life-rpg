@@ -57,6 +57,7 @@ largura, teclado, toque e contraste no celular.
 | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Painel genérico           | Classe `.panel`; não existe componente `Card`                                                                                                                 |
 | Indicador do dashboard    | [MetricCard](../../apps/web/src/shared/components/MetricCard.tsx)                                                                                             |
+| Linha compacta de valores | [Sparkline](../../apps/web/src/shared/components/Sparkline.tsx), usada por `MetricCard` quando `trend` tem série real; escala 0–100                           |
 | Título de seção           | [SectionHeading](../../apps/web/src/shared/components/SectionHeading.tsx)                                                                                     |
 | Barra com valor acessível | [ProgressBar](../../apps/web/src/shared/components/ProgressBar.tsx)                                                                                           |
 | Navegação principal       | [Navigation](../../apps/web/src/app/Navigation.tsx), botões com `aria-current`                                                                                |
@@ -71,6 +72,21 @@ largura, teclado, toque e contraste no celular.
 Não existe tabela compartilhada. Para novos dados tabulares, preserve semântica
 de cabeçalhos, leitura e rolagem; não transforme a grade de séries em padrão
 universal. Gráficos aceitam medidas calculadas inline, mas não novos temas inline.
+
+`MetricCard` permite `actionLabel` opcional, preservando “Registrar {pilar}” por
+padrão. Estatísticas usa “Ver detalhes”, com o pilar no nome acessível, e
+`trendLabel` para descrever a série real do gráfico compacto. Valores sem esforço
+pontuado usam “—” e explicação explícita. Não preencha `trend` com exemplos fictícios.
+
+O [painel de Estatísticas](../../apps/web/src/modules/statistics/README.md) usa
+tokens do tema, `data-area`, `.filter-button` e `CustomDatePicker` mensal. A paisagem
+tem alternativa SVG e tabela textual; o heatmap possui intensidades rotuladas,
+grade compacta, arraste horizontal e rolagem local. Esses componentes de domínio
+não substituem o Radar.
+
+Interruptor liga/desliga: `label.strength-switch` com `input type="checkbox"`,
+`role="switch"`, nome acessível e `.strength-switch-track`, como no Modo Avançado
+de Treinos e na personalização de Estatísticas. Não crie outro estilo de switch.
 
 ## Modais, alertas e estados
 

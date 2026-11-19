@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
 import { Icon, type IconName } from './Icon';
 import { ProgressBar } from './ProgressBar';
+import { Sparkline } from './Sparkline';
 export interface MetricSnapshot {
   id: string;
   title: string;
@@ -12,13 +13,16 @@ export interface MetricSnapshot {
   details: { label: string; value: string }[];
   progress: { label: string; value: number; max: number; text: string };
   trend: number[];
+  trendLabel?: string;
 }
 export function MetricCard({
   metric,
   onOpen,
+  actionLabel,
 }: {
   metric: MetricSnapshot;
   onOpen?: () => void;
+  actionLabel?: string;
 }) {
   return (
     <article
@@ -50,6 +54,12 @@ export function MetricCard({
         <span>{metric.unit}</span>
       </div>
       <p className="metric-change">{metric.change}</p>
+      {metric.trend.length > 1 && (
+        <Sparkline
+          values={metric.trend}
+          label={metric.trendLabel ?? `Evolução de ${metric.title}`}
+        />
+      )}
       <dl className="my-5 space-y-3 border-t border-white/[0.06] pt-5">
         {metric.details.map((detail) => (
           <div
@@ -66,8 +76,16 @@ export function MetricCard({
         <span>{metric.progress.text}</span>
       </div>
       {onOpen && (
-        <button type="button" className="metric-open" onClick={onOpen}>
-          Registrar {metric.title} <span aria-hidden="true">↗</span>
+        <button
+          type="button"
+          className="metric-open"
+          onClick={onOpen}
+          aria-label={
+            actionLabel ? `${actionLabel} de ${metric.title}` : undefined
+          }
+        >
+          {actionLabel ?? `Registrar ${metric.title}`}{' '}
+          <span aria-hidden="true">↗</span>
         </button>
       )}
       <ProgressBar
