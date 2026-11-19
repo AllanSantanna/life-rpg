@@ -18,8 +18,12 @@ arredondamento ao centavo mais próximo. Na liquidação total, todo custo resta
 - `calculations.ts`: resultado mensal e custo por categoria.
 - `bitcoinQuote.ts`: cliente HTTP substituível e cache de uma hora.
 - `useBitcoinQuote.ts`: atualização automática no ciclo de vida do aplicativo.
-- `FinancesPage.tsx`, `CashLedgerPanel.tsx`, `FinancialChart.tsx` e
+- `FinancesPage.tsx`, `MovementsPanel.tsx`, `InvestmentsPanel.tsx`,
+  `InvestmentCard.tsx`, `CashLedgerPanel.tsx`, `FinancialChart.tsx` e
   `CategoryIcon.tsx`: apresentação e formulários.
+- `financeForms.ts`: conversão dos formulários em registros/comandos (extraída
+  sem alteração de regras). `investmentActions.ts`: ações por categoria.
+  `historyFilters.ts`: filtros somente de leitura dos históricos.
 - `../records/commands.ts`: validação e publicação atômica das alterações.
 
 Resultado mensal = receitas − despesas do mês selecionado. Saldo de uma conta =
@@ -126,7 +130,7 @@ cotações, avaliações, aberturas de contas e transferências não geram XP.
 
 1. Execute `nvm use` e `npm run dev:web`. Abra `/financas` no mesmo endereço usado
    anteriormente para manter o acesso ao armazenamento do navegador.
-2. Abra “Contas, transferências e avaliações manuais”. Cadastre saldo inicial
+2. Abra “Contas, transferências e avaliações manuais” (na visão geral). Cadastre saldo inicial
    de R$ 1.000,00, com data anterior às operações do teste.
 3. Cadastre uma caixinha selecionando **Nova compra ou aporte**, com R$ 200,00: disponível R$ 800,00,
    investimento R$ 200,00, patrimônio R$ 1.000,00, despesas inalteradas
@@ -507,3 +511,140 @@ Rótulos, IDs/valores de formulário, padrões e recálculos foram preservados;
 listas suportam teclado, clique fora e viewport móvel. A troca não altera saldos,
 transferências, carteira, XP nem o envelope v4. Consulte os testes de fluxos e
 `app/SelectControls.test.tsx` para seleção, correção e recarga.
+
+## Organização da página e ações nos cartões
+
+A página tem três partes. A **visão geral** (mês, receitas/despesas, dinheiro
+disponível, investimentos, patrimônio, custos, gráfico e contas) fica sempre no
+topo. Abaixo, as abas **Movimentações** e **Investimentos** (`FinanceTabs`,
+teclado com setas/Home/End) mostram uma área por vez. “Configurações financeiras”
+permanece ao final. Nenhuma fórmula, comando ou formato de armazenamento mudou.
+
+**Movimentações:** “Nova movimentação” abre o formulário existente (mesmos campos e
+validações). Salvar fecha o formulário e recalcula os indicadores; cancelar fecha
+sem gravar. “Histórico de movimentações” começa recolhido e filtra por mês (o
+mesmo estado de “Mês financeiro”), tipo, conta (registros sem conta pertencem à
+principal) e categoria, com carregamento progressivo de 20 em 20.
+
+**Investimentos:** totais por categoria, “Novo investimento” (cadastro existente,
+sob demanda), carteira em cartões e “Histórico de investimentos” recolhido, com
+filtros de investimento, categoria, tipo de operação (compra/aporte,
+venda/retirada, posição inicial) e período. Editar, excluir e “Corrigir como
+posição inicial” continuam no histórico.
+
+A primeira ação de cada linha abaixo é a principal (`ActionButton`, sempre
+visível). As demais, Editar e Excluir (com confirmação) ficam no menu “Mais ações”
+(`ActionMenu`). A cotação de BTC/USD aparece como métrica; horário, fonte e notas
+explicativas ficam em “Ver detalhes”.
+
+| Categoria            | Ações do cartão                                 |
+| -------------------- | ----------------------------------------------- |
+| Caixinhas bancárias  | Aportar, Retirar, Atualizar saldo, Editar       |
+| Bitcoin              | Comprar mais, Vender, Atualizar cotação, Editar |
+| Dólar (USD)          | Comprar, Vender, Atualizar cotação, Editar      |
+| Ações e FIIs         | Comprar mais, Vender, Editar                    |
+| Renda fixa           | Aportar, Resgatar, Editar                       |
+| Outros investimentos | Aportar, Retirar, Editar                        |
+
+Aportar/Comprar/Retirar/Vender/Resgatar abrem, dentro do próprio cartão, o mesmo
+formulário de aportes e retiradas (`InvestmentFields` + `entryFromForm`) com o
+investimento fixado (campo oculto `investmentId`) e a operação definida
+(`defaultKind` + `lockKind`). Os campos específicos (BTC/sats, USD, quantidade e
+preço, custo resgatado, conta) e o comando `saveInvestmentEntry` são os existentes;
+por isso aportes debitam e retiradas creditam a conta, sem receita/despesa nem
+alteração artificial do patrimônio. “Atualizar saldo” reutiliza a avaliação manual
+da caixinha. “Atualizar cotação” chama `fetchBitcoinQuote`/`fetchUsdQuote`, que já
+respeitam cache de 60 minutos, requisições compartilhadas, timeout e espera após
+falhas: com cache válido informa o horário e quando nova consulta será possível;
+em falha mantém a última cotação e avisa que pode estar desatualizada. Só a
+cotação é gravada. “Editar” abre o cadastro em modo de edição. “Ver detalhes”
+mostra preço médio (BTC/USD), composição do custo, última avaliação, fonte da
+cotação e três operações recentes.
+
+Exclusões de movimentações, operações e investimentos passam a pedir confirmação
+(`DeleteConfirmation`). Formulários guardam um bloqueio após o primeiro envio
+bem-sucedido, evitando registros duplicados por cliques repetidos.
+
+### Limitações conhecidas
+
+- Ações e FIIs registram quantidade nas compras e vendas (seção “Cotações de
+  ações e FIIs”); operações antigas sem quantidade continuam com a regra anterior.
+- Rótulos dos campos permanecem os existentes (“Valor da operação (R$)”), mesmo
+  quando a operação é venda ou resgate.
+- Renda fixa e Outros não possuem cotação; o valor segue a última avaliação manual
+  registrada em “Contas, transferências e avaliações manuais”.
+
+## Cotações de ações e FIIs (brapi.dev)
+
+Ações e fundos imobiliários podem ter um **ticker da B3** (`Investment.ticker`,
+ex.: `VALE3`, `HGLG11`). O ticker é informado no cadastro ou depois, em Editar,
+com verificação opcional pela fonte. Nenhum ticker é associado automaticamente
+pelo nome. Registros antigos sem ticker continuam válidos e sem cotação.
+
+### Fonte, chave e limites
+
+A fonte é a [brapi.dev](https://brapi.dev/docs/acoes), consultada somente pelo
+`apps/api` (`GET /market/quotes/:ticker` e `GET /market/tickers?search=`). O token
+fica em `BRAPI_TOKEN` no `.env` do servidor e segue no header `Authorization`; ele
+nunca vai ao navegador, ao repositório ou ao `localStorage`. Sem token, a brapi
+atende apenas os tickers de teste (PETR4, MGLU3, VALE3, ITUB4). O frontend usa
+`VITE_API_URL` (padrão `http://localhost:3001`); sem o `apps/api` rodando, os
+cartões mostram “cotação indisponível” e o restante da página funciona.
+
+Conforme a documentação consultada em 18/11/2026, o plano gratuito oferece
+15.000 requisições por mês, 1 ticker por requisição, 1 requisição simultânea,
+histórico de até 3 meses com intervalo diário e atualização a cada ~30 minutos.
+**Não é tempo real.** “1 ano” e “Histórico completo” mostram apenas o que a fonte
+devolver e avisam o início real dos dados. Os termos de uso não puderam ser lidos
+(página indisponível); confirme-os antes de uso comercial.
+
+### Cache e consultas
+
+- Servidor: cache por ticker de 30 minutos, requisições iguais compartilhadas,
+  uma consulta por vez à fonte, espera de 5 minutos após falha e reaproveitamento
+  da última resposta válida marcada como desatualizada.
+- Navegador: `useMarketQuotes` (no `App`) consulta somente tickers cadastrados,
+  um por vez, ao abrir e a cada 30 minutos enquanto o app está aberto; cache em
+  memória com as mesmas regras. “Atualizar cotação” (Mais ações) respeita um
+  intervalo mínimo de 5 minutos.
+- Persistência: `records.finance.marketQuotes` (extensão opcional, sem mudança de
+  versão) guarda a última cotação de cada ticker por dia, como BTC/USD. Cotações de
+  tickers removidos são descartadas. O histórico diário não é persistido.
+
+### Quantidade, valor e resultado
+
+Ações e FIIs passam a usar a posição por quantidade (`positionMode = 'shares'`),
+com o mesmo rateio do BTC/USD: a compra informa quantidade e valor pago (o preço
+unitário continua opcional) e a venda informa quantidade vendida e valor
+recebido; o custo da parcela vendida sai pelo **preço médio**. Venda acima da
+quantidade é rejeitada. Operações antigas sem quantidade mantêm a regra anterior
+(custo baixado pelo valor ou pelo custo resgatado) e deixam a quantidade
+“incompleta”; nesse caso não há valor de mercado nem gráfico de posição até a
+quantidade ser informada em todas as operações.
+
+- Valor estimado = quantidade × última cotação observada até a data.
+- Resultado não realizado = valor estimado − custo restante (quando conhecido).
+- Variação do dia = cotação − fechamento anterior da fonte; é do ativo, não do
+  investimento.
+- Cotações não alteram custo, quantidades, contas, dinheiro disponível, XP ou
+  Radar. Afetam somente o valor de mercado do patrimônio, a partir da data
+  observada (mesma regra do BTC). Metas de patrimônio já usam esse valor.
+
+### Gráficos
+
+O cartão mostra um gráfico compacto dos últimos 7 pregões ao lado do valor (cor
+pela tendência do período, via `.wealth-chart--up/down`), sem aumentar a altura.
+“Ver detalhes” traz o gráfico interativo (`MarketChart`, com as classes do
+`FinancialChart`): Preço do ativo ou Valor da posição; 7, 30 e 90 dias, 1 ano e
+histórico completo; mouse, toque e teclado. A posição usa a quantidade possuída
+em cada pregão (compras e vendas até a data), sem aplicar a quantidade atual ao
+passado; posições iniciais sem data original começam na data do registro. Dias
+sem negociação não ganham pontos. Dividendos e rendimentos de FIIs não foram
+implementados: o modelo de cotação é separado e pode receber esse registro no
+futuro.
+
+### Configuração
+
+1. Crie um token em https://brapi.dev/dashboard.
+2. Defina `BRAPI_TOKEN` no `.env` local (veja `.env.example`); nunca o versione.
+3. Execute `npm run dev` (web e api juntos) e cadastre o ticker em Finanças.

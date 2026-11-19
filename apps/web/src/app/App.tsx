@@ -7,6 +7,7 @@ import { applyGoalCommand } from '../modules/goals/commands';
 import type { GoalCommand } from '../modules/goals/types';
 import { useUsdQuote } from '../modules/finances/useUsdQuote';
 import { useBitcoinQuote } from '../modules/finances/useBitcoinQuote';
+import { useMarketQuotes } from '../modules/finances/useMarketQuotes';
 import { applyRecordCommand } from '../modules/records/commands';
 import type { RecordCommand } from '../modules/records/types';
 import { weeklyRecordXP } from '../modules/records/progression';
@@ -104,6 +105,7 @@ export function App() {
   };
   const bitcoin = useBitcoinQuote(recordProps);
   const usd = useUsdQuote(recordProps);
+  const market = useMarketQuotes(recordProps);
   const activeGoals = dashboardGoals(state.goals, state.records, today);
   useEffect(() => {
     const frame = requestAnimationFrame(() => heading.current?.focus());
@@ -264,6 +266,7 @@ export function App() {
                 quoteStale={bitcoin.stale}
                 usdError={usd.error}
                 usdStale={usd.stale}
+                market={market}
               />
             )}
             {view === 'workouts' && <WorkoutsPage {...recordProps} />}

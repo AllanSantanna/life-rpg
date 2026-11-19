@@ -9,6 +9,7 @@ import type {
   InvestmentValuation,
   BitcoinQuote,
   UsdQuote,
+  MarketQuote,
   Investment,
   InvestmentEntry,
   MoneyMovement,
@@ -39,6 +40,7 @@ export type RecordCommand =
   | { type: 'deleteValuation'; id: string }
   | { type: 'saveQuote'; value: BitcoinQuote }
   | { type: 'saveUsdQuote'; value: UsdQuote }
+  | { type: 'saveMarketQuote'; value: MarketQuote }
   | { type: 'saveMovement'; value: MoneyMovement }
   | { type: 'deleteMovement'; id: string }
   | {

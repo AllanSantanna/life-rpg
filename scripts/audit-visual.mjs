@@ -127,6 +127,8 @@ async function seed(page, populated) {
           name: 'Investimento de renda fixa',
           category: 'Renda fixa',
         },
+        { id: 'btc', name: 'Bitcoin (BTC)', category: 'Bitcoin' },
+        { id: 'vale', name: 'Vale', category: 'Ações', ticker: 'VALE3' },
       ];
       state.records.investmentEntries = [
         {
@@ -147,6 +149,30 @@ async function seed(page, populated) {
           accountId: 'principal',
           positionInitial: false,
         },
+        {
+          id: 'entry-btc',
+          investmentId: 'btc',
+          kind: 'contribution',
+          amountCents: 23954,
+          quantity: 0.00061258,
+          date: today,
+          positionInitial: true,
+        },
+        {
+          id: 'entry-vale',
+          investmentId: 'vale',
+          kind: 'contribution',
+          amountCents: 12000,
+          quantity: 2,
+          date: '2026-11-03',
+          accountId: 'principal',
+          positionInitial: false,
+        },
+      ];
+      // Cotação fixa da fixture: a auditoria bloqueia chamadas externas.
+      const observed = new Date('2026-11-17T11:00:00-03:00').getTime();
+      state.records.finance.quotes = [
+        { priceCents: 39000000, updatedAt: observed, observedAt: observed },
       ];
       state.records.advancedWorkouts = testState();
       state.records.advancedWorkouts.plans = [
@@ -197,7 +223,9 @@ async function seed(page, populated) {
 async function capture(page, name, width) {
   if (
     !(await page
-      .locator('dialog[open], [role=listbox]:not([aria-hidden=true])')
+      .locator(
+        'dialog[open], [role=listbox]:not([aria-hidden=true]), [role=menu]:not([aria-hidden=true])',
+      )
       .count())
   )
     await page.evaluate(() => scrollTo(0, 0));
@@ -271,6 +299,38 @@ async function capture(page, name, width) {
     const hasPicker = [...document.querySelectorAll('.exercise-picker')].some(
       visible,
     );
+    const investmentCards = [...document.querySelectorAll('.investment-card')]
+      .filter(visible)
+      .filter((el) => !el.classList.contains('investment-card--active'))
+      .map((el) => {
+        const rect = el.getBoundingClientRect();
+        const actions = [...el.querySelectorAll('button')].filter(visible);
+        return {
+          name: el.getAttribute('aria-label'),
+          top: Math.round(rect.top),
+          height: Math.round(rect.height),
+          primaryTop: Math.round(
+            el.querySelector('.action-button')?.getBoundingClientRect().top ??
+              -1,
+          ),
+          // Somente os botões oficiais documentados no catálogo.
+          unofficial: actions
+            .filter(
+              (button) =>
+                !(
+                  button.className === 'action-button' ||
+                  button.className === 'filter-button' ||
+                  button.className === 'financial-danger' ||
+                  button.className === 'text-action' ||
+                  (button.className === '' &&
+                    button.parentElement?.classList.contains('record-actions'))
+                ) &&
+                // Formulários e gráficos (padrão do FinancialChart) têm controles próprios.
+                !button.closest('form, .wealth-chart'),
+            )
+            .map((button) => button.textContent.trim()),
+        };
+      });
     return {
       viewport: vw,
       viewportHeight: innerHeight,
@@ -296,12 +356,13 @@ async function capture(page, name, width) {
         .map(info),
       dialogs: [
         ...document.querySelectorAll(
-          'dialog[open], [role=listbox]:not([aria-hidden=true])',
+          'dialog[open], [role=listbox]:not([aria-hidden=true]), [role=menu]:not([aria-hidden=true])',
         ),
       ]
         .filter(visible)
         .map(info),
       hiddenValidation,
+      investmentCards,
       actions,
       sticky,
       hasPicker,
@@ -320,6 +381,25 @@ async function capture(page, name, width) {
       width,
       'Campo de validação oculto recebeu dimensões de campo visível.',
     );
+  for (const card of metrics.investmentCards) {
+    check(
+      card.unofficial.length === 0,
+      name,
+      width,
+      `Cartão ${card.name} com botões fora do Design System: ${card.unofficial.join(', ')}`,
+    );
+    const row = metrics.investmentCards.filter((item) => item.top === card.top);
+    check(
+      row.every(
+        (item) =>
+          Math.abs(item.height - card.height) <= 1 &&
+          Math.abs(item.primaryTop - card.primaryTop) <= 1,
+      ),
+      name,
+      width,
+      `Cartões da mesma linha desalinhados: ${row.map((item) => item.name).join(', ')}`,
+    );
+  }
   for (const action of metrics.actions)
     check(
       action.width === 160 && action.height === 44 && action.font === '12px',
@@ -379,6 +459,33 @@ try {
     });
     await context.route('**/*', (route) =>
       route.request().url().startsWith(base) ? route.continue() : route.abort(),
+    );
+    // Resposta simulada do proxy apps/api (/market/quotes): sem rede externa.
+    await context.route('**/market/quotes/*', (route) =>
+      route.fulfill({
+        contentType: 'application/json',
+        headers: { 'Access-Control-Allow-Origin': '*' },
+        body: JSON.stringify({
+          ticker: 'VALE3',
+          name: 'Vale S.A.',
+          priceCents: 6120,
+          previousCloseCents: 6045,
+          marketTime: Date.parse('2026-11-17T11:30:00-03:00'),
+          fetchedAt: Date.parse('2026-11-17T11:45:00-03:00'),
+          stale: false,
+          history: [
+            ['2026-11-04', 6050],
+            ['2026-11-05', 5980],
+            ['2026-11-06', 6010],
+            ['2026-11-07', 6100],
+            ['2026-11-10', 6080],
+            ['2026-11-11', 6030],
+            ['2026-11-12', 6045],
+            ['2026-11-13', 6090],
+            ['2026-11-14', 6045],
+          ].map(([date, closeCents]) => ({ date, closeCents })),
+        }),
+      }),
     );
     const page = await context.newPage();
     page.setDefaultTimeout(10000);
@@ -510,12 +617,78 @@ try {
       await capture(page, 'financas-reset-dialog', width);
       await page.keyboard.press('Escape');
       await page
+        .getByRole('button', { name: 'Nova movimentação', exact: true })
+        .click();
+      await capture(page, 'financas-movimentacao', width);
+      await page.getByRole('button', { name: 'Cancelar', exact: true }).click();
+      await page
         .getByRole('button', {
+          name: 'Histórico de movimentações',
+          exact: true,
+        })
+        .click();
+      await capture(page, 'financas-historico', width);
+      await page
+        .getByRole('tab', { name: 'Investimentos', exact: true })
+        .click();
+      await capture(page, 'financas-investimentos', width);
+      await page
+        .getByRole('button', {
+          name: 'Mais ações de Caixinha de auditoria com nome extenso',
+          exact: true,
+        })
+        .click();
+      await capture(page, 'financas-menu', width);
+      await page
+        .getByRole('menuitem', {
           name: 'Atualizar saldo de Caixinha de auditoria com nome extenso',
           exact: true,
         })
         .click();
       await capture(page, 'financas-caixinha', width);
+      await page
+        .getByRole('button', {
+          name: 'Aportar em Caixinha de auditoria com nome extenso',
+          exact: true,
+        })
+        .click();
+      await capture(page, 'financas-aporte', width);
+      await page
+        .getByRole('button', {
+          name: 'Mais ações de Bitcoin (BTC)',
+          exact: true,
+        })
+        .click();
+      await page
+        .getByRole('menuitem', { name: 'Vender Bitcoin (BTC)', exact: true })
+        .click();
+      await capture(page, 'financas-venda-btc', width);
+      await page.getByRole('button', { name: 'Cancelar', exact: true }).click();
+      await page
+        .getByRole('button', {
+          name: 'Ver detalhes de Bitcoin (BTC)',
+          exact: true,
+        })
+        .click();
+      await capture(page, 'financas-detalhes', width);
+      await page
+        .getByRole('button', { name: 'Ver detalhes de Vale', exact: true })
+        .click();
+      await page
+        .getByRole('button', { name: 'Valor da posição', exact: true })
+        .click();
+      await capture(page, 'financas-acao-detalhes', width);
+      await page
+        .getByRole('button', {
+          name: 'Histórico de investimentos',
+          exact: true,
+        })
+        .click();
+      await capture(page, 'financas-historico-investimentos', width);
+      await page
+        .getByRole('button', { name: 'Novo investimento', exact: true })
+        .click();
+      await capture(page, 'financas-novo-investimento', width);
       await page.goto(base + '/descanso');
       await page
         .getByRole('combobox', { name: 'Data', exact: true })
@@ -533,6 +706,12 @@ try {
         'Calendário não restaurou o foco.',
       );
       await page.goto(base + '/financas');
+      await page
+        .getByRole('tab', { name: 'Investimentos', exact: true })
+        .click();
+      await page
+        .getByRole('button', { name: 'Novo investimento', exact: true })
+        .click();
       await page
         .getByRole('combobox', {
           name: 'Categoria do investimento',

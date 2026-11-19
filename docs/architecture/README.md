@@ -15,7 +15,7 @@ apps/web/src/
   shared/storage/      Adaptador local de leitura e gravação
   shared/styles/       Tema, tokens e estilos do aplicativo
   test/                Setup e helpers de Testing Library
-apps/api/src/          Infraestrutura Express e reservas de módulos
+apps/api/src/          Infraestrutura Express, proxy de cotações (market) e reservas
 packages/contracts/    Reserva de contratos públicos futuros
 docs/                  Regras oficiais e contratos de domínio
 scripts/               Validação da documentação e testes das regras
@@ -53,6 +53,11 @@ Quests consultam fontes reais; não alteram registros dos pilares. O treino
 avançado mantém sessões próprias e pode atualizar o registro diário por data,
 sem prêmio extra. Não crie cópias de XP, Radar ou nível nos componentes.
 Mudanças nessas regras exigem solicitação explícita e os contratos do domínio.
+
+O frontend só chama o `apps/api` para cotações de ações e FIIs
+([módulo market](../../apps/api/src/modules/market/README.md)), que protege o
+token da fonte. Sem a API, essas cotações ficam indisponíveis e o restante do app
+continua local.
 
 ## Persistência
 

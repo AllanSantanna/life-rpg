@@ -1,5 +1,5 @@
 import { formatCurrency } from './monetary';
-import { position } from './position';
+import { position, positionMode } from './position';
 import type { Investment, InvestmentEntry, MoneyMovement } from './types';
 import { investmentCategories } from './types';
 export function monthlyBalance(
@@ -33,11 +33,7 @@ export function investmentTotals(
           sum +
           position(
             entries.filter((entry) => entry.investmentId === item.id),
-            item.category === 'Bitcoin'
-              ? true
-              : item.category === 'Dólar (USD)'
-                ? 'USD'
-                : false,
+            positionMode(item.category),
           ).cost,
         0,
       ),
