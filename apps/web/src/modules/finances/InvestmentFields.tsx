@@ -12,6 +12,7 @@ import { BitcoinQuantity } from './BitcoinQuantity';
 import { MoneyInput } from './MoneyInput';
 import { money } from './calculations';
 import { unitsToDecimal } from './monetary';
+import { isMarketCategory } from './types';
 import type {
   BitcoinQuote,
   UsdQuote,
@@ -26,6 +27,8 @@ export function InvestmentFields({
   initial = false,
   quote: storedQuote,
   usdQuote: storedUsdQuote,
+  defaultKind,
+  lockKind = false,
 }: {
   category: InvestmentCategory;
   records: LifeRecords;
@@ -34,10 +37,15 @@ export function InvestmentFields({
   initial?: boolean;
   quote?: BitcoinQuote | undefined;
   usdQuote?: UsdQuote | undefined;
+  /** Operação inicial quando aberta por uma ação do cartão. */
+  defaultKind?: InvestmentEntry['kind'] | undefined;
+  /** Mantém a operação escolhida no cartão (Comprar, Vender, Aportar...). */
+  lockKind?: boolean;
 }) {
   const bitcoin = category === 'Bitcoin',
     usd = category === 'Dólar (USD)';
   const box = category === 'Caixinhas bancárias';
+  const shares = isMarketCategory(category);
   const [previewBtc, setPreviewBtc] = useState<BitcoinQuote>();
   const [previewUsd, setPreviewUsd] = useState<UsdQuote>();
   const [previewError, setPreviewError] = useState('');
@@ -77,7 +85,9 @@ export function InvestmentFields({
   const [positionInitial, setPositionInitial] = useState(() =>
     entry ? isInitialPosition(entry) : initial,
   );
-  const [kind, setKind] = useState(entry?.kind ?? 'contribution');
+  const [kind, setKind] = useState(
+    entry?.kind ?? defaultKind ?? 'contribution',
+  );
   const label =
     positionInitial && kind === 'contribution'
       ? 'Custo de aquisição (R$, se conhecido)'
@@ -96,7 +106,8 @@ export function InvestmentFields({
         : null;
   return (
     <>
-      {!initial && (
+      {!initial && lockKind && <input type="hidden" name="kind" value={kind} />}
+      {!initial && !lockKind && (
         <Field label="Operação">
           <CustomSelect
             label="Operação"
@@ -170,28 +181,44 @@ export function InvestmentFields({
         </Field>
       ) : (
         <>
-          {(!box ||
-            entry?.quantity !== undefined ||
-            entry?.purchasePriceCents !== undefined) && (
+          {shares && kind === 'withdrawal' ? (
             <>
-              <Field label="Quantidade (opcional)">
+              <Field label="Quantidade vendida (opcional)">
                 <input
                   name="quantity"
                   inputMode="decimal"
                   defaultValue={entry?.quantity}
                 />
               </Field>
-              <Field label="Preço de compra por unidade (R$, opcional)">
-                <MoneyInput
-                  name="price"
-                  defaultValue={
-                    entry?.purchasePriceCents !== undefined
-                      ? unitsToDecimal(entry.purchasePriceCents, 2)
-                      : ''
-                  }
-                />
-              </Field>
+              <p className="record-hint">
+                Informe a quantidade vendida para manter o valor de mercado e o
+                preço médio. O custo da parcela vendida sai pelo preço médio.
+              </p>
             </>
+          ) : (
+            (!box ||
+              entry?.quantity !== undefined ||
+              entry?.purchasePriceCents !== undefined) && (
+              <>
+                <Field label="Quantidade (opcional)">
+                  <input
+                    name="quantity"
+                    inputMode="decimal"
+                    defaultValue={entry?.quantity}
+                  />
+                </Field>
+                <Field label="Preço de compra por unidade (R$, opcional)">
+                  <MoneyInput
+                    name="price"
+                    defaultValue={
+                      entry?.purchasePriceCents !== undefined
+                        ? unitsToDecimal(entry.purchasePriceCents, 2)
+                        : ''
+                    }
+                  />
+                </Field>
+              </>
+            )
           )}
           {!initial && kind === 'withdrawal' && (
             <Field label="Custo de aquisição resgatado (R$, opcional)">
@@ -255,7 +282,7 @@ export function InvestmentFields({
             Valor estimado da quantidade informada:{' '}
             {estimate === null ? 'Aguardando cotação' : money(estimate)}. A
             última cotação conhecida pode estar desatualizada; confira o horário
-            na seção de cotações.
+            no cartão do investimento.
           </p>
         </div>
       )}

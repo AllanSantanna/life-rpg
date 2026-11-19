@@ -1,3 +1,4 @@
+import { movementHistory, newMovementForm } from '../test/finances';
 import {
   cleanup,
   fireEvent,
@@ -21,7 +22,7 @@ describe('Calendários em todos os módulos', () => {
     expect(
       document.querySelector('input[type="date"], input[type="month"]'),
     ).toBeNull();
-    const form = screen.getByRole('form', { name: 'Receitas e despesas' });
+    const form = newMovementForm();
     selectOption(
       within(form).getByRole('combobox', { name: 'Tipo de movimentação' }),
       'Receita',
@@ -40,8 +41,7 @@ describe('Calendários em todos os módulos', () => {
       amountCents: 10000,
     });
     const raw = localStorage.getItem(PLAYER_STORAGE_KEY);
-    const history = () =>
-      within(screen.getByRole('region', { name: 'Histórico financeiro' }));
+    const history = () => within(movementHistory());
     expect(
       history().queryByText('Registro de outubro'),
     ).not.toBeInTheDocument();

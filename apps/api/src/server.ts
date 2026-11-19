@@ -1,8 +1,16 @@
 import { createApp } from './app.js';
 import { loadConfig } from './config/env.js';
+import { createBrapiClient } from './modules/market/brapi.js';
+import { createMarketService } from './modules/market/service.js';
 
 const config = loadConfig();
-const server = createApp(config.webOrigin).listen(
+const market = createMarketService(
+  createBrapiClient({
+    token: config.brapiToken,
+    baseUrl: config.brapiBaseUrl,
+  }),
+);
+const server = createApp(config.webOrigin, { market }).listen(
   config.port,
   '127.0.0.1',
   () => {

@@ -1,5 +1,13 @@
 import { selectDate, selectOption } from '../test/selectOption';
 import {
+  cardAction,
+  confirmDeletion,
+  investmentCard,
+  movementHistory,
+  newInvestmentForm,
+  newMovementForm,
+} from '../test/finances';
+import {
   cleanup,
   fireEvent,
   render,
@@ -51,16 +59,17 @@ function home() {
 describe('Fluxos reais dos quatro pilares', () => {
   it('cadastra, corrige, filtra meses e exclui movimentações financeiras', () => {
     const app = open('/financas');
-    let form = screen.getByRole('form', { name: 'Receitas e despesas' });
+    let form = newMovementForm();
     input(form, 'Tipo de movimentação', 'Receita');
     input(form, 'Descrição', 'Salário real');
     input(form, 'Valor (R$)', '1500,50');
     click(form, 'Adicionar movimentação');
     expect(stored().records.movements).toHaveLength(1);
     expect(
-      screen.getByRole('region', { name: 'Histórico financeiro' }),
-    ).toHaveTextContent('Salário real');
-    form = screen.getByRole('form', { name: 'Receitas e despesas' });
+      screen.queryByRole('form', { name: 'Nova movimentação' }),
+    ).not.toBeInTheDocument();
+    expect(movementHistory()).toHaveTextContent('Salário real');
+    form = newMovementForm();
     input(form, 'Descrição', 'Mercado');
     input(form, 'Valor (R$)', '100,25');
     click(form, 'Adicionar movimentação');
@@ -78,20 +87,18 @@ describe('Fluxos reais dos quatro pilares', () => {
       screen.getByRole('combobox', { name: 'Mês financeiro' }),
       '2026-10',
     );
-    expect(
-      screen.getByRole('region', { name: 'Histórico financeiro' }),
-    ).toHaveTextContent('Nenhuma movimentação');
+    expect(movementHistory()).toHaveTextContent('Nenhuma movimentação');
     selectDate(
       screen.getByRole('combobox', { name: 'Mês financeiro' }),
       '2026-11',
     );
     fireEvent.click(screen.getByRole('button', { name: 'Excluir Mercado' }));
+    expect(stored().records.movements).toHaveLength(2);
+    confirmDeletion();
     expect(stored().records.movements).toHaveLength(1);
     app.unmount();
     render(<App />);
-    expect(
-      screen.getByRole('region', { name: 'Histórico financeiro' }),
-    ).toHaveTextContent('Salário real');
+    expect(movementHistory()).toHaveTextContent('Salário real');
     home();
     expect(
       screen.getByRole('progressbar', { name: 'Experiência do jogador' }),
@@ -99,7 +106,7 @@ describe('Fluxos reais dos quatro pilares', () => {
   });
   it('registra investimentos por quantidade/preço, aportes e retiradas sem duplicar consumo', () => {
     open('/financas');
-    let form = screen.getByRole('form', { name: 'Cadastrar investimento' });
+    let form = newInvestmentForm();
     input(form, 'Nome do investimento', 'Carteira pessoal');
     input(form, 'Tipo de registro do investimento', 'Nova compra ou aporte');
     input(form, 'Quantidade (opcional)', '3');
@@ -107,19 +114,26 @@ describe('Fluxos reais dos quatro pilares', () => {
     click(form, 'Adicionar investimento');
     expect(stored().records.investmentEntries[0].amountCents).toBe(30150);
     expect(stored().records.movements).toEqual([]);
-    form = screen.getByRole('form', { name: 'Aportes e retiradas' });
+    form = cardAction(
+      'Investimento Carteira pessoal',
+      'Comprar mais Carteira pessoal',
+    );
     input(form, 'Valor da operação (R$)', '100');
     click(form, 'Registrar operação');
-    form = screen.getByRole('form', { name: 'Aportes e retiradas' });
-    input(form, 'Operação', 'Retirada / venda');
+    form = cardAction(
+      'Investimento Carteira pessoal',
+      'Vender Carteira pessoal',
+    );
     input(form, 'Valor da operação (R$)', '50');
     click(form, 'Registrar operação');
     expect(stored().records.investmentEntries).toHaveLength(3);
-    expect(
-      screen.getByRole('region', { name: 'Carteira cadastrada' }),
-    ).toHaveTextContent('351,50');
-    form = screen.getByRole('form', { name: 'Aportes e retiradas' });
-    input(form, 'Operação', 'Retirada / venda');
+    expect(investmentCard('Investimento Carteira pessoal')).toHaveTextContent(
+      '351,50',
+    );
+    form = cardAction(
+      'Investimento Carteira pessoal',
+      'Vender Carteira pessoal',
+    );
     input(form, 'Valor da operação (R$)', '9999');
     click(form, 'Registrar operação');
     expect(within(form).getByRole('alert')).toBeInTheDocument();

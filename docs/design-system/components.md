@@ -64,6 +64,7 @@ largura, teclado, toque e contraste no celular.
 | Listas e resumos          | `.record-list` e `Summary` com `dl/dt/dd`                                                                                                                     |
 | Linhas de séries          | `SessionPanel`, grade CSS com grupos rotulados e cabeçalho visual; não é tabela HTML genérica                                                                 |
 | Gráfico financeiro        | [FinancialChart](../../apps/web/src/modules/finances/FinancialChart.tsx), modelo separado em `chartModel.ts`                                                  |
+| Cotação de ativos         | [MarketCharts](../../apps/web/src/modules/finances/MarketCharts.tsx): `PriceSparkline` no cartão e `MarketChart` com classes do `FinancialChart`              |
 | Radar                     | [EvolutionRadar](../../apps/web/src/modules/evolution/EvolutionRadar.tsx), SVG e valores acessíveis                                                           |
 | Evolução/volume de treino | [ProgressChart](../../apps/web/src/modules/workouts/advanced/ProgressChart.tsx) e [VolumeChart](../../apps/web/src/modules/workouts/advanced/VolumeChart.tsx) |
 
@@ -90,9 +91,50 @@ universal. Gráficos aceitam medidas calculadas inline, mas não novos temas inl
   assíncrona, indique status, evite reenvio duplicado e mantenha o nome acessível.
   Não anuncie “salvo” enquanto a operação ainda estiver pendente.
 
-A caixinha financeira reutiliza `.record-actions` para “Atualizar saldo”; o nome
-do investimento fica no rótulo acessível e no título do cartão. Listas de
+Os cartões da carteira financeira ([InvestmentCard](../../apps/web/src/modules/finances/InvestmentCard.tsx))
+usam `.panel` e mostram só duas ações: a principal da categoria (“Aportar”,
+“Comprar mais”, “Comprar”) com `ActionButton` e o gatilho “Mais ações”
+(`ActionMenu`), que reúne as secundárias, Editar e Excluir (com confirmação).
+“Ver detalhes” usa `.text-action` e concentra notas longas, horário da cotação,
+custos e operações recentes, sem repetir ações. Valores reutilizam a regra de
+`.record-summary dd` e as métricas seguem as linhas `dt/dd` do `MetricCard`. A
+grade usa `subgrid` para alinhar cabeçalho, conteúdo, ações e rodapé entre cartões
+da mesma linha. Um teste e a auditoria visual falham se surgirem outros botões nos
+cartões ou se as ações da mesma linha ficarem desalinhadas. O nome do
+investimento fica no rótulo acessível e no título do cartão. Listas de
 registros e seus botões permitem quebra de títulos longos sem alargar a página.
+
+## Menu de ações
+
+[ActionMenu](../../apps/web/src/shared/components/ActionMenu.tsx) agrupa ações
+secundárias de um item. O gatilho é `.text-action` com seta (`chevron`),
+`aria-haspopup="menu"` e `aria-expanded`. O painel usa `useAnchoredPopover`
+(portal, posição dentro da viewport, clique fora, saída animada e movimento
+reduzido) e as classes visuais do popup de `CustomSelect`
+(`.custom-select__popup` e `.custom-select__option`), sem cores ou medidas novas.
+Itens são `menuitem` com ícone do catálogo e nome acessível iniciado pelo texto
+visível. Teclado: Enter, Espaço ou setas abrem; setas, Home e End percorrem as
+opções habilitadas; Escape fecha e devolve o foco ao gatilho; Tab fecha. Ações
+destrutivas continuam abrindo a confirmação correspondente. Use-o quando um item
+tiver uma ação principal e outras secundárias; não substitui `CustomSelect` para
+escolha de valores.
+
+## Finanças: abas, áreas recolhíveis e formulários sob demanda
+
+Componentes locais de [FinanceLayout](../../apps/web/src/modules/finances/FinanceLayout.tsx),
+restritos ao módulo Finanças até que outra tela precise do mesmo contrato:
+
+| Componente           | Uso                                                                                                                   |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `FinanceTabs`        | `tablist/tab/tabpanel`, roving tabIndex, setas, Home/End; botões com `.filter-button` e `.active`                     |
+| `Disclosure`         | Título com botão `aria-expanded` e seta (`chevron`); conteúdo montado só quando aberto; `label` evita nomes repetidos |
+| `InlineForm`         | Envolve um `RecordForm` aberto sob demanda: foca o primeiro campo e devolve o foco ao controle que o abriu            |
+| `DeleteConfirmation` | Exclusões financeiras via `FinancialConfirmation`, com “Confirmar exclusão” e cancelamento sem alterar dados          |
+
+`Actions` aceita `cancel` para o rótulo do cancelamento (padrão “Cancelar edição”;
+formulários de criação usam “Cancelar”). A seta gira sem transição com
+`prefers-reduced-motion: reduce`. Formulários continuam inline: popovers de
+`CustomSelect`/`CustomDatePicker` usam portal e não devem ficar sob um `<dialog>` modal.
 
 Ações de item em listas exibem só a ação (“Editar”, “Editar livro”, “Excluir
 investimento”) e levam o nome do item no `aria-label`, que começa pelo texto

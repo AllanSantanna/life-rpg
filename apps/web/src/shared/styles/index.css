@@ -1321,7 +1321,8 @@
     color: #b5a8a8;
     line-height: 1.7;
   }
-  .record-summary dd {
+  .record-summary dd,
+  .investment-card__value {
     font-size: clamp(18px, 1.6vw, 25px);
     font-weight: 650;
     margin-top: 8px;
@@ -1887,75 +1888,192 @@
   flex-wrap: wrap;
 }
 
-.savings-box {
-  flex: 1 1 400px;
+/* Finanças: visão geral, abas e áreas sob demanda. */
+.finance-overview,
+.finance-area,
+.finance-tabs {
+  display: grid;
+  gap: var(--space-5);
   min-width: 0;
-  padding: 18px;
-  border: 1px solid #ffffff15;
-  border-radius: 12px;
-  background: #121212;
 }
-.savings-box__heading {
+.finance-tabs__list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+  max-width: 480px;
+}
+.finance-tabs__panel {
+  min-width: 0;
+}
+.finance-toolbar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: var(--space-3);
 }
-.savings-box__heading > div {
+.finance-toolbar > .record-hint {
+  flex: 1 1 240px;
+  margin: 0;
+}
+.finance-inline-form {
+  min-width: 0;
+}
+.finance-disclosure > .finance-disclosure__heading {
+  margin: 0;
+}
+.finance-disclosure__heading button:not(.text-action) {
   display: flex;
+  width: 100%;
+  min-height: var(--control-height);
   align-items: center;
-  gap: 8px;
-}
-.savings-box__heading > span {
-  color: var(--color-muted);
-  font-size: 12px;
-}
-.savings-box__balance {
-  display: grid;
-  gap: 5px;
-  margin-block: 20px;
-}
-.savings-box__balance > span {
-  font-size: 12px;
-  color: #b5b5b5;
-}
-.savings-box__balance > strong {
-  font-size: clamp(24px, 4vw, 32px);
-  color: var(--color-foreground);
-  font-variant-numeric: tabular-nums;
-}
-.savings-box__metrics {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-  margin-bottom: 16px;
-}
-.savings-box__metrics dt {
-  color: #b5b5b5;
-  font-size: 11px;
-}
-.savings-box__metrics dd {
-  margin-top: 4px;
-  font-size: 15px;
-  font-variant-numeric: tabular-nums;
+  justify-content: space-between;
+  gap: var(--space-3);
+  text-align: left;
   overflow-wrap: anywhere;
 }
-.savings-box > .record-actions {
+.finance-disclosure__chevron {
+  flex-shrink: 0;
+  transform: rotate(90deg);
+  transition: transform 0.2s ease;
+}
+.finance-disclosure__heading
+  button[aria-expanded='true']
+  .finance-disclosure__chevron {
+  transform: rotate(-90deg);
+}
+.finance-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+  gap: var(--space-field);
+  margin-block: var(--space-3) var(--space-2);
+}
+.finance-more {
   margin-top: var(--space-3);
 }
-.savings-box form {
-  margin-top: 16px;
-}
-.record-list > li:has(.savings-box) {
-  flex-wrap: wrap;
-  align-items: stretch;
-}
-@media (max-width: 640px) {
-  .savings-box {
-    flex-basis: 100%;
-    padding: 14px;
+@media (prefers-reduced-motion: reduce) {
+  .finance-disclosure__chevron {
+    transition: none;
   }
+}
+
+/* Cartão único da carteira: `.panel` + ações oficiais (ActionButton,
+   .filter-button, .financial-danger e .text-action). Só define o layout. */
+.investment-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+  gap: var(--space-3);
+}
+/* Subgrid: cabeçalho, conteúdo, ações e rodapé ocupam faixas compartilhadas
+   pela linha; as ações ficam alinhadas mesmo com conteúdos de alturas
+   diferentes ou com “Ver detalhes” aberto em outro cartão. */
+.investment-card {
+  display: grid;
+  grid-row: span 4;
+  grid-template-rows: subgrid;
+  align-content: start;
+  min-width: 0;
+}
+.investment-card--active {
+  grid-column: 1 / -1;
+}
+.investment-card__heading h3 {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+.investment-card__icon {
+  display: inline-flex;
+  color: var(--area-color);
+}
+.investment-card__heading .record-hint {
+  margin-bottom: 0;
+}
+.investment-card__value {
+  overflow-wrap: anywhere;
+}
+/* Valor e gráfico compacto dividem a mesma linha: o cartão de ações/FIIs
+   mantém a altura dos demais. A cor vem de .wealth-chart--up/down. */
+.investment-card__value-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.investment-card__value-row > .investment-card__value {
+  flex: 0 0 auto;
+  /* Valores monetários não quebram no meio; o gráfico cede espaço. */
+  overflow-wrap: normal;
+  white-space: nowrap;
+}
+.market-sparkline {
+  flex: 0 1 112px;
+  min-width: 64px;
+  height: 36px;
+  overflow: visible;
+}
+.market-sparkline:not(.wealth-chart--up):not(.wealth-chart--down) {
+  --wealth-color: var(--color-muted);
+}
+.market-sparkline .wealth-chart__line {
+  stroke-width: 1.75;
+  vector-effect: non-scaling-stroke;
+}
+.market-sparkline--empty {
+  width: auto;
+  height: auto;
+  margin: 0;
+}
+.market-chart {
+  display: grid;
+  gap: var(--space-3);
+  margin-block: var(--space-3);
+  padding: var(--space-4);
+}
+.market-chart .wealth-chart__periods {
+  flex-wrap: wrap;
+}
+.market-chart .wealth-chart__periods button {
+  flex: 1 1 auto;
+}
+.market-chart .wealth-chart__plot {
+  height: 220px;
+  margin-top: 0;
+}
+.ticker-field {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: start;
+  min-width: 0;
+}
+.ticker-field > .record-field {
+  width: 100%;
+}
+.ticker-field .record-hint {
+  margin: 0;
+}
+/* ActionButton + “Mais ações”; o menu vai para a linha de baixo quando os
+   160 px oficiais e o gatilho não cabem lado a lado. */
+.investment-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+}
+.investment-card__footer {
+  display: grid;
+  gap: var(--space-2);
+  align-content: start;
+}
+.investment-card__details {
+  border-top: 1px solid rgb(255 255 255 / 0.06);
+}
+.investment-card form {
+  margin-top: var(--space-4);
 }
 
 .goals-page {
@@ -2756,6 +2874,18 @@
   opacity: 0.4;
   cursor: not-allowed;
 }
+/* ActionMenu reutiliza o popup e as opções do CustomSelect. */
+.action-menu .custom-select__option {
+  width: 100%;
+  text-align: left;
+}
+.action-menu__chevron {
+  transform: rotate(90deg);
+  transition: transform 0.16s;
+}
+[aria-expanded='true'] > .action-menu__chevron {
+  transform: rotate(-90deg);
+}
 .quest-controls__top > .custom-select--compact {
   margin-left: auto;
 }
@@ -2792,6 +2922,7 @@
 @media (prefers-reduced-motion: reduce) {
   .custom-select__trigger,
   .custom-select__chevron,
+  .action-menu__chevron,
   .custom-select__option,
   .custom-select__popup {
     transition: none;
