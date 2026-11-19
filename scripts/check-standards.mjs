@@ -18,6 +18,7 @@ export const requiredDocuments = [
   'docs/ai/git-workflow.md',
   'docs/ai/feature-checklist.md',
   'docs/ai/review-checklist.md',
+  'apps/web/src/modules/statistics/README.md',
 ];
 
 export function localLinks(markdown) {

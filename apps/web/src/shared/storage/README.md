@@ -68,6 +68,9 @@ Sem chave, usa-se estado inicial vazio, sem gravá-lo na montagem. Dados malform
 da versão atual podem ser substituídos após uma ação do usuário, como antes;
 versões desconhecidas permanecem intactas. Falhas de acesso/leitura ou quota são
 capturadas. Não se usa `localStorage.clear()` nem se removem chaves de outros módulos.
+Preferências somente visuais de Estatísticas usam a chave própria
+`life-rpg:statistics-view` (versão 1) com o mesmo adaptador; ver o
+[módulo de Estatísticas](../../modules/statistics/README.md).
 O adaptador pode ser substituído futuramente por backend sem mudar as projeções.
 
 Os dados pertencem ao navegador e endereço (protocolo, host, porta) usados.

@@ -11,6 +11,11 @@ Reutilize os comportamentos de
 - Preserve o link “Pular para o conteúdo”, o `main` e o foco no título ao navegar.
 - O mínimo recorrente de altura é 44 px. Há controles compactos legados de séries
   e navegação; não amplie essa exceção a novos controles sem revisão de toque.
+- Exceção revisada: as células do Calendário de Atividades medem de 30 a 36 px
+  (quadrados de 24 a 30 px), acima do mínimo de 24 px da WCAG 2.2, para mostrar
+  dias úteis no celular. Compensações: arraste/deslize distinguidos do toque,
+  navegação por setas/Home/End, nome acessível por célula e detalhes do dia.
+  Não use esse tamanho como precedente para outros controles.
 - Não remova outline sem foco equivalente. O tema possui `:focus-visible`
   global; seletores, calendário e treino têm tratamentos próprios.
 - Use `Field` ou associação explícita `htmlFor/id`; placeholders não são rótulos.
