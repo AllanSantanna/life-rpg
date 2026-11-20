@@ -1,6 +1,6 @@
 import type { RecordCommand } from '../records/types';
 import { formCents, formNumber, formText } from '../records/form';
-import { decimalToUnits } from './monetary';
+import { decimalToUnits, quantityTimesPriceCents } from './monetary';
 import {
   isMarketCategory,
   normalizeTicker,
@@ -86,7 +86,7 @@ export function entryFromForm(
       : { positionInitial: false }),
     amountCents:
       units.quantity !== undefined && units.purchasePriceCents !== undefined
-        ? Math.round(units.quantity * units.purchasePriceCents)
+        ? quantityTimesPriceCents(units.quantity, units.purchasePriceCents)
         : unknown
           ? 0
           : formCents(data, 'amount'),
