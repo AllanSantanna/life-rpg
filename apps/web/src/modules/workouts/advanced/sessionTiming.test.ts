@@ -115,8 +115,16 @@ describe('data, início e compatibilidade de sessões', () => {
       () => ({ getItem: () => raw, setItem: write }),
       migratePlayerState,
     );
-    expect(storage.load()).toEqual({ status: 'loaded', data: player });
-    expect(storage.load()).toEqual({ status: 'loaded', data: player });
+    expect(storage.load()).toEqual({
+      status: 'loaded',
+      data: player,
+      raw: expect.any(String),
+    });
+    expect(storage.load()).toEqual({
+      status: 'loaded',
+      data: player,
+      raw: expect.any(String),
+    });
     expect(write).not.toHaveBeenCalled();
     expect(JSON.stringify(player)).toBe(snapshot);
     expect(

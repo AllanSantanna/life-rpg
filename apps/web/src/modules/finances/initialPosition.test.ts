@@ -288,14 +288,22 @@ describe('Posições iniciais e compras reais', () => {
       migratePlayerState,
     );
     expect(storage.save(state)).toBe(true);
-    expect(storage.load()).toEqual({ status: 'loaded', data: state });
+    expect(storage.load()).toEqual({
+      status: 'loaded',
+      data: state,
+      raw: expect.any(String),
+    });
     state.records = apply(state.records, {
       type: 'convertToInitialPosition',
       id: 'original',
       confirmed: true,
     });
     expect(storage.save(state)).toBe(true);
-    expect(storage.load()).toEqual({ status: 'loaded', data: state });
+    expect(storage.load()).toEqual({
+      status: 'loaded',
+      data: state,
+      raw: expect.any(String),
+    });
     expect(state.records.workouts).toEqual([{ date: today, trained: true }]);
     expect(migratePlayerState(1, state)?.records).toEqual(emptyRecords());
   });

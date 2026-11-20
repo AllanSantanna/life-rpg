@@ -105,7 +105,11 @@ describe('Migração única para evolução real v3', () => {
         ),
       ).toBe(version === 1 ? 150 : 450);
       expect(storage.save(result.data)).toBe(true);
-      expect(storage.load()).toEqual({ status: 'loaded', data: result.data });
+      expect(storage.load()).toEqual({
+        status: 'loaded',
+        data: result.data,
+        raw: localStorage.getItem(PLAYER_STORAGE_KEY),
+      });
       expect(
         JSON.parse(localStorage.getItem(PLAYER_STORAGE_KEY)!).version,
       ).toBe(PLAYER_STORAGE_VERSION);

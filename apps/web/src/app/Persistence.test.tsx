@@ -140,17 +140,25 @@ describe('Persistência da evolução real', () => {
     ).not.toBeInTheDocument();
   });
   it.each(['{', JSON.stringify({ version: PLAYER_STORAGE_VERSION, data: {} })])(
-    'mantém o conteúdo inválido na montagem e permite sessão real (%s)',
+    'protege o conteúdo inválido: sessão possível, nada é gravado por cima (%s)',
     (raw) => {
       localStorage.setItem(PLAYER_STORAGE_KEY, raw);
       render(<App />);
+      expect(
+        screen.getByRole('heading', { name: 'Registros salvos protegidos' }),
+      ).toBeInTheDocument();
+      expect(screen.getByText(/formato inválido/)).toBeInTheDocument();
       expect(xp()).toHaveAttribute('aria-valuenow', '0');
-      expect(localStorage.getItem(PLAYER_STORAGE_KEY)).toBe(raw);
       train();
       expect(xp()).toHaveAttribute('aria-valuenow', '150');
+      // C-01: a ação vale na sessão, mas o conteúdo original continua intacto.
+      expect(localStorage.getItem(PLAYER_STORAGE_KEY)).toBe(raw);
       expect(
-        JSON.parse(localStorage.getItem(PLAYER_STORAGE_KEY)!).version,
-      ).toBe(PLAYER_STORAGE_VERSION);
+        screen.getByText(/Registros salvos protegidos · nada é gravado/),
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByText(/Registros salvos neste navegador/),
+      ).not.toBeInTheDocument();
     },
   );
   it('preserva uma versão desconhecida e funciona sem sobrescrevê-la', () => {
@@ -160,11 +168,14 @@ describe('Persistência da evolução real', () => {
     });
     localStorage.setItem(PLAYER_STORAGE_KEY, raw);
     render(<App />);
+    expect(
+      screen.getByText(/versão diferente do Life RPG/),
+    ).toBeInTheDocument();
     train();
     expect(xp()).toHaveAttribute('aria-valuenow', '150');
     expect(localStorage.getItem(PLAYER_STORAGE_KEY)).toBe(raw);
     expect(
-      screen.getByText(/Salvamento local indisponível/),
+      screen.getByText(/Registros salvos protegidos · nada é gravado/),
     ).toBeInTheDocument();
   });
   it('falha de escrita não impede evolução na sessão e mantém o arquivo anterior', () => {

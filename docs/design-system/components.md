@@ -53,6 +53,11 @@ de variante legítima, evolua o componente e documente-a antes de copiar o CSS.
   leitor de tela) e `animated` (entrada discreta). Classes `.disclosure*`; seta e
   animação respeitam movimento reduzido. Troque a `key` para reiniciar o estado.
   Não crie outra seção recolhível.
+- [ConfirmAction](../../apps/web/src/shared/components/ConfirmAction.tsx): ação
+  com confirmação explícita (exclusões, substituição ou restauração de registros).
+  Mostra a consequência, “Confirmar …” e “Cancelar”; o foco vai para Cancelar ao
+  abrir, Escape cancela e o foco volta ao gatilho. Usa `.strength-confirm`,
+  `.record-primary` e `.filter-button`. Reutilize em vez de excluir no clique.
 - Os três compartilham [useAnchoredPopover](../../apps/web/src/shared/components/useAnchoredPopover.ts)
   para portal, geometria, fechamento e movimento reduzido.
 

@@ -305,7 +305,11 @@ describe('Caixinhas e avaliação manual', () => {
       migratePlayerState,
     );
     expect(storage.save(state)).toBe(true);
-    expect(storage.load()).toEqual({ status: 'loaded', data: state });
+    expect(storage.load()).toEqual({
+      status: 'loaded',
+      data: state,
+      raw: expect.any(String),
+    });
     const legacy = structuredClone(state);
     delete legacy.records.investments[0]!.institution;
     delete legacy.records.investments[0]!.cdiPercentBasisPoints;
