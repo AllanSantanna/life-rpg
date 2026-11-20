@@ -61,6 +61,8 @@ export function CustomTimePicker({
   const [focusColumn, setFocusColumn] = useState<Column>('hour');
   const [text, setText] = useState(value);
   const [error, setError] = useState('');
+  // showModal() foca o primeiro botão; na abertura o foco deve ir à hora.
+  const focusOnOpen = useRef(false);
   const hour = draft.slice(0, 2),
     minute = draft.slice(3, 5);
   const close = (restore = true) => popover.close(restore);
@@ -81,6 +83,7 @@ export function CustomTimePicker({
       Math.max(rect.top, viewport - rect.bottom) < panelHeight
     )
       trigger?.scrollIntoView?.({ block: 'start', behavior: 'auto' });
+    focusOnOpen.current = true;
     popover.show();
   }
   function commit(next: string) {
@@ -198,8 +201,9 @@ export function CustomTimePicker({
   useLayoutEffect(() => {
     if (!popover.open) return;
     const active = document.activeElement;
-    // Não rouba o foco do campo de digitação nem dos botões do rodapé.
+    // Depois da abertura, não rouba o foco da digitação nem do rodapé.
     if (
+      !focusOnOpen.current &&
       active instanceof HTMLElement &&
       dialog.current?.contains(active) &&
       active.getAttribute('role') !== 'option'
@@ -210,6 +214,7 @@ export function CustomTimePicker({
         `[data-column="${focusColumn}"] [role="option"][tabindex="0"]`,
       )
       ?.focus({ preventScroll: true });
+    focusOnOpen.current = false;
   }, [popover.open, focusColumn, draft]);
   const shown = isTimeValue(value) ? value : '';
   const columns: { key: Column; title: string; list: string[] }[] = [

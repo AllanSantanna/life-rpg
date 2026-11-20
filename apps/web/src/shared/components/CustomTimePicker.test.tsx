@@ -67,6 +67,28 @@ describe('CustomTimePicker', () => {
     expect(document.activeElement).toBe(control());
   });
 
+  it('leva o foco à hora selecionada mesmo quando showModal foca o primeiro botão', () => {
+    // Navegadores reais focam o primeiro controle do diálogo modal; o jsdom não.
+    const original = HTMLDialogElement.prototype.showModal;
+    HTMLDialogElement.prototype.showModal = function showModal() {
+      this.setAttribute('open', '');
+      this.querySelector<HTMLElement>('button')?.focus();
+    };
+    try {
+      render(<Harness initial="08:15" />);
+      const panel = open();
+      expect(document.activeElement).toBe(option(panel, '08 horas'));
+      const typed = within(panel).getByRole('textbox', {
+        name: 'Digitar horário',
+      });
+      typed.focus();
+      fireEvent.change(typed, { target: { value: '09' } });
+      expect(document.activeElement).toBe(typed);
+    } finally {
+      HTMLDialogElement.prototype.showModal = original;
+    }
+  });
+
   it('aceita digitação manual com máscara e rejeita horários inválidos', () => {
     const change = vi.fn();
     render(<Harness initial="10:00" onChange={change} />);
