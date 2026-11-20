@@ -61,6 +61,7 @@ A regra local `design-system/no-visual-drift`, definida em
 
 - Novos `<select>` nativos; reutilize `CustomSelect`.
 - `input type="date"` / `type="month"` literais; reutilize `CustomDatePicker`.
+- `input type="time"` literal; reutilize `CustomTimePicker`.
 - Literais hex e funções RGB/HSL/OKLCH etc. dentro de `style`.
 - Utilitários Tailwind de cores arbitrárias, como `bg-[#123456]`.
 - Botões nativos sem `type` explícito; `ActionButton` mantém seu default seguro.

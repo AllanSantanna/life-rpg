@@ -22,6 +22,7 @@ export default {
           select:
             'Use CustomSelect. Consulte docs/design-system/components.md.',
           date: 'Use CustomDatePicker para data/mês. Consulte docs/design-system/components.md.',
+          time: 'Use CustomTimePicker para horário. Consulte docs/design-system/components.md.',
           color:
             'Reutilize tokens de cor ou classes existentes; evite cores literais no JSX. Consulte docs/design-system/colors.md.',
         },
@@ -62,6 +63,16 @@ export default {
               )
             )
               context.report({ node, messageId: 'date' });
+            if (
+              node.name.name === 'input' &&
+              node.attributes.some(
+                (attribute) =>
+                  attribute.type === 'JSXAttribute' &&
+                  attribute.name.name === 'type' &&
+                  literalValue(attribute.value) === 'time',
+              )
+            )
+              context.report({ node, messageId: 'time' });
           },
           Literal: (node) => checkText(node, node.value),
           TemplateElement: (node) => checkText(node, node.value.cooked),

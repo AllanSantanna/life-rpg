@@ -41,7 +41,10 @@ de variante legítima, evolua o componente e documente-a antes de copiar o CSS.
 - [CustomDatePicker](../../apps/web/src/shared/components/CustomDatePicker.tsx):
   `mode` de data/mês, limites ISO, obrigatório, leitura e desabilitado. Reutilize
   no lugar de `input type="date"` / `type="month"`.
-- Ambos compartilham [useAnchoredPopover](../../apps/web/src/shared/components/useAnchoredPopover.ts)
+- [CustomTimePicker](../../apps/web/src/shared/components/CustomTimePicker.tsx):
+  horário de 24 horas (`HH:mm`), controlado por `value/onChange`, com `required`,
+  `disabled` e `describedBy`. Reutilize no lugar de `input type="time"`.
+- Os três compartilham [useAnchoredPopover](../../apps/web/src/shared/components/useAnchoredPopover.ts)
   para portal, geometria, fechamento e movimento reduzido.
 
 Exceção atual: o `<select>` de tipo de série em
@@ -150,7 +153,7 @@ restritos ao módulo Finanças até que outra tela precise do mesmo contrato:
 `Actions` aceita `cancel` para o rótulo do cancelamento (padrão “Cancelar edição”;
 formulários de criação usam “Cancelar”). A seta gira sem transição com
 `prefers-reduced-motion: reduce`. Formulários continuam inline: popovers de
-`CustomSelect`/`CustomDatePicker` usam portal e não devem ficar sob um `<dialog>` modal.
+`CustomSelect`/`CustomDatePicker`/`CustomTimePicker` usam portal e não devem ficar sob um `<dialog>` modal.
 
 Ações de item em listas exibem só a ação (“Editar”, “Editar livro”, “Excluir
 investimento”) e levam o nome do item no `aria-label`, que começa pelo texto

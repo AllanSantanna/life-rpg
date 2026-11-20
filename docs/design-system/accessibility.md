@@ -3,6 +3,7 @@
 Reutilize os comportamentos de
 [CustomSelect](../../apps/web/src/shared/components/CustomSelect.tsx),
 [CustomDatePicker](../../apps/web/src/shared/components/CustomDatePicker.tsx),
+[CustomTimePicker](../../apps/web/src/shared/components/CustomTimePicker.tsx),
 [RecordUI](../../apps/web/src/modules/records/RecordUI.tsx) e
 [App](../../apps/web/src/app/App.tsx).
 

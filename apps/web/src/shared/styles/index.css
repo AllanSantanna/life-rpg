@@ -3186,6 +3186,110 @@ input.custom-date-picker__validation {
   }
 }
 
+/* CustomTimePicker: reutiliza o painel .custom-calendar; só as colunas são novas. */
+.custom-time-picker__value {
+  font-variant-numeric: tabular-nums;
+}
+.custom-time-picker .custom-select__trigger {
+  scroll-margin-top: 40px;
+}
+.custom-time-picker__preview {
+  margin: 10px 0 8px;
+  text-align: center;
+  color: #fff;
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+}
+.custom-time-picker__preview > span {
+  margin: 0 2px;
+  color: #f87171;
+}
+.custom-time-picker__columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.custom-time-picker__column > span {
+  display: block;
+  margin-bottom: 4px;
+  color: #8e8e98;
+  font-size: 10px;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.custom-time-picker__column [role='listbox'] {
+  position: relative;
+  height: 176px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scroll-snap-type: y proximity;
+  padding: 4px;
+  border: 1px solid #ffffff10;
+  border-radius: 10px;
+  background: var(--color-background);
+  scrollbar-width: thin;
+  scrollbar-color: #dc262650 transparent;
+}
+.custom-time-picker__column [role='option'] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  margin-bottom: 2px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: #d4d4d8;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  scroll-snap-align: center;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s;
+}
+.custom-time-picker__column [role='option']:hover {
+  background-color: #ffffff0b;
+}
+.custom-time-picker__column [role='option']:focus-visible {
+  outline: 2px solid #f87171;
+  outline-offset: -2px;
+}
+.custom-time-picker__column [role='option'][data-selected='true'] {
+  color: #fff;
+  background: #b91c1c;
+  border-color: #f87171;
+}
+.custom-calendar__footer .custom-time-picker__confirm {
+  margin-left: auto;
+  border: 1px solid #dc262650;
+  color: #fca5a5;
+  background: #dc262612;
+}
+@media (max-width: 640px) {
+  .custom-time-picker__column [role='listbox'] {
+    height: 184px;
+  }
+  .custom-time-picker__preview {
+    margin: 6px 0;
+    font-size: 24px;
+  }
+  .custom-time-picker__column [role='option'] {
+    min-height: 44px;
+    font-size: 16px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .custom-time-picker__column [role='option'] {
+    transition: none;
+  }
+  .custom-time-picker__column [role='listbox'] {
+    scroll-behavior: auto;
+  }
+}
+
 /* Perfil simples, compartilhado com o cabeçalho do dashboard. */
 .character-avatar {
   position: relative;
