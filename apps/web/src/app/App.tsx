@@ -18,7 +18,9 @@ import { FinancesPage } from '../modules/finances/FinancesPage';
 import { WorkoutsPage } from '../modules/workouts/WorkoutsPage';
 import { RestPage } from '../modules/rest/RestPage';
 import { KnowledgePage } from '../modules/knowledge/KnowledgePage';
-import { usePlayerState } from './usePlayerState';
+import { usePlayerState, type Persistence } from './usePlayerState';
+import { StorageBackups } from './StorageBackups';
+import { StorageNotice } from './StorageNotice';
 import { EvolutionPanel } from '../modules/evolution/EvolutionPanel';
 import { StatisticsPage } from '../modules/statistics/StatisticsPage';
 import { useEffect, useRef } from 'react';
@@ -43,12 +45,25 @@ const titles: Record<View, string> = {
   rest: 'Descanso',
   knowledge: 'Conhecimento',
 };
+const persistenceLabels: Record<Persistence['kind'], string> = {
+  saved: 'Registros salvos neste navegador · evolução real',
+  session: 'Salvamento local indisponível · alterações apenas nesta sessão',
+  protected:
+    'Registros salvos protegidos · nada é gravado até você decidir o que fazer',
+  conflict: 'Alteração não salva · registros modificados em outra aba',
+};
 export function App() {
   const today = useToday();
   const { view, navigate, goalId } = useUrlNavigation();
-  const { state, setState, storageAvailable, facts } = usePlayerState(today);
-  const recordsRef = useRef(state.records);
-  recordsRef.current = state.records;
+  const {
+    state,
+    setState,
+    persistence,
+    facts,
+    reloadStored,
+    startFreshKeepingCopy,
+    restoreBackup,
+  } = usePlayerState(today);
   const player = state.profile;
   const {
     rewards: goalReward,
@@ -62,9 +77,12 @@ export function App() {
   const currentMetrics = recordMetrics(state.records, today, dedication);
   function changeRecords(command: RecordCommand): string | null {
     try {
-      const records = applyRecordCommand(recordsRef.current, command, today);
-      recordsRef.current = records;
-      setState((previous) => ({ ...previous, records }));
+      // Aplicado sobre o estado mais recente (inclusive de outra aba); erros de
+      // validação lançados pelo comando chegam ao formulário.
+      setState((previous) => ({
+        ...previous,
+        records: applyRecordCommand(previous.records, command, today),
+      }));
       return null;
     } catch (error) {
       return error instanceof Error
@@ -72,13 +90,12 @@ export function App() {
         : 'Não foi possível salvar o registro.';
     }
   }
-  const goalsRef = useRef(state.goals);
-  goalsRef.current = state.goals;
   function changeGoals(command: GoalCommand): string | null {
     try {
-      const goals = applyGoalCommand(goalsRef.current, command, today);
-      goalsRef.current = goals;
-      setState((previous) => ({ ...previous, goals }));
+      setState((previous) => ({
+        ...previous,
+        goals: applyGoalCommand(previous.goals, command, today),
+      }));
       return null;
     } catch (error) {
       return error instanceof Error
@@ -135,6 +152,12 @@ export function App() {
           tabIndex={-1}
           className="mx-auto max-w-[1480px] px-5 pb-28 pt-7 sm:px-8 lg:px-10 lg:pb-8 lg:pt-9"
         >
+          <StorageNotice
+            persistence={persistence}
+            today={today}
+            onReload={reloadStored}
+            onStartFresh={startFreshKeepingCopy}
+          />
           <div className="page-intro mb-7 flex flex-wrap items-end justify-between gap-4">
             <div>
               <p className="eyebrow mb-2 text-muted">
@@ -274,17 +297,14 @@ export function App() {
                 onOpenEvolution={() => navigate('stats')}
               />
             )}
+            {view === 'profile' && <StorageBackups onRestore={restoreBackup} />}
           </div>
           <footer className="mt-9 flex flex-wrap items-center justify-between gap-3 border-t border-white/[0.06] pt-5 text-[11px] text-muted">
             <span className="flex items-center gap-2">
               <Icon name="sparkle" size={14} />A sua melhor versão é construída
               todos os dias.
             </span>
-            <span>
-              {storageAvailable
-                ? 'Registros salvos neste navegador · evolução real'
-                : 'Salvamento local indisponível · alterações apenas nesta sessão'}
-            </span>
+            <span>{persistenceLabels[persistence.kind]}</span>
           </footer>
         </main>
       </div>

@@ -36,9 +36,11 @@ formato antigo não registrava a hora/data do clique: essas conclusões conserva
 13/11/2026, a data fixa à qual o aplicativo antigo já as associava. Não se presume
 que tenham ocorrido na data da atualização. Não são criados novos eventos: missões fixas foram removidas da interface. Histórico opaco sem origem verificável não é usado no Radar.
 
-A migração acontece em memória e retorna `migrated: true`. Após hidratação válida,
-o hook salva v7 em um `setItem`; em StrictMode essa gravação não se duplica. Na
-próxima carga v7 é validada diretamente: nenhuma recompensa ou migração é repetida.
+A migração acontece em memória e retorna `migrated: true` e `fromVersion`. Após
+hidratação válida de v1–v6, o hook salva a versão atual em um `setItem`; em
+StrictMode essa gravação não se duplica. Na próxima carga a versão atual é validada
+diretamente: nenhuma recompensa ou migração é repetida. v7 → v8 não altera dados e
+só grava na próxima ação (ver “Versão 8”).
 Uma falha de escrita mantém o conteúdo antigo intacto; a sessão usa a projeção real
 e o rodapé avisa que não foi possível salvar. Versões desconhecidas e dados de
 versões antigas que não possam ser migrados não são sobrescritos.
@@ -64,24 +66,67 @@ constância, livros concluídos e metas. Elas não dão XP extra. Veja
 
 ## Falhas e limites
 
-Sem chave, usa-se estado inicial vazio, sem gravá-lo na montagem. Dados malformados
-da versão atual podem ser substituídos após uma ação do usuário, como antes;
-versões desconhecidas permanecem intactas. Falhas de acesso/leitura ou quota são
-capturadas. Não se usa `localStorage.clear()` nem se removem chaves de outros módulos.
-Preferências somente visuais de Estatísticas usam a chave própria
-`life-rpg:statistics-view` (versão 1) com o mesmo adaptador; ver o
-[módulo de Estatísticas](../../modules/statistics/README.md).
+Sem chave, usa-se estado inicial vazio, sem gravá-lo na montagem. Conteúdo
+presente que não pode ser lido **nunca é sobrescrito automaticamente**
+(`AGENTS.md`, regra 7):
+
+| Leitura        | Situação                                        | Gravação                             |
+| -------------- | ----------------------------------------------- | ------------------------------------ |
+| `missing`      | Sem registros                                   | Normal                               |
+| `loaded`       | Válido (migrado em memória, se antigo)          | Normal, condicional ao conteúdo lido |
+| `invalid`      | JSON ou dado inválido da versão atual           | Bloqueada: modo protegido            |
+| `incompatible` | Versão desconhecida (futura) ou migração falhou | Bloqueada: modo protegido            |
+| `unavailable`  | Acesso negado/indisponível                      | Tentada a cada ação; sessão apenas   |
+
+No **modo protegido**, o app avisa (`StorageNotice`), funciona só nesta sessão e
+oferece duas ações explícitas: baixar uma cópia do conteúdo bruto e “começar do
+zero guardando uma cópia”. A segunda exige confirmação, grava antes uma cópia em
+`life-rpg:player-state:backup:<ISO>`, confere a leitura dela e só então substitui
+o registro principal; se a cópia falhar, nada é substituído. Cópias nunca são
+removidas automaticamente e aparecem em Perfil (“Cópias de segurança dos
+registros”), onde podem ser baixadas ou restauradas; restaurar guarda antes os
+registros atuais como nova cópia, então a operação é reversível. Um valor de
+uma versão futura compatível que traga campos desconhecidos é aceito pela
+validação e regravado com eles, sem descarte.
+
+**Várias abas.** Cada aba conhece o texto bruto que leu ou gravou. Uma gravação
+só acontece se o conteúdo armazenado ainda for esse (comparação condicional).
+Antes de aplicar um comando, a aba confere o armazenamento: se outra aba gravou e
+não há alteração local pendente, o comando é aplicado sobre os dados mais
+recentes, e as validações dos comandos rodam de novo (sem mesclagem de valores).
+O evento `storage` mantém a tela atualizada. Se a corrida acontecer entre a
+aplicação e a gravação, nada é gravado e o aviso “Registros alterados em outra
+aba” oferece carregar os registros atuais; a alteração local não salva é
+descartada somente por essa ação explícita. O rodapé mostra a situação real
+(salvo, sessão apenas, protegido ou conflito).
+
+Falhas de quota são capturadas e preservam o último valor gravado. Não se usa
+`localStorage.clear()` nem se removem chaves de outros módulos. Preferências
+somente visuais de Estatísticas usam a chave própria `life-rpg:statistics-view`
+(versão 1) com o mesmo adaptador e a opção `overwriteInvalid`, porque são
+descartáveis; ver o [módulo de Estatísticas](../../modules/statistics/README.md).
 O adaptador pode ser substituído futuramente por backend sem mudar as projeções.
 
 Os dados pertencem ao navegador e endereço (protocolo, host, porta) usados.
-Limpar os dados do site remove o progresso. Não há sincronização entre dispositivos
-ou resolução de alterações simultâneas entre abas.
+Limpar os dados do site remove o progresso. Não há sincronização entre
+dispositivos.
+
+## Versão 8 e regra de evolução do contrato
+
+A v8 tem o mesmo formato de dados da v7. Depois da v7, o vocabulário validado foi
+ampliado sem troca de versão (Treinos Avançados, cotações de mercado, Trapézio,
+`startedAt`); uma versão anterior do app tratava esses dados como inválidos.
+A migração 7 → 8 apenas valida os dados e os mantém; a gravação com a nova
+versão acontece na próxima ação real, sem regravar na abertura. Versões antigas
+do app veem a v8 como desconhecida e não gravam por cima. Toda ampliação futura
+de enumerações, coleções ou campos validados exige nova versão e migração;
+`app/storageContract.test.ts` falha quando o vocabulário muda sem isso.
 
 ## Verificação manual
 
 1. Abra no mesmo endereço usado anteriormente. O progresso deve refletir apenas
    seus registros e missões confirmadas, mantendo o perfil e os quatro pilares.
-2. Em DevTools → Application → Local Storage, confira a versão 6. Recarregue:
+2. Em DevTools → Application → Local Storage, confira a versão 8. Recarregue:
    XP/nível devem permanecer iguais, sem novo crédito ou migração.
 3. Em uma origem/navegador sem dados, confira nível 1/0 XP, Radar zero e conquistas
    bloqueadas. Registre um treino: 150 XP. Sua quest automática de treino não duplica esse prêmio.

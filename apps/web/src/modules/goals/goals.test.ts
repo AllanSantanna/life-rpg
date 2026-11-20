@@ -472,7 +472,11 @@ describe('Persistência e migração de quests v4', () => {
       migratePlayerState,
     );
     expect(storage.save(migrated)).toBe(true);
-    expect(storage.load()).toEqual({ status: 'loaded', data: migrated });
+    expect(storage.load()).toEqual({
+      status: 'loaded',
+      data: migrated,
+      raw: expect.any(String),
+    });
     expect(
       isPlayerState({
         ...migrated,

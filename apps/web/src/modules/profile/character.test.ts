@@ -214,7 +214,13 @@ describe('perfil simples e migração sem perda de progresso', () => {
     const raw = JSON.stringify({ version: 5, data });
     localStorage.setItem(PLAYER_STORAGE_KEY, raw);
     const loaded = storage().load();
-    expect(loaded).toEqual({ status: 'loaded', data: old, migrated: true });
+    expect(loaded).toEqual({
+      status: 'loaded',
+      data: old,
+      raw,
+      migrated: true,
+      fromVersion: 5,
+    });
     expect(localStorage.getItem(PLAYER_STORAGE_KEY)).toBe(raw);
     if (loaded.status !== 'loaded') throw new Error('Migração esperada');
     expect(projectCharacter(loaded.data, today).progress).toEqual(
@@ -224,7 +230,11 @@ describe('perfil simples e migração sem perda de progresso', () => {
       projectCharacter(old, today).achievements,
     );
     expect(storage().save(loaded.data)).toBe(true);
-    expect(storage().load()).toEqual({ status: 'loaded', data: old });
+    expect(storage().load()).toEqual({
+      status: 'loaded',
+      data: old,
+      raw: localStorage.getItem(PLAYER_STORAGE_KEY),
+    });
     expect(JSON.parse(localStorage.getItem(PLAYER_STORAGE_KEY)!).version).toBe(
       PLAYER_STORAGE_VERSION,
     );
@@ -264,7 +274,11 @@ describe('perfil simples e migração sem perda de progresso', () => {
         projectCharacter(state, today).progress,
       );
       expect(storage().save(next)).toBe(true);
-      expect(storage().load()).toEqual({ status: 'loaded', data: next });
+      expect(storage().load()).toEqual({
+        status: 'loaded',
+        data: next,
+        raw: localStorage.getItem(PLAYER_STORAGE_KEY),
+      });
     },
   );
 
