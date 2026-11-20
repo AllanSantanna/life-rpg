@@ -7,8 +7,10 @@ introdução das extensões financeiras, que continuam compatíveis em v4.
 O módulo separa fluxo mensal, saldos líquidos, custo de aquisição e avaliação dos
 investimentos. Valores monetários são centavos inteiros; BTC usa satoshis
 (8 casas decimais), com multiplicação e rateio do custo em `BigInt` e
-arredondamento ao centavo mais próximo. Na liquidação total, todo custo restante
-é removido. Vendas de BTC não são limitadas ao valor originalmente investido.
+arredondamento ao centavo mais próximo. O valor de uma compra com quantidade ×
+preço unitário também é calculado em inteiros (`quantityTimesPriceCents`, meio
+centavo para cima); registros anteriores, calculados em ponto flutuante,
+continuam válidos. Na liquidação total, todo custo restante é removido. Vendas de BTC não são limitadas ao valor originalmente investido.
 
 ## Organização e regras
 
@@ -293,7 +295,8 @@ respostas simuladas e não certificam a disponibilidade ao vivo do provedor.
 Registros v1/v2 anteriores continuam válidos, sem reescrita das quantidades ou
 custos existentes. Cotações USD só afetam datas a partir da observação, sem preços
 retroativos. Redefinir Finanças também remove USD/cotações; excluir a última
-posição USD limpa sua referência. Oscilações cambiais não dão XP nem alteram a
+posição USD ou BTC (pelo investimento ou pela conta) limpa a referência daquela
+cotação, mantendo-a enquanto houver outra posição da mesma categoria. Oscilações cambiais não dão XP nem alteram a
 consistência do Radar; os demais pilares e fórmulas de progressão permanecem.
 
 ### Arquivos desta melhoria
@@ -617,7 +620,15 @@ Ações e FIIs passam a usar a posição por quantidade (`positionMode = 'shares
 com o mesmo rateio do BTC/USD: a compra informa quantidade e valor pago (o preço
 unitário continua opcional) e a venda informa quantidade vendida e valor
 recebido; o custo da parcela vendida sai pelo **preço médio**. Venda acima da
-quantidade é rejeitada. Operações antigas sem quantidade mantêm a regra anterior
+quantidade é rejeitada. Uma venda com quantidade **não aceita** custo de
+aquisição resgatado (a mensagem orienta a deixá-lo em branco), para que a
+liquidação total zere o custo. Vendas antigas com quantidade **e** custo
+informado, aceitas por versões anteriores, continuam calculadas como foram
+gravadas: nada é reinterpretado automaticamente. Quando o custo resultante
+difere do custo pelo preço médio (`costDiagnostics.ts`), o cartão mostra “Custo a
+revisar” com os dois valores e a ação confirmada “Recalcular pelo preço médio”,
+que apenas remove o custo informado dessas vendas, sem mudar valor, quantidade
+ou data. Operações antigas sem quantidade mantêm a regra anterior
 (custo baixado pelo valor ou pelo custo resgatado) e deixam a quantidade
 “incompleta”; nesse caso não há valor de mercado nem gráfico de posição até a
 quantidade ser informada em todas as operações.
@@ -648,3 +659,12 @@ futuro.
 1. Crie um token em https://brapi.dev/dashboard.
 2. Defina `BRAPI_TOKEN` no `.env` local (veja `.env.example`); nunca o versione.
 3. Execute `npm run dev` (web e api juntos) e cadastre o ticker em Finanças.
+
+## Mensagens de recusa
+
+Quando uma operação é recusada, a mensagem indica a causa sempre que ela é
+identificável: transferência entre a mesma conta, transferência anterior à
+abertura de uma das contas, ou o erro de posição do investimento afetado,
+prefixado pelo nome (venda acima da quantidade, compras anteriores sem
+quantidade, retirada acima do custo com a orientação de informar o custo
+resgatado quando há rendimento). Só os demais casos usam a mensagem geral.

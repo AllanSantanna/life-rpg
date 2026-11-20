@@ -17,9 +17,6 @@ export function monthlyBalance(
     .reduce((sum, item) => sum + item.amountCents, 0);
   return { income, expense, balance: income - expense };
 }
-export function investedIn(entries: readonly InvestmentEntry[], id: string) {
-  return position(entries.filter((item) => item.investmentId === id)).cost;
-}
 export function investmentTotals(
   investments: readonly Investment[],
   entries: readonly InvestmentEntry[],

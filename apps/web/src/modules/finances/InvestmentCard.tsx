@@ -17,6 +17,8 @@ import {
   type InvestmentAction,
 } from './investmentActions';
 import { cardFigures } from './investmentFigures';
+import { shareCostIssue, withoutCostBasis } from './costDiagnostics';
+import { ConfirmAction } from '../../shared/components/ConfirmAction';
 import { investmentValue } from './ledger';
 import { SavingsBoxDetails } from './SavingsBoxCard';
 import { isMarketCategory, type Investment } from './types';
@@ -95,6 +97,12 @@ export function InvestmentCard({
     stale: status.stale,
   });
   const shares = isMarketCategory(investment.category);
+  const costIssue = shareCostIssue(
+    investment.category,
+    records.investmentEntries.filter(
+      (item) => item.investmentId === investment.id,
+    ),
+  );
   const ticker = shares ? investment.ticker : undefined;
   const marketState = ticker ? market?.states[ticker] : undefined;
   const [marketMessage, setMarketMessage] = useState('');
@@ -219,6 +227,40 @@ export function InvestmentCard({
               : '') || message}
         </p>
         {form}
+        {costIssue && (
+          <div className="record-hint investment-card__issue" role="note">
+            <p>
+              Custo a revisar:{' '}
+              {costIssue.entries.length === 1
+                ? 'uma venda'
+                : `${costIssue.entries.length} vendas`}{' '}
+              com quantidade informaram custo resgatado, e o custo restante é{' '}
+              {money(costIssue.currentCost)}
+              {costIssue.units === 0 ? ' com quantidade zero' : ''}. Pelo preço
+              médio, seria {money(costIssue.averageCost)}. Nada foi alterado
+              automaticamente.
+            </p>
+            <ConfirmAction
+              label="Recalcular pelo preço médio"
+              ariaLabel={`Recalcular custo de ${investment.name} pelo preço médio`}
+              detail="As vendas indicadas deixam de usar o custo informado e passam a baixar o custo pelo preço médio. Valores, quantidades e datas não mudam."
+              confirmLabel="Recalcular custo"
+              onConfirm={() => {
+                for (const entry of costIssue.entries) {
+                  const error = onCommand({
+                    type: 'saveInvestmentEntry',
+                    value: withoutCostBasis(entry),
+                  });
+                  if (error) {
+                    setMarketMessage(error);
+                    return;
+                  }
+                }
+                setMarketMessage('Custo recalculado pelo preço médio.');
+              }}
+            />
+          </div>
+        )}
         <Disclosure
           title="Ver detalhes"
           label={`Ver detalhes de ${investment.name}`}

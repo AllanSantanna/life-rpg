@@ -437,7 +437,7 @@ describe('Organização da página Finanças', () => {
     input(form, 'Valor da operação (R$)', '40,00');
     submit(form);
     expect(within(form).getByRole('alert')).toHaveTextContent(
-      'não pode exceder',
+      'Bitcoin (BTC): Venda excede a quantidade de BTC disponível na data.',
     );
     expect(stored().investmentEntries).toEqual(before);
   });

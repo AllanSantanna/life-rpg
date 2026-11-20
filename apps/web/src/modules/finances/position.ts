@@ -86,7 +86,9 @@ export function position(
       }
     }
     if (cost < 0 || !Number.isSafeInteger(cost) || !Number.isSafeInteger(units))
-      throw new Error('Retirada excede o custo disponível.');
+      throw new Error(
+        'Retirada excede o custo disponível. Se o resgate inclui rendimento, informe o custo de aquisição resgatado.',
+      );
   }
   return {
     cost,
