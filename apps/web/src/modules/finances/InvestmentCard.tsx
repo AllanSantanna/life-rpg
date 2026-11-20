@@ -8,7 +8,7 @@ import { displayDate } from '../records/dates';
 import type { RecordPageProps } from '../records/types';
 import { money } from './calculations';
 import { CategoryIcon } from './CategoryIcon';
-import { Disclosure } from './FinanceLayout';
+import { Disclosure } from '../../shared/components/Disclosure';
 import { isInitialPosition } from './initialPosition';
 import {
   actionAccessibleName,

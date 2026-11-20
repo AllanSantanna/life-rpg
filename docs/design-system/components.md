@@ -41,7 +41,19 @@ de variante legítima, evolua o componente e documente-a antes de copiar o CSS.
 - [CustomDatePicker](../../apps/web/src/shared/components/CustomDatePicker.tsx):
   `mode` de data/mês, limites ISO, obrigatório, leitura e desabilitado. Reutilize
   no lugar de `input type="date"` / `type="month"`.
-- Ambos compartilham [useAnchoredPopover](../../apps/web/src/shared/components/useAnchoredPopover.ts)
+- [CustomTimePicker](../../apps/web/src/shared/components/CustomTimePicker.tsx):
+  horário de 24 horas (`HH:mm`), controlado por `value/onChange`, com `required`,
+  `disabled` e `describedBy`. Reutilize no lugar de `input type="time"`.
+- [Disclosure](../../apps/web/src/shared/components/Disclosure.tsx): componente
+  **oficial** de seção recolhível, usado em Finanças e no Mapa muscular. Botão com
+  `aria-expanded`/`aria-controls` no título e seta (`chevron`) que gira; conteúdo
+  montado só quando aberto. Props: `label` (nome acessível quando o título se
+  repete), `level` (h2–h6), `defaultOpen`, `variant="text"` (`.text-action` em
+  cartões), `count` (“Título (6)”), `hint` (“Mostrar/Ocultar detalhes”, oculto do
+  leitor de tela) e `animated` (entrada discreta). Classes `.disclosure*`; seta e
+  animação respeitam movimento reduzido. Troque a `key` para reiniciar o estado.
+  Não crie outra seção recolhível.
+- Os três compartilham [useAnchoredPopover](../../apps/web/src/shared/components/useAnchoredPopover.ts)
   para portal, geometria, fechamento e movimento reduzido.
 
 Exceção atual: o `<select>` de tipo de série em
@@ -140,17 +152,17 @@ escolha de valores.
 Componentes locais de [FinanceLayout](../../apps/web/src/modules/finances/FinanceLayout.tsx),
 restritos ao módulo Finanças até que outra tela precise do mesmo contrato:
 
-| Componente           | Uso                                                                                                                   |
-| -------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `FinanceTabs`        | `tablist/tab/tabpanel`, roving tabIndex, setas, Home/End; botões com `.filter-button` e `.active`                     |
-| `Disclosure`         | Título com botão `aria-expanded` e seta (`chevron`); conteúdo montado só quando aberto; `label` evita nomes repetidos |
-| `InlineForm`         | Envolve um `RecordForm` aberto sob demanda: foca o primeiro campo e devolve o foco ao controle que o abriu            |
-| `DeleteConfirmation` | Exclusões financeiras via `FinancialConfirmation`, com “Confirmar exclusão” e cancelamento sem alterar dados          |
+| Componente           | Uso                                                                                                          |
+| -------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `FinanceTabs`        | `tablist/tab/tabpanel`, roving tabIndex, setas, Home/End; botões com `.filter-button` e `.active`            |
+| `Disclosure`         | Usa o [Disclosure oficial](../../apps/web/src/shared/components/Disclosure.tsx); a cópia local foi removida  |
+| `InlineForm`         | Envolve um `RecordForm` aberto sob demanda: foca o primeiro campo e devolve o foco ao controle que o abriu   |
+| `DeleteConfirmation` | Exclusões financeiras via `FinancialConfirmation`, com “Confirmar exclusão” e cancelamento sem alterar dados |
 
 `Actions` aceita `cancel` para o rótulo do cancelamento (padrão “Cancelar edição”;
 formulários de criação usam “Cancelar”). A seta gira sem transição com
 `prefers-reduced-motion: reduce`. Formulários continuam inline: popovers de
-`CustomSelect`/`CustomDatePicker` usam portal e não devem ficar sob um `<dialog>` modal.
+`CustomSelect`/`CustomDatePicker`/`CustomTimePicker` usam portal e não devem ficar sob um `<dialog>` modal.
 
 Ações de item em listas exibem só a ação (“Editar”, “Editar livro”, “Excluir
 investimento”) e levam o nome do item no `aria-label`, que começa pelo texto
@@ -173,3 +185,12 @@ ele está aberto; a barra da etapa fica oculta nesse estado.
 20 px. As ações padronizadas usam 18 px. Ícones são decorativos (`aria-hidden`);
 o nome acessível pertence ao botão ou texto acompanhante. Não adicione biblioteca
 de ícones para reproduzir um símbolo que já existe.
+
+## Anatomia interativa em Treinos Avançados
+
+O [Mapa muscular](../../apps/web/src/modules/workouts/advanced/muscle-map/README.md)
+é local ao módulo: regiões SVG selecionáveis, lista alternativa de botões de
+44 px, duas abas com navegação por setas e `CustomSelect` de período. Título
+local de 24 px, detalhes abaixo em contêineres menores e painel lateral a partir
+de 820 px de largura disponível. A geometria anatômica não dita o tamanho dos
+controles alternativos. Cores e borda de seleção também possuem rótulos textuais.

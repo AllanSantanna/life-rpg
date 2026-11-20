@@ -53,6 +53,15 @@ preservação do estado, alternativa 2D, geometria compacta do calendário, arra
 com mouse, deslize por toque, rolagem vertical e personalização persistida. O teste de câmera e perda de contexto
 depende de WebGL disponível; sua ausência é registrada no log.
 
+Abaixo de 768 px o contexto habilita `hasTouch`, e as interações marcadas como
+toque usam `tap()`; nas demais larguras, mouse e teclado. O Mapa muscular cobre
+seleção por toque/teclado, modos e preservação do storage. O `CustomTimePicker` é
+auditado na correção e na criação de sessões: posição dentro do viewport, camada
+superior (acima da navegação inferior), foco inicial na hora selecionada, toque,
+Escape, digitação manual e gravação na mesma sessão. Capturas de página inteira
+com diálogo modal aberto podem exibir o link “Pular para o conteúdo”, pois são
+compostas a partir da posição fixa da janela; isso não indica foco fora do diálogo.
+
 O comando verifica geometria e gera capturas e `results.json`; não faz comparação
 automática de pixels nem auditoria completa de acessibilidade. Abra as capturas
 para conferir legibilidade, foco, estados e alinhamento. O CI mantém os artefatos

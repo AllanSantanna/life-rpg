@@ -1,6 +1,16 @@
+import { useWorkoutClock } from './useWorkoutClock';
+import { SessionTimingEditor } from './SessionTimingEditor';
+import {
+  assertStartNotFuture,
+  createSessionStart,
+  currentSessionStart,
+  localWorkoutTime,
+  displaySessionDate,
+} from './sessionTiming';
 import { useState } from 'react';
 import { CustomDatePicker } from '../../../shared/components/CustomDatePicker';
 import { CustomSelect } from '../../../shared/components/CustomSelect';
+import { CustomTimePicker } from '../../../shared/components/CustomTimePicker';
 import { Field } from '../../records/RecordUI';
 import { displayDate } from '../../records/dates';
 import { blankSet } from './commands';
@@ -37,10 +47,15 @@ export function SessionPanel({
 }) {
   const [planId, setPlanId] = useState(suggestedPlan(state)?.id ?? 'free');
   const [date, setDate] = useState(today);
+  const [time, setTime] = useState<string | undefined>(undefined);
+  const [timingError, setTimingError] = useState<string | null>(null);
   const [markDay, setMarkDay] = useState(true);
   const [active, setActive] = useState(0);
   const [picking, setPicking] = useState(false);
   const session = state.sessions.find((s) => s.id === selectedId);
+  const clock = useWorkoutClock(
+    !session && time === undefined && date === today,
+  );
   const activeIndex = Math.min(
     active,
     Math.max(0, (session?.exercises.length ?? 1) - 1),
@@ -64,6 +79,22 @@ export function SessionPanel({
       setActive(0);
       return;
     }
+    let startedAt: string | undefined;
+    try {
+      startedAt =
+        time === undefined
+          ? currentSessionStart(date)
+          : time
+            ? createSessionStart(date, time)
+            : undefined;
+      assertStartNotFuture(startedAt);
+      setTimingError(null);
+    } catch (error) {
+      setTimingError(
+        error instanceof Error ? error.message : 'Confira o horário.',
+      );
+      return;
+    }
     const id = crypto.randomUUID();
     if (
       !onCommand({
@@ -71,6 +102,7 @@ export function SessionPanel({
         id,
         planId: planId === 'free' ? null : planId,
         date,
+        ...(startedAt !== undefined ? { startedAt } : {}),
       })
     ) {
       onSelect(id);
@@ -81,7 +113,7 @@ export function SessionPanel({
     const hasCompletedSet = value.exercises.some((e) =>
       e.sets.some((s) => s.completed),
     );
-    onCommand({
+    return onCommand({
       type: 'saveSession',
       value: hasCompletedSet ? value : { ...value, status: 'in_progress' },
     });
@@ -165,7 +197,31 @@ export function SessionPanel({
                 onChange={setDate}
               />
             </Field>
+            <Field label="Horário do treino">
+              <CustomTimePicker
+                label="Horário do treino"
+                value={
+                  time ??
+                  (date === today ? localWorkoutTime(new Date(clock)) : '')
+                }
+                onChange={(value) => {
+                  setTime(value);
+                  setTimingError(null);
+                }}
+                describedBy="new-session-time-hint"
+              />
+            </Field>
           </div>
+          <p id="new-session-time-hint" className="record-hint">
+            Início do treino · 24 horas (HH:mm). Sem edição, o horário local é
+            preenchido ao iniciar uma sessão de hoje. Em datas antigas,
+            permanece desconhecido até ser informado.
+          </p>
+          {timingError && (
+            <p className="record-error" role="alert">
+              {timingError}
+            </p>
+          )}
           <button
             type="button"
             className="record-primary workout-wide"
@@ -188,7 +244,7 @@ export function SessionPanel({
                       setActive(0);
                     }}
                   >
-                    Continuar {s.planName} · {displayDate(s.date)}
+                    Continuar {s.planName} · {displaySessionDate(s)}
                   </button>
                 ))}
             </div>
@@ -204,6 +260,10 @@ export function SessionPanel({
                   ? 'Sessão concluída'
                   : 'Em andamento'}{' '}
                 · salvo automaticamente
+              </p>
+              <p className="record-hint">
+                {displaySessionDate(session)}
+                {!session.startedAt && ' · horário não informado'}
               </p>
             </div>
             <button
@@ -538,16 +598,14 @@ export function SessionPanel({
             <WorkoutIcon name="plus" /> Adicionar exercícios à sessão
           </button>
           <details className="strength-catalog">
-            <summary>Data, observações e opções da sessão</summary>
+            <summary>Data, horário, observações e opções da sessão</summary>
             <div className="strength-stack">
-              <Field label="Data da sessão">
-                <CustomDatePicker
-                  label="Data da sessão"
-                  value={session.date}
-                  max={today}
-                  onChange={(date) => save({ ...session, date })}
-                />
-              </Field>
+              <SessionTimingEditor
+                key={`${session.id}:${session.date}:${session.startedAt ?? ''}`}
+                session={session}
+                today={today}
+                onSave={save}
+              />
               <Field label="Observações da sessão">
                 <textarea
                   maxLength={1000}

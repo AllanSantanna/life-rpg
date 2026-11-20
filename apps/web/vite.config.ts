@@ -45,7 +45,7 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        globPatterns: ['**/*.{js,css,html,ico,png,webp,svg,woff2}'],
         // O renderer 3D é baixado somente ao abrir Estatísticas com WebGL.
         globIgnores: ['**/LandscapeScene-*.js'],
         runtimeCaching: [

@@ -51,6 +51,8 @@ export interface SessionExercise {
 export interface WorkoutSession {
   id: string;
   date: string;
+  /** Local start, minute precision and explicit UTC offset; absent means unknown. */
+  startedAt?: string;
   planId: string | null;
   planName: string;
   exercises: SessionExercise[];
@@ -81,7 +83,13 @@ export type AdvancedWorkoutCommand =
   | { type: 'setRotation'; sequence: string[] }
   | { type: 'duplicatePlan'; id: string; newId: string }
   | { type: 'deletePlan'; id: string; confirmed: boolean }
-  | { type: 'startSession'; id: string; planId: string | null; date: string }
+  | {
+      type: 'startSession';
+      id: string;
+      planId: string | null;
+      date: string;
+      startedAt?: string;
+    }
   | { type: 'saveSession'; value: WorkoutSession }
   | {
       type: 'importSession';
