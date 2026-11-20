@@ -5,7 +5,8 @@ import { CustomSelect } from '../../../shared/components/CustomSelect';
 import { Icon } from '../../../shared/components/Icon';
 import { shiftDate } from '../../records/dates';
 import { number, periodDays, type TrainingPeriod } from './calculations';
-import { muscleLabels, type Muscle, type WorkoutSession } from './types';
+import type { WorkoutSession } from './types';
+import { mapGroupLabels, type MapGroup } from './muscle-map/participation';
 import { AnatomyFigure } from './muscle-map/AnatomyFigure';
 import {
   anatomicalGroups,
@@ -81,7 +82,7 @@ export function MuscleMap({
       },
     );
   }, [mode, period, selectedGroup, sessions, summary, referenceDay, now]);
-  function selectGroup(muscle: Muscle) {
+  function selectGroup(muscle: MapGroup) {
     setSelection(documentedSelection(muscle));
   }
   return (
@@ -202,7 +203,7 @@ export function MuscleMap({
         <Legend mode={mode} />
         <p className="muscle-v2-announcement" aria-live="polite">
           {selectedGroup
-            ? `${muscleLabels[selectedGroup]}: ${number(summary?.sets ?? 0)} ${summary?.sets === 1 ? 'série válida' : 'séries válidas'} no período.`
+            ? `${mapGroupLabels[selectedGroup]}: ${number(summary?.sets ?? 0)} ${summary?.sets === 1 ? 'série válida' : 'séries válidas'} no período.`
             : 'Grupo sem correspondência nos registros.'}
         </p>
         {mode === 'recovery' && (
@@ -214,7 +215,7 @@ export function MuscleMap({
         <details className="muscle-v2-picker" open>
           <summary>Grupos musculares · dados agregados</summary>
           <ul>
-            {(Object.entries(muscleLabels) as [Muscle, string][]).map(
+            {(Object.entries(mapGroupLabels) as [MapGroup, string][]).map(
               ([muscle, label]) => (
                 <li key={muscle}>
                   <button
@@ -248,9 +249,9 @@ export function MuscleMap({
     </section>
   );
 }
-// Explicit canonical selections avoid changing snapshots or adding domain muscle types.
-function documentedSelection(muscle: Muscle): Selection {
-  const selections: Record<Muscle, Selection> = {
+// Seleções canônicas da lista; grupos só do mapa não alteram snapshots nem tipos salvos.
+function documentedSelection(muscle: MapGroup): Selection {
+  const selections: Record<MapGroup, Selection> = {
     chest: { view: 'front', id: 'CHEST_LEFT' },
     shoulders: { view: 'front', id: 'SHOULDER_FRONT_LEFT' },
     biceps: { view: 'front', id: 'BICEPS_LEFT' },
@@ -259,6 +260,9 @@ function documentedSelection(muscle: Muscle): Selection {
     core: { view: 'front', id: 'CORE_LEFT' },
     trapezius: { view: 'back', id: 'TRAPEZIUS_LEFT' },
     back: { view: 'back', id: 'LATISSIMUS_LEFT' },
+    lowerBack: { view: 'back', id: 'LOWER_BACK_LEFT' },
+    adductors: { view: 'front', id: 'ADDUCTOR_LEFT' },
+    abductors: { view: 'front', id: 'ABDUCTOR_LEFT' },
     glutes: { view: 'back', id: 'GLUTEUS_LEFT' },
     quadriceps: { view: 'front', id: 'QUADRICEPS_LEFT' },
     hamstrings: { view: 'back', id: 'HAMSTRINGS_LEFT' },

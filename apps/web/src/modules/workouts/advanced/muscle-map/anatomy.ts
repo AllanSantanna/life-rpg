@@ -2,9 +2,9 @@ import { front } from './anatomy/front';
 import { back } from './anatomy/back';
 import frontImage from './anatomy/front.webp';
 import backImage from './anatomy/back.webp';
-import type { Muscle } from '../types';
+import type { MapGroup } from './participation';
 
-/** Broad domain groups remain unchanged. Never invent a more specific training record. */
+/** Superfícies → grupos da projeção. Lombar, Adutores e Abdutores existem só no mapa. */
 export const anatomicalGroups = {
   CHEST: 'chest',
   SHOULDERS_FRONT: 'shoulders',
@@ -16,16 +16,16 @@ export const anatomicalGroups = {
   TRAPEZIUS: 'trapezius',
   LATS: 'back',
   RHOMBOIDS: 'back',
-  BACK_LOWER: 'back',
+  BACK_LOWER: 'lowerBack',
   CORE: 'core',
   OBLIQUES: 'core',
   GLUTES: 'glutes',
   QUADS: 'quadriceps',
   HAMSTRINGS: 'hamstrings',
   CALVES: 'calves',
-  ADDUCTORS: null,
-  ABDUCTORS: null,
-} satisfies Record<string, Muscle | null>;
+  ADDUCTORS: 'adductors',
+  ABDUCTORS: 'abductors',
+} satisfies Record<string, MapGroup | null>;
 export const anatomicalLabels: Record<keyof typeof anatomicalGroups, string> = {
   CHEST: 'Peitoral',
   SHOULDERS_FRONT: 'Deltoide anterior',

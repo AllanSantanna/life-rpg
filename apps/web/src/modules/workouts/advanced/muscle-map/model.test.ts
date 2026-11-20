@@ -7,6 +7,7 @@ import {
   metricTone,
   projectMuscles,
 } from './model';
+import { isMapGroup } from './participation';
 import { anatomicalGroups, diagrams } from './anatomy';
 const today = '2026-11-20';
 const session = (id = 'one', date = today, count = 4) =>
@@ -216,8 +217,11 @@ describe('projeções do mapa: dados reais, sem alterar registros', () => {
         expect(s.group in anatomicalGroups).toBe(true);
       }
     }
-    expect(anatomicalGroups.BACK_LOWER).toBe('back');
+    expect(anatomicalGroups.BACK_LOWER).toBe('lowerBack');
     expect(anatomicalGroups.OBLIQUES).toBe('core');
-    expect(anatomicalGroups.ADDUCTORS).toBeNull();
+    expect(anatomicalGroups.ADDUCTORS).toBe('adductors');
+    expect(anatomicalGroups.ABDUCTORS).toBe('abductors');
+    for (const group of Object.values(anatomicalGroups))
+      expect(isMapGroup(group)).toBe(true);
   });
 });

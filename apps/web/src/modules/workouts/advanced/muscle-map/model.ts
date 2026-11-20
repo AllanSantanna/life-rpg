@@ -9,9 +9,14 @@ import {
   localDate,
   shiftDate,
 } from '../../../records/dates';
-import { normalizedName } from '../catalog';
 import { periodDays, type TrainingPeriod } from '../calculations';
-import { muscleLabels, type Muscle, type WorkoutSession } from '../types';
+import type { WorkoutSession } from '../types';
+import {
+  exerciseParticipation,
+  mapGroups,
+  type MapGroup,
+  type ParticipationRole,
+} from './participation';
 
 export type MapMode = 'effort' | 'recovery';
 export type Tone =
@@ -35,8 +40,32 @@ export interface MuscleDay {
   rirCount: number;
   sessions: Set<string>;
 }
+/**
+ * Rastro de um exercício registrado para um grupo. Fonte única: as sessões
+ * salvas; nada é persistido. Estabilizadores têm `units` e `burden` zero.
+ */
+export interface MuscleContribution {
+  key: string;
+  sessionId: string;
+  exerciseId: string;
+  exerciseName: string;
+  date: string;
+  startedAt: string | null;
+  sets: number;
+  role: ParticipationRole;
+  reason: string;
+  source: 'review' | 'record';
+  /** Séries equivalentes usadas no Esforço (séries × peso do papel). */
+  units: number;
+  /** Carga antes do decaimento (séries × RIR × volume × peso do papel). */
+  burden: number;
+  /** Carga residual no instante de referência; 0 fora da janela. */
+  residual: number;
+  inPeriod: boolean;
+  inRecoveryWindow: boolean;
+}
 export interface MuscleSummary {
-  muscle: Muscle;
+  muscle: MapGroup;
   sets: number;
   direct: number;
   secondary: number;
@@ -52,6 +81,8 @@ export interface MuscleSummary {
   lastTiming: StimulusTiming | null;
   recoveryTiming: StimulusTiming | null;
   residualBurden: number;
+  /** Mais recentes primeiro; inclui participações estabilizadoras. */
+  contributions: MuscleContribution[];
 }
 export const defaultRecoveryConfig = {
   halfLifeDays: 2,
@@ -64,23 +95,8 @@ export type RecoveryConfig = {
 };
 const clamp = (n: number, min: number, max: number) =>
   Math.min(max, Math.max(min, n));
-const muscles = Object.keys(muscleLabels) as Muscle[];
-
-/** Reuses the historical shrug interpretation without mutating snapshots. */
-export function muscleParticipation(
-  exercise: WorkoutSession['exercises'][number]['exercise'],
-) {
-  const primary =
-    exercise.primary === 'back' &&
-    (['shrug', 'barbell-shrug'].includes(exercise.id) ||
-      normalizedName(exercise.name).startsWith('encolhimento'))
-      ? 'trapezius'
-      : exercise.primary;
-  return {
-    primary,
-    secondary: [...new Set(exercise.secondary)].filter((m) => m !== primary),
-  };
-}
+const roleWeight = (role: ParticipationRole, config: RecoveryConfig) =>
+  role === 'primary' ? 1 : role === 'secondary' ? config.secondaryWeight : 0;
 
 /** Pure projection. Numeric reference = live instant; civil date = historical end of day. */
 export function projectMuscles(
@@ -102,10 +118,13 @@ export function projectMuscles(
   )
     throw new Error('Configuração de recuperação inválida.');
   const days = Object.fromEntries(
-    muscles.map((m) => [m, new Map<string, MuscleDay>()]),
-  ) as Record<Muscle, Map<string, MuscleDay>>;
+    mapGroups.map((m) => [m, new Map<string, MuscleDay>()]),
+  ) as Record<MapGroup, Map<string, MuscleDay>>;
+  const traces = Object.fromEntries(
+    mapGroups.map((m) => [m, [] as MuscleContribution[]]),
+  ) as Record<MapGroup, MuscleContribution[]>;
   const stimuli = Object.fromEntries(
-    muscles.map((m) => [
+    mapGroups.map((m) => [
       m,
       [] as {
         timing: StimulusTiming;
@@ -115,7 +134,7 @@ export function projectMuscles(
       }[],
     ]),
   ) as Record<
-    Muscle,
+    MapGroup,
     {
       timing: StimulusTiming;
       burden: number;
@@ -191,15 +210,42 @@ export function projectMuscles(
               : 1),
           0,
         ) * volumeFactor;
-      const { primary, secondary } = muscleParticipation(entry.exercise);
-      const participation = [primary, ...secondary].filter((m): m is Muscle =>
-        muscles.includes(m),
-      );
-      if (!participation.length && age < periodDays[period])
+      const participation = exerciseParticipation(entry.exercise);
+      if (
+        !participation.some((p) => p.role !== 'stabilizer') &&
+        age < periodDays[period]
+      )
         unmappedSets += sets.length;
-      for (const m of participation) {
-        const direct = m === primary;
-        const weight = direct ? 1 : config.secondaryWeight;
+      for (const { group: m, role, reason, source } of participation) {
+        const weight = roleWeight(role, config);
+        const inRecoveryWindow = timing.startedAt
+          ? timing.minElapsedHours < config.lookbackDays * 24
+          : age < config.lookbackDays;
+        traces[m].push({
+          key: `${session.id}:${entry.id}`,
+          sessionId: session.id,
+          exerciseId: entry.exercise.id,
+          exerciseName: entry.exercise.name,
+          date: session.date,
+          startedAt: timing.startedAt,
+          sets: sets.length,
+          role,
+          reason,
+          source,
+          units: sets.length * weight,
+          burden: burden * weight,
+          residual:
+            inRecoveryWindow && weight > 0
+              ? burden *
+                weight *
+                2 ** (-timing.minElapsedHours / (24 * config.halfLifeDays))
+              : 0,
+          inPeriod: age < periodDays[period],
+          inRecoveryWindow,
+        });
+        // Estabilizador: rastreado acima, sem série equivalente nem carga.
+        if (weight === 0) continue;
+        const direct = role === 'primary';
         const day = days[m].get(session.date) ?? {
           date: session.date,
           sets: 0,
@@ -234,7 +280,7 @@ export function projectMuscles(
     }
   }
   const summaries = Object.fromEntries(
-    muscles.map((m) => {
+    mapGroups.map((m) => {
       const all = [...days[m].values()];
       const history = all.filter(
         (d) => daysBetween(today, d.date) < periodDays[period],
@@ -287,11 +333,16 @@ export function projectMuscles(
         lastTiming,
         recoveryTiming,
         residualBurden: burden,
+        contributions: [...traces[m]].sort(
+          (a, b) =>
+            b.date.localeCompare(a.date) ||
+            (b.startedAt ?? '').localeCompare(a.startedAt ?? ''),
+        ),
       };
       return [m, result];
     }),
-  ) as Record<Muscle, MuscleSummary>;
-  const max = Math.max(0, ...muscles.map((m) => summaries[m].units));
+  ) as Record<MapGroup, MuscleSummary>;
+  const max = Math.max(0, ...mapGroups.map((m) => summaries[m].units));
   for (const summary of Object.values(summaries))
     summary.effort =
       summary.units > 0 && max > 0

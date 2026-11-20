@@ -68,23 +68,58 @@ export async function auditMuscleMap({ page, width, capture, check }) {
     'Seleção traseira falhou',
   );
   await capture(page, 'muscle-back-selected', width);
-  await map
-    .getByRole('group', { name: 'Mapa muscular · visão frontal' })
-    .getByRole('button', { name: /Adutores · esquerda/ })
-    .click();
-  check(
-    (await map.getByText('Grupo: Não registrado separadamente').count()) === 1,
-    'muscle-unmapped',
-    width,
-    'Região sem correspondência ganhou grupo',
+  const details = map.getByLabel('Detalhes do músculo selecionado');
+  const front = map.getByRole('group', {
+    name: 'Mapa muscular · visão frontal',
+  });
+  const adductor = front.getByRole('button', { name: /Adutores · esquerda/ });
+  if (width < 768) await adductor.tap();
+  else await adductor.click();
+  const trace = details.getByRole('region', {
+    name: 'Exercícios que estimularam este músculo',
+  });
+  // Depende só do histórico da fixture: agachamento registrado → rastreio dele.
+  const hasSquat = await page.evaluate(() =>
+    JSON.parse(
+      localStorage.getItem('life-rpg:player-state'),
+    ).data.records.advancedWorkouts.sessions.some(
+      (s) =>
+        s.status === 'completed' &&
+        s.exercises.some((e) => e.exercise.id === 'squat'),
+    ),
   );
   check(
-    (await map
+    (await details.getByText('Grupo: Adutores').count()) === 1 &&
+      (hasSquat
+        ? (await trace
+            .getByRole('list', { name: 'Estímulo contabilizado' })
+            .getByText('Agachamento livre')
+            .count()) > 0
+        : (await trace
+            .getByText(/^Nenhum estímulo contabilizado para este músculo/)
+            .count()) === 1),
+    'muscle-trace',
+    width,
+    `Rastreio de Adutores incoerente com o histórico (agachamento: ${hasSquat})`,
+  );
+  await trace.scrollIntoViewIfNeeded();
+  await capture(page, 'muscle-trace', width);
+  // Região pequena no celular: usa a alternativa documentada da lista (44 px).
+  const abductor = map.getByRole('button', { name: /^Abdutores/ });
+  if (width < 768) await abductor.tap();
+  else await abductor.click();
+  check(
+    (await details
       .getByRole('img', { name: 'Índice estimado: indeterminado' })
-      .count()) === 1,
+      .count()) === 1 &&
+      (await trace
+        .getByText(
+          'Nenhum estímulo contabilizado para este músculo nos últimos 14 dias.',
+        )
+        .count()) === 1,
     'muscle-indeterminate',
     width,
-    'Inventou índice sem correspondência',
+    'Abdutores ganharam índice sem exercício relacionado',
   );
   await map.getByRole('tab', { name: 'Recuperação', exact: true }).focus();
   await page.keyboard.press('Home');

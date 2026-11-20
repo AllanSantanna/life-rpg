@@ -23,21 +23,144 @@ conforme sua declaração MIT. Não são ilustrações médicas validadas.
 
 O mapeamento explícito está em `anatomy.ts`:
 
-| Superfícies MuscleMap                | Grupo persistido Life RPG                 |
+| Superfícies MuscleMap                | Grupo do mapa                             |
 | ------------------------------------ | ----------------------------------------- |
 | CHEST                                | chest                                     |
 | SHOULDERS_FRONT / SIDE / REAR        | shoulders                                 |
 | BICEPS / TRICEPS / FOREARMS          | biceps / triceps / forearms               |
 | TRAPEZIUS                            | trapezius                                 |
-| LATS / RHOMBOIDS / BACK_LOWER        | back                                      |
+| LATS / RHOMBOIDS                     | back                                      |
+| BACK_LOWER                           | lowerBack (Lombar, só no mapa)            |
 | CORE / OBLIQUES                      | core                                      |
 | GLUTES / QUADS / HAMSTRINGS / CALVES | glutes / quadriceps / hamstrings / calves |
-| ADDUCTORS / ABDUCTORS                | nenhum: indeterminado                     |
+| ADDUCTORS / ABDUCTORS                | adductors / abductors (só no mapa)        |
 
 Cada lado tem seleção própria; suas métricas são do grupo inteiro, porque o
-histórico não diferencia lados. Dorsais, lombar e romboides não ganham registros
-independentes. Encolhimentos antigos classificados como Costas são interpretados
-como Trapézio em memória, como já fazia `muscleActivity`, sem reescrever snapshots.
+histórico não diferencia lados. Encolhimentos antigos classificados como Costas
+são interpretados como Trapézio em memória, sem reescrever snapshots.
+
+## Participação muscular e rastreabilidade
+
+### Diagnóstico do comportamento anterior
+
+- **Abdômen com estímulo sem exercício abdominal:** `core` estava cadastrado como
+  **secundário** em Agachamento livre, frontal e goblet e na Caminhada do
+  fazendeiro. Cada série desses exercícios somava 0,5 série equivalente ao
+  abdômen, no Esforço e na Recuperação. Não havia como distinguir estabilização
+  de tronco de participação motora.
+- **Adutores e abdutores sempre sem estímulo:** o tipo persistido `Muscle` não tem
+  esses grupos, e `anatomy.ts` mapeava as superfícies para `null`. Nenhum
+  exercício podia pontuá-los. Além disso, a Cadeira adutora estava classificada
+  como **quadríceps** (erro) e a Cadeira abdutora como glúteos.
+- **Lombar = Costas:** a superfície lombar mostrava o grupo Costas. O `back`
+  secundário do terra, do stiff e do good morning (eretores da coluna) somava em
+  Costas, junto de dorsais e romboides.
+- **Cálculo:** `projectMuscles` aplicava corretamente o snapshot (principal 1,
+  secundário 0,5). O problema estava na classificação e na ausência de grupos e
+  de um papel estabilizador, não na fórmula.
+
+### Três papéis
+
+| Papel         | Definição                                                   | Esforço e Recuperação |
+| ------------- | ----------------------------------------------------------- | --------------------- |
+| Principal     | Músculo-alvo, com papel relevante na execução               | 1 por série           |
+| Secundário    | Participa ativamente do movimento, sem ser o foco           | 0,5 por série         |
+| Estabilizador | Controla postura, articulação ou pelve, em geral isométrico | 0: só rastreado       |
+
+Os pesos 1 e 0,5 foram mantidos. A contagem fracionada (indireta = 0,5) teve o
+melhor ajuste para hipertrofia em meta-regressões de dose-resposta
+([Pelland et al., Sports Medicine](https://doi.org/10.1007/s40279-025-02344-w);
+[preprint](https://sportrxiv.org/index.php/server/preprint/view/460)). Isso apoia
+uma ordem de grandeza, não um valor fisiológico exato. Estabilizador não tem
+evidência equivalente de estímulo hipertrófico por série; por isso vale 0. Não há
+dupla contagem: cada grupo aparece uma vez por exercício, com o papel mais forte.
+
+### Onde a classificação vem
+
+`participation.ts` define `reviewedParticipation`, uma tabela **somente leitura**
+indexada pelo ID dos exercícios do catálogo. Ela reinterpreta o histórico em
+memória, como o encolhimento; snapshots não são regravados, não há migração e o
+contrato salvo (`Exercise.primary/secondary`, `Muscle`) não mudou. IDs fora da
+tabela, inclusive exercícios próprios do usuário, usam os papéis do snapshot
+(principal e secundários) e nunca recebem papéis novos. Lombar, Adutores e
+Abdutores existem só nesta projeção, para não invalidar dados lidos pela `main`.
+
+### Classificações revisadas
+
+| Exercício                            | Principal   | Secundário                                | Estabilizador             |
+| ------------------------------------ | ----------- | ----------------------------------------- | ------------------------- |
+| Agachamento livre, frontal, goblet   | Quadríceps  | Glúteos, Adutores                         | Abdômen, Lombar           |
+| Agachamento no Smith                 | Quadríceps  | Glúteos, Adutores                         | Lombar                    |
+| Agachamento hack                     | Quadríceps  | Glúteos, Adutores                         | —                         |
+| Agachamento com peso corporal        | Quadríceps  | Glúteos                                   | Abdômen                   |
+| Agachamento búlgaro, Afundo          | Quadríceps  | Glúteos                                   | Abdutores, Adutores       |
+| Subida no banco                      | Quadríceps  | Glúteos                                   | Abdutores                 |
+| Levantamento terra                   | Posteriores | Glúteos, Lombar, Antebraços               | Abdômen, Costas, Trapézio |
+| Terra romeno, Stiff (barra/halteres) | Posteriores | Glúteos, Lombar                           | Abdômen, Antebraços       |
+| Good morning                         | Posteriores | Glúteos, Lombar                           | Abdômen                   |
+| Terra sumô                           | Glúteos     | Posteriores, Quadríceps, Adutores, Lombar | Abdômen, Antebraços       |
+| Extensão lombar                      | Lombar      | Glúteos, Posteriores                      | —                         |
+| Cadeira adutora                      | Adutores    | —                                         | —                         |
+| Cadeira abdutora                     | Abdutores   | Glúteos                                   | —                         |
+| Remada curvada, Remada cavalinho     | Costas      | Bíceps, Antebraços                        | Lombar                    |
+| Remada alta                          | Ombros      | Trapézio                                  | —                         |
+| Caminhada do fazendeiro              | Antebraços  | —                                         | Abdômen, Trapézio         |
+| Prancha com toque nos ombros         | Abdômen     | —                                         | Ombros                    |
+| Flexão de braços                     | Peito       | Tríceps, Ombros                           | Abdômen                   |
+| Elevação de pernas na barra          | Abdômen     | —                                         | Antebraços                |
+
+Confirmados sem mudança: supinos, crucifixos, puxadas, desenvolvimentos,
+roscas, tríceps, panturrilhas, elevação pélvica e abdominais. **Leg press não
+recebe Adutores:** não encontramos evidência específica; a abordagem é
+conservadora. Variações não recebem os mesmos auxiliares sem justificativa: o
+Smith e o hack reduzem a exigência de estabilização do tronco; o peso corporal
+não tem a carga do estudo de agachamento; os unilaterais exigem controle da pelve.
+
+### Participação, estímulo contabilizado e recuperação
+
+1. **Participação:** qualquer papel registrado para o exercício.
+2. **Estímulo contabilizado:** séries × peso do papel (1 ou 0,5); alimenta o
+   Esforço.
+3. **Recuperação estimada:** carga residual dos estímulos contabilizados, com as
+   fórmulas abaixo. Estabilizadores não entram, logo não reduzem a recuperação.
+
+Ao selecionar um grupo, **Exercícios que estimularam este músculo** lista apenas
+sessões concluídas e registradas: nome, data e horário (se houver), séries
+válidas, papel, contribuição (séries equivalentes no Esforço; carga residual
+atual e inicial na Recuperação) e motivo. No Esforço, a janela é o período
+escolhido; na Recuperação, os 14 dias da estimativa. Sem estímulo, a mensagem é
+“Nenhum estímulo contabilizado para este músculo no período selecionado.”;
+estabilizadores ficam numa lista separada, marcada como não contabilizada. A
+lista é recalculada a cada renderização a partir das sessões (registrar, editar
+séries, mudar data/horário ou excluir), sem cópia persistida.
+
+### Evidência e limites
+
+- **Adutores no agachamento (hipertrofia, ressonância magnética):**
+  [Kubo et al., 2019](https://doi.org/10.1007/s00421-019-04181-y) observaram
+  aumento de volume dos adutores e do glúteo máximo após agachamento, maior no
+  agachamento completo. Amostra pequena, destreinados, um exercício.
+- **Tronco no agachamento e no terra (eletromiografia):**
+  [Hamlyn et al., 2007](https://pubmed.ncbi.nlm.nih.gov/18076231/) encontraram
+  alta atividade dos eretores da coluna, sem aumento significativo em oblíquo
+  externo e abdominal inferior. Apoia abdômen como estabilizador e Lombar como
+  participante relevante nas flexões de quadril. Não mediu hipertrofia.
+- **Glúteo médio em apoio unilateral (eletromiografia):** revisão sistemática
+  sobre os segmentos do glúteo médio e mínimo
+  ([IJSPT, 2020](https://pubmed.ncbi.nlm.nih.gov/33344003/)) inclui exercícios
+  unilaterais entre os de maior atividade. Usado apenas para justificar o papel
+  estabilizador, sem contar estímulo.
+- **Limite da eletromiografia:** amplitude de sEMG não é proxy validada de
+  hipertrofia ([Vigotsky et al., 2018](https://pubmed.ncbi.nlm.nih.gov/29354060/);
+  [2022](https://doi.org/10.1007/s40279-021-01619-2)). Por isso nenhum percentual
+  de ativação é usado como peso.
+- **Heurística do aplicativo:** a escolha entre secundário e estabilizador para
+  Lombar nas flexões de quadril, os adutores no terra sumô (função anatômica do
+  adutor magno como extensor do quadril, sem estudo de hipertrofia específico) e
+  a ausência de Adutores no leg press e no terra convencional são decisões
+  conservadoras do produto, revisáveis com nova evidência.
+- **Pendência:** confirmar autoria completa da revisão do IJSPT e a versão
+  final de Pelland et al. antes de citações formais.
 
 ## Esforço relativo
 
@@ -47,8 +170,9 @@ aquecimentos, séries incompletas, rascunhos ou futuro. Os dados já passam pela
 validação canônica; a projeção também rejeita valores ausentes/inválidos.
 
 Janela: últimos 7/30/90/180/365 dias incluindo hoje, limite inferior inclusivo.
-Uma série direta vale 1; uma participação secundária vale 0,5, sem duplicar um
-grupo dentro da série. `E_g = séries diretas + 0,5 × séries secundárias`.
+Uma série direta vale 1; uma participação secundária vale 0,5; estabilizador
+vale 0, sem duplicar um grupo dentro da série.
+`E_g = séries diretas + 0,5 × séries secundárias`.
 Índice: `round(100 × E_g / max(E))`, limitado inferiormente a 1 quando existe
 participação. Sem participação: `null`, nunca 0% medido. O grupo com maior total
 recebe 100%, sem significar treino suficiente, qualidade ou objetivo recomendado.
@@ -188,7 +312,10 @@ percepção de fadiga e recuperação”.
 
 ## Validação e limites visuais
 
-`model.test.ts`: ponderação, limites temporais, dados ausentes, RIR, volume
+`participation.test.ts`: papéis, estabilizadores sem estímulo, adutores no
+agachamento, unilaterais, cadeiras adutora/abdutora, grupos sem relação,
+rastreio fiel ao histórico, edição/exclusão, ausência de dupla contagem e
+sessões antigas. `model.test.ts`: ponderação, limites temporais, dados ausentes, RIR, volume
 comparável, sobreposição, recuperação com o tempo, vários grupos, reclassificação
 histórica, IDs e atualização após edição/exclusão. `recoveryTiming.test.ts`:
 2 h × 26 h, continuidade na meia-noite, monotonicidade horária, fusos, acúmulo,
