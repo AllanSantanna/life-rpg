@@ -1,3 +1,5 @@
+import { useWorkoutClock } from './useWorkoutClock';
+import { localDate } from '../../records/dates';
 import { useId, useMemo, useRef, useState } from 'react';
 import { CustomSelect } from '../../../shared/components/CustomSelect';
 import { Icon } from '../../../shared/components/Icon';
@@ -25,7 +27,6 @@ import { SelectionConnector } from './muscle-map/SelectionConnector';
 
 export function MuscleMap({
   sessions,
-  today,
   period,
   onPeriodChange,
 }: {
@@ -39,28 +40,31 @@ export function MuscleMap({
     view: 'front',
     id: 'CHEST_LEFT',
   });
+  const now = useWorkoutClock();
+  const referenceDay = localDate(new Date(now));
   const uid = useId();
   const grid = useRef<HTMLDivElement>(null);
   const { summaries, unmappedSets } = useMemo(
-    () => projectMuscles(sessions, today, period),
-    [sessions, today, period],
+    () => projectMuscles(sessions, now, period),
+    [sessions, now, period],
   );
   const selectedGroup = anatomicalGroups[findSurface(selection).group];
   const summary = selectedGroup ? summaries[selectedGroup] : undefined;
   const history = useMemo<HistoryPoint[]>(() => {
     if (mode === 'recovery')
       return Array.from({ length: 14 }, (_, i) => {
-        const date = shiftDate(today, i - 13);
+        const date = shiftDate(referenceDay, i - 13);
         return {
           date,
           value: selectedGroup
-            ? projectMuscles(sessions, date, period).summaries[selectedGroup]
-                .recovery
+            ? projectMuscles(sessions, i === 13 ? now : date, period).summaries[
+                selectedGroup
+              ].recovery
             : null,
         };
       });
     if (!summary) return [];
-    const daily = dailyHistory(summary, today, period);
+    const daily = dailyHistory(summary, referenceDay, period);
     const bucketSize = Math.ceil(daily.length / 14);
     return Array.from(
       { length: Math.ceil(daily.length / bucketSize) },
@@ -76,7 +80,7 @@ export function MuscleMap({
         };
       },
     );
-  }, [mode, period, selectedGroup, sessions, summary, today]);
+  }, [mode, period, selectedGroup, sessions, summary, referenceDay, now]);
   function selectGroup(muscle: Muscle) {
     setSelection(documentedSelection(muscle));
   }

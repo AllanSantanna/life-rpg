@@ -21,8 +21,11 @@ export function MethodHelp() {
         <h4>Recuperação: índice estimado, com incerteza</h4>
         <p>
           Usamos os estímulos dos últimos 14 dias, independentemente do filtro
-          de esforço. Cada participação decai pela metade a cada 2 dias civis.
-          As participações se somam: treinos frequentes mantêm maior carga
+          de esforço. Cada participação decai pela metade a cada 48 horas,
+          contadas continuamente a partir do início registrado do treino, sem
+          salto na virada da meia-noite. Sem horário registrado, usamos o menor
+          tempo possível desde o fim daquele dia (estimativa conservadora). As
+          participações se somam: treinos frequentes mantêm maior carga
           residual. Índice = 100 × exp(−carga residual ÷ 12), limitado a 99. Não
           significa porcentagem de tecido recuperado nem autorização para
           treinar.
@@ -36,9 +39,10 @@ export function MethodHelp() {
           exercícios diferentes.
         </p>
         <p>
-          2 dias, 12 participações, 0,5, 20%, 50% e os limiares de cores são
+          48 horas, 12 participações, 0,5, 20%, 50% e os limiares de cores são
           heurísticas configuráveis do aplicativo, não parâmetros clínicos
-          validados. Datas não contêm horário; não exibimos previsão em horas.
+          validados. O horário representa o início do treino; a duração não é
+          inferida. A estimativa é atualizada a cada minuto com a tela visível.
           Sono, dor, alimentação, novidade e experiência individual não são
           inferidos. Sem estímulo recente ou mapeamento, o estado é
           indeterminado.

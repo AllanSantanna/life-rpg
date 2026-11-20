@@ -1,17 +1,58 @@
 import {
+  act,
   cleanup,
   fireEvent,
   render,
   screen,
   within,
 } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MuscleMap } from '../MuscleMap';
 import { testSession, testSet } from '../testFixtures';
 afterEach(cleanup);
+beforeEach(() => vi.setSystemTime(new Date('2026-11-20T12:00:00')));
 const today = '2026-11-20';
 const sessions = [testSession('one', today, [testSet('a'), testSet('b')])];
 describe('mapa anatômico integrado', () => {
+  it('atualiza a recuperação pelo relógio sem gravar storage e remove o timer ao sair', () => {
+    vi.useFakeTimers();
+    const startedAt = '2026-11-20T11:00:00+00:00';
+    const reference = Date.parse('2026-11-20T12:00:00+00:00');
+    vi.setSystemTime(reference);
+    const timed = [
+      {
+        ...testSession(
+          'timed',
+          today,
+          Array.from({ length: 9 }, (_, i) =>
+            testSet(`s${i}`, 40, 10, 'working', 0),
+          ),
+        ),
+        startedAt,
+      },
+    ];
+    const save = vi.spyOn(Storage.prototype, 'setItem');
+    const { unmount } = render(
+      <MuscleMap sessions={timed} today={today} period="week" />,
+    );
+    fireEvent.click(screen.getByRole('tab', { name: 'Recuperação' }));
+    const initial = screen
+      .getByRole('img', { name: /^Índice estimado:/ })
+      .getAttribute('aria-label');
+    act(() => {
+      vi.setSystemTime(reference + 8 * 3600000);
+      vi.advanceTimersByTime(60000);
+    });
+    expect(
+      screen
+        .getByRole('img', { name: /^Índice estimado:/ })
+        .getAttribute('aria-label'),
+    ).not.toBe(initial);
+    expect(save).not.toHaveBeenCalled();
+    unmount();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
   it('seleciona regiões individuais por teclado/toque e preserva a seleção entre modos', () => {
     const save = vi.spyOn(Storage.prototype, 'setItem');
     render(<MuscleMap sessions={sessions} today={today} period="week" />);
