@@ -124,7 +124,13 @@ não tem a carga do estudo de agachamento; os unilaterais exigem controle da pel
 3. **Recuperação estimada:** carga residual dos estímulos contabilizados, com as
    fórmulas abaixo. Estabilizadores não entram, logo não reduzem a recuperação.
 
-Ao selecionar um grupo, **Exercícios que estimularam este músculo** lista apenas
+Ao selecionar um grupo, **Exercícios que estimularam este músculo (N)** aparece
+recolhida (`Disclosure` compartilhado), com a contagem no título. Aberta, mostra os
+5 registros mais recentes; **Mostrar mais N** acrescenta 5 por vez e **Mostrar
+menos** volta aos 5 primeiros, mantendo o foco no controle restante. A
+**Participação estabilizadora · não contabilizada (N)** é outra seção
+independente, com a mesma regra. Trocar de grupo ou de período recolhe as duas e
+volta a 5 registros. A paginação é só visual. A lista inclui apenas
 sessões concluídas e registradas: nome, data e horário (se houver), séries
 válidas, papel, contribuição (séries equivalentes no Esforço; carga residual
 atual e inicial na Recuperação) e motivo. No Esforço, a janela é o período

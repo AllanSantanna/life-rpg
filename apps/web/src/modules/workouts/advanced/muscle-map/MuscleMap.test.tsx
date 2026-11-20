@@ -8,6 +8,7 @@ import {
 } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MuscleMap } from '../MuscleMap';
+import { shiftDate } from '../../../records/dates';
 import { testSession, testSet } from '../testFixtures';
 afterEach(cleanup);
 beforeEach(() => vi.setSystemTime(new Date('2026-11-20T12:00:00')));
@@ -135,81 +136,161 @@ describe('mapa anatômico integrado', () => {
         name: 'Esforço relativo: indeterminado',
       }),
     ).toBeInTheDocument();
+    const trace = within(details).getByRole('button', {
+      name: 'Exercícios que estimularam este músculo (0)',
+    });
+    fireEvent.click(trace);
     expect(
       within(details).getByText(
         'Nenhum estímulo contabilizado para este músculo no período selecionado.',
       ),
     ).toBeInTheDocument();
   });
-  it('rastreia exercícios reais por grupo, separando estabilizador de estímulo contabilizado', () => {
+  it('rastreia exercícios em seções recolhíveis, independentes e paginadas de 5 em 5', () => {
     const save = vi.spyOn(Storage.prototype, 'setItem');
-    const squats = Array.from({ length: 6 }, (_, i) =>
+    // 18 sessões de agachamento (uma por dia): 18 registros em Quadríceps e
+    // 18 participações estabilizadoras em Abdômen no período de 30 dias.
+    const squats = Array.from({ length: 18 }, (_, i) =>
       testSession(
         `sq${i}`,
-        `2026-11-${String(14 + i).padStart(2, '0')}`,
+        shiftDate(today, -(17 - i)),
         [testSet('a', 60, 8, 'working', 2), testSet('b', 60, 8)],
         'squat',
       ),
     );
-    render(<MuscleMap sessions={squats} today={today} period="month" />);
-    fireEvent.click(screen.getByRole('button', { name: /^Abdômen/ }));
+    const { rerender } = render(
+      <MuscleMap sessions={squats} today={today} period="month" />,
+    );
     const details = () =>
       screen.getByLabelText('Detalhes do músculo selecionado');
-    const trace = () =>
-      within(details()).getByRole('region', {
-        name: 'Exercícios que estimularam este músculo',
-      });
+    const header = (name: RegExp) =>
+      within(details()).getByRole('button', { name });
+    const main = () => header(/^Exercícios que estimularam este músculo/);
+    const stab = () => header(/^Participação estabilizadora/);
+    const items = (label: string) =>
+      within(within(details()).getByRole('list', { name: label })).getAllByRole(
+        'listitem',
+      );
+    fireEvent.click(screen.getByRole('button', { name: /^Quadríceps/ }));
+    // Fechada por padrão, com título, contagem e controle acessível.
+    expect(main()).toHaveAccessibleName(
+      'Exercícios que estimularam este músculo (18)',
+    );
+    expect(main()).toHaveAttribute('aria-expanded', 'false');
+    expect(main()).toHaveAttribute('type', 'button');
     expect(
-      within(trace()).getByText(
+      document.getElementById(main().getAttribute('aria-controls')!),
+    ).not.toBeVisible();
+    expect(within(details()).getByText('Mostrar detalhes')).toBeInTheDocument();
+    expect(
+      within(details()).queryByRole('list', { name: 'Estímulo contabilizado' }),
+    ).toBeNull();
+    fireEvent.click(main());
+    expect(main()).toHaveAttribute('aria-expanded', 'true');
+    expect(within(details()).getByText('Ocultar detalhes')).toBeInTheDocument();
+    // Mais recentes primeiro, 5 por vez.
+    expect(items('Estímulo contabilizado')).toHaveLength(5);
+    expect(items('Estímulo contabilizado')[0]).toHaveTextContent('20/11/2026');
+    expect(items('Estímulo contabilizado')[4]).toHaveTextContent('16/11/2026');
+    for (const [label, total] of [
+      ['Mostrar mais 5', 10],
+      ['Mostrar mais 5', 15],
+      ['Mostrar mais 3', 18],
+    ] as const) {
+      const more = within(details()).getByRole('button', { name: label });
+      more.focus();
+      fireEvent.click(more);
+      expect(items('Estímulo contabilizado')).toHaveLength(total);
+      expect(
+        within(details()).getByText(`Exibindo ${total} de 18 registros.`),
+      ).toBeInTheDocument();
+    }
+    expect(
+      within(details()).queryByRole('button', { name: /^Mostrar mais/ }),
+    ).toBeNull();
+    const less = within(details()).getByRole('button', {
+      name: 'Mostrar menos',
+    });
+    // O botão clicado sumiu; o foco foi para o controle restante.
+    expect(less).toHaveFocus();
+    fireEvent.click(less);
+    expect(items('Estímulo contabilizado')).toHaveLength(5);
+    expect(
+      within(details()).getByRole('button', { name: 'Mostrar mais 5' }),
+    ).toHaveFocus();
+    // Recolher e reabrir mantém o músculo selecionado.
+    fireEvent.click(main());
+    expect(main()).toHaveAttribute('aria-expanded', 'false');
+    expect(
+      screen.getByRole('button', { name: /^Quadríceps/, pressed: true }),
+    ).toBeInTheDocument();
+
+    // Abdômen: nenhum estímulo contabilizado, 18 estabilizações.
+    fireEvent.click(screen.getByRole('button', { name: /^Abdômen/ }));
+    expect(main()).toHaveAccessibleName(
+      'Exercícios que estimularam este músculo (0)',
+    );
+    expect(stab()).toHaveAccessibleName(
+      'Participação estabilizadora · não contabilizada (18)',
+    );
+    expect(main()).toHaveAttribute('aria-expanded', 'false');
+    expect(stab()).toHaveAttribute('aria-expanded', 'false');
+    // Seções independentes.
+    fireEvent.click(stab());
+    expect(stab()).toHaveAttribute('aria-expanded', 'true');
+    expect(main()).toHaveAttribute('aria-expanded', 'false');
+    expect(items('Participação estabilizadora')).toHaveLength(5);
+    expect(
+      within(details()).getAllByText(
+        'Não entra no cálculo: participação estabilizadora.',
+      ),
+    ).toHaveLength(5);
+    expect(
+      within(details()).getByText(/estabilização não equivale a estímulo/),
+    ).toBeInTheDocument();
+    fireEvent.click(
+      within(details()).getByRole('button', { name: 'Mostrar mais 5' }),
+    );
+    expect(items('Participação estabilizadora')).toHaveLength(10);
+    fireEvent.click(main());
+    expect(
+      within(details()).getByText(
         'Nenhum estímulo contabilizado para este músculo no período selecionado.',
       ),
     ).toBeInTheDocument();
-    const stabilizers = within(trace()).getByRole('list', {
-      name: 'Participação estabilizadora',
-    });
-    expect(within(stabilizers).getAllByRole('listitem')).toHaveLength(5);
+
+    // Trocar o período recolhe tudo, volta a 5 e atualiza contagens.
+    rerender(<MuscleMap sessions={squats} today={today} period="week" />);
+    expect(main()).toHaveAttribute('aria-expanded', 'false');
+    expect(stab()).toHaveAttribute('aria-expanded', 'false');
+    expect(stab()).toHaveAccessibleName(
+      'Participação estabilizadora · não contabilizada (7)',
+    );
+    fireEvent.click(stab());
+    expect(items('Participação estabilizadora')).toHaveLength(5);
+
+    // Trocar de músculo também recolhe e não mantém dados do anterior.
+    fireEvent.click(screen.getByRole('button', { name: /^Peito/ }));
+    expect(main()).toHaveAccessibleName(
+      'Exercícios que estimularam este músculo (0)',
+    );
+    expect(main()).toHaveAttribute('aria-expanded', 'false');
     expect(
-      within(stabilizers).getAllByLabelText('Papel: Estabilizador')[0],
-    ).toBeInTheDocument();
-    expect(
-      within(stabilizers).getAllByText(
-        'Não entra no cálculo: participação estabilizadora.',
-      )[0],
-    ).toBeInTheDocument();
-    const more = within(trace()).getByRole('button', {
-      name: 'Mostrar todos (6)',
-    });
-    expect(more).toHaveAttribute('aria-expanded', 'false');
-    fireEvent.click(more);
-    expect(within(stabilizers).getAllByRole('listitem')).toHaveLength(6);
-    expect(more).toHaveAttribute('aria-expanded', 'true');
-    fireEvent.click(screen.getByRole('tab', { name: 'Recuperação' }));
-    expect(
-      within(trace()).getByText(
-        'Nenhum estímulo contabilizado para este músculo nos últimos 14 dias.',
-      ),
-    ).toBeInTheDocument();
+      within(details()).queryByRole('button', {
+        name: /^Participação estabilizadora/,
+      }),
+    ).toBeNull();
+
+    // Recuperação usa a janela fixa de 14 dias, mesmo com o filtro semanal.
     fireEvent.click(screen.getByRole('button', { name: /^Quadríceps/ }));
-    const counted = within(trace()).getByRole('list', {
-      name: 'Estímulo contabilizado',
-    });
-    const first = within(counted).getAllByRole('listitem')[0]!;
-    expect(within(first).getByText('Agachamento livre')).toBeInTheDocument();
-    expect(
-      within(first).getByLabelText('Papel: Principal'),
-    ).toBeInTheDocument();
-    expect(
-      within(first).getByText('19/11/2026 · 2 séries válidas'),
-    ).toBeInTheDocument();
-    expect(
-      within(first).getByText(/^Carga residual atual:/),
-    ).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('tab', { name: 'Esforço' }));
-    expect(
-      within(trace()).getAllByText(
-        'Contribuição: 2 séries equivalentes (2 × 1).',
-      )[0],
-    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('tab', { name: 'Recuperação' }));
+    expect(main()).toHaveAccessibleName(
+      'Exercícios que estimularam este músculo (14)',
+    );
+    fireEvent.click(main());
+    expect(items('Estímulo contabilizado')[0]).toHaveTextContent(
+      /Carga residual atual:/,
+    );
     expect(save).not.toHaveBeenCalled();
   });
 });
