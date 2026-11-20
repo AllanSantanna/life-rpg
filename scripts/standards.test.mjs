@@ -138,6 +138,7 @@ test('ESLint bloqueia controles nativos inconsistentes e cores inline/arbitrári
     '<select aria-label="Tipo"><option>A</option></select>',
     '<input type="date" />',
     '<input type={"month"} />',
+    '<input type="time" />',
     '<button type="button" style={{ color: "#fff" }}>Salvar</button>',
     '<button type="button" style={{ background: `rgb(0 0 0)` }}>Salvar</button>',
     '<button type="button" className="hover:bg-[#123456]">Salvar</button>',
@@ -152,6 +153,7 @@ test('ESLint permite tokens, componentes compartilhados e geometria calculada', 
     '<input type="number" />',
     '<CustomSelect label="Tipo" options={[]} />',
     '<CustomDatePicker label="Data" mode="date" />',
+    '<CustomTimePicker label="Horário" value="" onChange={() => {}} />',
     '<ActionButton>Salvar</ActionButton>',
   ])
     assert.deepEqual(await visualErrors(jsx), []);
