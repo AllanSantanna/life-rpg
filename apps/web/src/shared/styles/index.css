@@ -21,6 +21,9 @@
   --color-on-primary: #fff;
   --color-focus: #fca5a5;
   --color-error: #ffaaaa;
+  --color-muscle-ready: #22c55e;
+  --color-muscle-recovering: #eab308;
+  --color-muscle-tired: #f97316;
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
 }
 

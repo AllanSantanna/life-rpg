@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import { auditStatistics } from './audit-statistics.mjs';
+import { auditMuscleMap } from './audit-muscle-map.mjs';
 
 // Opcional: Playwright pertence ao ambiente de auditoria, não ao bundle do app.
 let chromium;
@@ -589,6 +590,8 @@ try {
       })) {
         await page.getByRole('tab', { name: label, exact: true }).click();
         await capture(page, `treinos-${name}`, width);
+        if (name === 'muscular')
+          await auditMuscleMap({ page, width, capture, check });
       }
       await page.getByRole('tab', { name: 'Minhas fichas' }).click();
       await page
