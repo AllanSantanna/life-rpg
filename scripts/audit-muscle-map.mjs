@@ -176,6 +176,262 @@ export async function auditMuscleMap({ page, width, capture, check }) {
   );
 }
 
+/**
+ * Paginação visual do rastreio com 18 registros no mesmo grupo. A página deve
+ * ter acabado de carregar a fixture de 18 agachamentos (isolada da auditoria).
+ */
+export async function auditTracePagination({ page, width, capture, check }) {
+  const touch = width < 768;
+  const map = page.getByRole('region', { name: 'Mapa muscular', exact: true });
+  const details = map.getByLabel('Detalhes do músculo selecionado');
+  const original = await page.evaluate(() =>
+    localStorage.getItem('life-rpg:player-state'),
+  );
+  const tapOrClick = (locator) => (touch ? locator.tap() : locator.click());
+  // Desktop: teclado real (foco + Enter); celular: toque.
+  const activate = async (locator) => {
+    if (touch) return locator.tap();
+    await locator.focus();
+    await page.keyboard.press('Enter');
+  };
+  const header = (name) =>
+    details.getByRole('button', { name: new RegExp(`^${name} \\(\\d+\\)$`) });
+  const main = header('Exercícios que estimularam este músculo');
+  const stab = header('Participação estabilizadora · não contabilizada');
+  const list = (label) =>
+    details.getByRole('list', { name: label, exact: true });
+  const visibleItems = (label) => list(label).locator('> li:visible');
+  const contentHidden = async (button) => {
+    const id = await button.getAttribute('aria-controls');
+    return page.locator(`[id="${id}"]`).isHidden();
+  };
+  const activeName = () =>
+    page.evaluate(() => document.activeElement?.textContent?.trim() ?? '');
+  async function visibleState(label) {
+    const metas = await visibleItems(label)
+      .locator('.muscle-v2-trace-meta')
+      .allTextContents();
+    const dates = metas.map((m) =>
+      m.slice(0, 10).split('/').reverse().join('-'),
+    );
+    return {
+      count: metas.length,
+      unique: new Set(metas).size === metas.length,
+      descending: dates.every((d, i) => i === 0 || dates[i - 1] > d),
+    };
+  }
+  async function expectVisible(label, count, name) {
+    const state = await visibleState(label);
+    check(
+      state.count === count && state.unique && state.descending,
+      name,
+      width,
+      `${label}: ${JSON.stringify(state)}, esperado ${count} únicos em ordem decrescente`,
+    );
+  }
+  async function noOverflowOrOverlap(name) {
+    const geometry = await details.evaluate((el) => {
+      const buttons = [
+        ...el.querySelectorAll('.muscle-v2-trace-pager button'),
+      ].map((b) => b.getBoundingClientRect().toJSON());
+      return {
+        scroll: document.documentElement.scrollWidth,
+        viewport: innerWidth,
+        buttons,
+      };
+    });
+    const [a, b] = geometry.buttons;
+    const overlap =
+      a &&
+      b &&
+      a.left < b.right &&
+      b.left < a.right &&
+      a.top < b.bottom &&
+      b.top < a.bottom;
+    check(
+      geometry.scroll <= geometry.viewport + 1 &&
+        geometry.buttons.every(
+          (r) =>
+            r.left >= 0 && r.right <= geometry.viewport + 0.5 && r.width > 0,
+        ) &&
+        !overlap,
+      name,
+      width,
+      `Paginação fora da tela ou sobreposta: ${JSON.stringify(geometry)}`,
+    );
+  }
+
+  await tapOrClick(map.getByRole('button', { name: /^Quadríceps/ }));
+  // 1–2: recolhida, com contagem correta e conteúdo realmente oculto.
+  check(
+    (await main.getAttribute('aria-expanded')) === 'false' &&
+      (await main.textContent()).includes('(18)') &&
+      (await contentHidden(main)) &&
+      (await details.locator('.muscle-v2-trace-item:visible').count()) === 0,
+    'trace-page-collapsed',
+    width,
+    'Seção não começou recolhida com 18 registros',
+  );
+  await main.scrollIntoViewIfNeeded();
+  await capture(page, 'trace-page-initial', width);
+  // 3: abre com 5.
+  await activate(main);
+  check(
+    (await main.getAttribute('aria-expanded')) === 'true' &&
+      !(await contentHidden(main)),
+    'trace-page-open',
+    width,
+    'Cabeçalho não expandiu a seção',
+  );
+  await expectVisible('Estímulo contabilizado', 5, 'trace-page-5');
+  await capture(page, 'trace-page-5', width);
+  // 4–7: 10, 15 e 18, com o texto do último botão igual ao restante.
+  for (const [label, total] of [
+    ['Mostrar mais 5', 10],
+    ['Mostrar mais 5', 15],
+    ['Mostrar mais 3', 18],
+  ]) {
+    const more = details.getByRole('button', { name: label, exact: true });
+    check(
+      await more.isVisible(),
+      `trace-page-label-${total}`,
+      width,
+      `Botão “${label}” ausente`,
+    );
+    await activate(more);
+    await expectVisible('Estímulo contabilizado', total, `trace-page-${total}`);
+    if (total === 10) {
+      check(
+        (await activeName()) === 'Mostrar mais 5',
+        'trace-page-focus-more',
+        width,
+        `Foco perdido após carregar mais: “${await activeName()}”`,
+      );
+      await noOverflowOrOverlap('trace-page-layout-10');
+      await capture(page, 'trace-page-10', width);
+    }
+  }
+  check(
+    (await details.getByRole('button', { name: /^Mostrar mais/ }).count()) ===
+      0 && (await activeName()) === 'Mostrar menos',
+    'trace-page-focus-less',
+    width,
+    `Ao completar, o foco devia ir para “Mostrar menos”: “${await activeName()}”`,
+  );
+  await noOverflowOrOverlap('trace-page-layout-18');
+  await capture(page, 'trace-page-18', width);
+  // 8: volta aos 5 primeiros, foco no botão restante.
+  await activate(
+    details.getByRole('button', { name: 'Mostrar menos', exact: true }),
+  );
+  await expectVisible('Estímulo contabilizado', 5, 'trace-page-less');
+  check(
+    (await activeName()) === 'Mostrar mais 5',
+    'trace-page-focus-back',
+    width,
+    `Foco após “Mostrar menos”: “${await activeName()}”`,
+  );
+  // 9: recolhe.
+  await activate(main);
+  check(
+    (await main.getAttribute('aria-expanded')) === 'false' &&
+      (await contentHidden(main)) &&
+      (await details.locator('.muscle-v2-trace-item:visible').count()) === 0,
+    'trace-page-collapse',
+    width,
+    'Seção não recolheu',
+  );
+  // 12: estabilizadores independentes, no Abdômen (0 contabilizados, 18 estabilizações).
+  await tapOrClick(map.getByRole('button', { name: /^Abdômen/ }));
+  check(
+    (await main.textContent()).includes('(0)') &&
+      (await stab.textContent()).includes('(18)') &&
+      (await main.getAttribute('aria-expanded')) === 'false' &&
+      (await stab.getAttribute('aria-expanded')) === 'false',
+    'trace-page-stabilizer-initial',
+    width,
+    'Contagens ou estado inicial do Abdômen incorretos',
+  );
+  await activate(stab);
+  await expectVisible(
+    'Participação estabilizadora',
+    5,
+    'trace-page-stabilizer-5',
+  );
+  await activate(
+    details.getByRole('button', { name: 'Mostrar mais 5', exact: true }),
+  );
+  await expectVisible(
+    'Participação estabilizadora',
+    10,
+    'trace-page-stabilizer-10',
+  );
+  check(
+    (await main.getAttribute('aria-expanded')) === 'false',
+    'trace-page-independent',
+    width,
+    'Abrir estabilizadores abriu a lista principal',
+  );
+  await activate(main);
+  check(
+    (await details
+      .getByText(
+        'Nenhum estímulo contabilizado para este músculo no período selecionado.',
+      )
+      .isVisible()) &&
+      (await visibleState('Participação estabilizadora')).count === 10,
+    'trace-page-independent-main',
+    width,
+    'Abrir a lista principal alterou os estabilizadores',
+  );
+  await capture(page, 'trace-page-stabilizer', width);
+  // 10: trocar de músculo reinicia.
+  await tapOrClick(map.getByRole('button', { name: /^Quadríceps/ }));
+  check(
+    (await main.getAttribute('aria-expanded')) === 'false' &&
+      (await details.locator('.muscle-v2-trace-item:visible').count()) === 0,
+    'trace-page-reset-muscle',
+    width,
+    'Trocar de músculo manteve a seção expandida',
+  );
+  await activate(main);
+  await expectVisible('Estímulo contabilizado', 5, 'trace-page-reset-muscle-5');
+  await activate(
+    details.getByRole('button', { name: 'Mostrar mais 5', exact: true }),
+  );
+  await expectVisible('Estímulo contabilizado', 10, 'trace-page-before-period');
+  // 11: trocar o período reinicia e atualiza a contagem (7 dias → 7 registros).
+  await tapOrClick(map.getByRole('combobox', { name: 'Período do mapa' }));
+  await tapOrClick(page.getByRole('option', { name: 'Últimos 7 dias' }));
+  check(
+    (await main.getAttribute('aria-expanded')) === 'false' &&
+      (await main.textContent()).includes('(7)') &&
+      (await details.locator('.muscle-v2-trace-item:visible').count()) === 0,
+    'trace-page-reset-period',
+    width,
+    'Trocar o período não reiniciou a seção',
+  );
+  await activate(main);
+  await expectVisible('Estímulo contabilizado', 5, 'trace-page-period-5');
+  check(
+    await details
+      .getByRole('button', { name: 'Mostrar mais 2', exact: true })
+      .isVisible(),
+    'trace-page-period-label',
+    width,
+    'Texto do botão não refletiu os 2 restantes',
+  );
+  // 14: nada persistente mudou.
+  check(
+    (await page.evaluate(() =>
+      localStorage.getItem('life-rpg:player-state'),
+    )) === original,
+    'trace-page-storage',
+    width,
+    'Paginação alterou o armazenamento',
+  );
+}
+
 async function standalone() {
   const { chromium } = await import(
     process.env.PLAYWRIGHT_MODULE ?? 'playwright'
@@ -309,6 +565,35 @@ async function standalone() {
         width,
         'Estado vazio inventou recuperação',
       );
+      // 18 agachamentos, um por dia até hoje, só neste contexto isolado.
+      await page.evaluate(async () => {
+        const { testSession, testSet } =
+          await import('/src/modules/workouts/advanced/testFixtures.ts');
+        const envelope = JSON.parse(
+          localStorage.getItem('life-rpg:player-state'),
+        );
+        envelope.data.records.advancedWorkouts.sessions = Array.from(
+          { length: 18 },
+          (_, i) => {
+            const date = `2026-11-${String(3 + i).padStart(2, '0')}`;
+            return {
+              ...testSession(
+                `page-${i}`,
+                date,
+                [testSet('a', 60, 8, 'working', 2), testSet('b', 60, 8)],
+                'squat',
+              ),
+              startedAt: `${date}T07:00:00-03:00`,
+            };
+          },
+        );
+        localStorage.setItem('life-rpg:player-state', JSON.stringify(envelope));
+      });
+      await page.reload();
+      await page
+        .getByRole('tab', { name: 'Mapa muscular', exact: true })
+        .click();
+      await auditTracePagination({ page, width, capture, check });
       await context.close();
     }
   } finally {

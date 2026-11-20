@@ -330,7 +330,11 @@ RIR ausente, exclusão e independência de outros grupos. `sessionTiming.test.ts
 registros antigos, horário futuro e preservação do storage. `MuscleMap.test.tsx`: seleção,
 teclado, alternância de modo, dados vazios, atualização e ausência de gravações.
 A suíte `AdvancedWorkouts.test.tsx` preserva o fluxo de edição/exclusão real.
-`scripts/audit-muscle-map.mjs` cobre navegador isolado, responsividade, foco,
+`scripts/audit-muscle-map.mjs` (`node scripts/audit-muscle-map.mjs`, com
+`PLAYWRIGHT_MODULE` quando o Playwright está fora do projeto) cobre, além da
+paginação do rastreio com 18 agachamentos isolados (5 → 10 → 15 → 18, “Mostrar
+mais 3”, “Mostrar menos”, foco, recolher, troca de músculo e de período,
+estabilizadores independentes e storage intacto), navegador isolado, responsividade, foco,
 seleção, cores, duas vistas, estados vazios e preservação do envelope.
 
 Diferenças da referência: vetores têm divisões mais amplas e não possuem as fibras
