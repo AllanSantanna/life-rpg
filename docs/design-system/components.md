@@ -173,3 +173,12 @@ ele está aberto; a barra da etapa fica oculta nesse estado.
 20 px. As ações padronizadas usam 18 px. Ícones são decorativos (`aria-hidden`);
 o nome acessível pertence ao botão ou texto acompanhante. Não adicione biblioteca
 de ícones para reproduzir um símbolo que já existe.
+
+## Anatomia interativa em Treinos Avançados
+
+O [Mapa muscular](../../apps/web/src/modules/workouts/advanced/muscle-map/README.md)
+é local ao módulo: regiões SVG selecionáveis, lista alternativa de botões de
+44 px, duas abas com navegação por setas e `CustomSelect` de período. Título
+local de 24 px, detalhes abaixo em contêineres menores e painel lateral a partir
+de 820 px de largura disponível. A geometria anatômica não dita o tamanho dos
+controles alternativos. Cores e borda de seleção também possuem rótulos textuais.

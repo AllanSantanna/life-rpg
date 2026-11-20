@@ -67,7 +67,7 @@ export function StatisticsPanels({
   };
   return (
     <div className="strength-stack">
-      {view !== 'records' && (
+      {view !== 'records' && view !== 'muscles' && (
         <div className="strength-period">
           <PeriodControl value={period} onChange={setPeriod} />
           <p className="record-hint">
@@ -266,7 +266,12 @@ export function StatisticsPanels({
         </>
       )}
       {view === 'muscles' && (
-        <MuscleMap sessions={state.sessions} today={today} period={period} />
+        <MuscleMap
+          sessions={state.sessions}
+          today={today}
+          period={period}
+          onPeriodChange={setPeriod}
+        />
       )}
     </div>
   );

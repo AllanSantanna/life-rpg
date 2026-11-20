@@ -36,9 +36,10 @@ formulários responsivos. O registro diário permanece disponível fora das abas
   uma série e melhor sessão por exercício. Não mistura exercícios diferentes.
 - **Volume de treinamento:** volume por exercício, sessão, últimos 7 e últimos
   30 dias. Oferece consulta com aquecimento incluído.
-- **Mapa muscular:** SVG frontal/traseiro original do projeto, sem recurso externo.
-  Cada série válida concluída soma uma participação ao grupo principal e a cada
-  grupo secundário associado. Um grupo nunca é contado duas vezes na mesma série.
+- **Mapa muscular:** anatomia frontal/traseira segmentada incorporada do MuscleMap
+  (MIT), com seleção por região, Esforço relativo e Recuperação estimada.
+  [Métodos, evidências, mapeamento, créditos e limites](advanced/muscle-map/README.md).
+  Somente leitura de sessões reais, sem alterar os registros ou o XP/Radar.
 
 ## Importação Rápida de Treinos
 
@@ -107,7 +108,8 @@ edições/exclusões. Em empate, a data mais antiga vence; na mesma data, manté
 primeira ocorrência armazenada. **Melhor sessão** significa maior volume válido
 registrado naquele exercício, não uma estimativa de força máxima.
 
-Volume e mapa não medem hipertrofia, recuperação ou qualidade do treino.
+Volume e mapa não medem hipertrofia ou qualidade do treino. O índice de
+recuperação do mapa é uma heurística orientativa, não medição fisiológica.
 
 ## RPG e registro diário
 
