@@ -23,6 +23,7 @@ export default tseslint.config(
       'scripts/audit-visual.mjs',
       'scripts/audit-statistics.mjs',
       'scripts/audit-muscle-map.mjs',
+      'scripts/audit-time-picker.mjs',
     ],
     languageOptions: { globals: { ...globals.node, ...globals.browser } },
   },
