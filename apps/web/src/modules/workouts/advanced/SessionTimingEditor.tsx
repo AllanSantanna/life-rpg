@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { CustomDatePicker } from '../../../shared/components/CustomDatePicker';
 import { ActionButton } from '../../../shared/components/ActionButton';
+import { CustomTimePicker } from '../../../shared/components/CustomTimePicker';
 import { Field } from '../../records/RecordUI';
 import {
   assertStartNotFuture,
@@ -54,21 +55,19 @@ export function SessionTimingEditor({
           />
         </Field>
         <Field label="Horário do treino">
-          <input
-            type="time"
-            lang="pt-BR"
-            step={60}
+          <CustomTimePicker
+            label="Horário do treino"
             value={time}
-            onChange={(e) => {
-              setTime(e.target.value);
+            onChange={(value) => {
+              setTime(value);
               setError(null);
             }}
-            aria-describedby="session-time-hint"
+            describedBy="session-time-hint"
           />
         </Field>
       </div>
       <p id="session-time-hint" className="record-hint">
-        Início do treino · 24 horas (HH:mm). Deixe vazio se desconhecido.
+        Início do treino · 24 horas (HH:mm). Use “Limpar” se desconhecido.
         Aplique data e horário juntos; exercícios e séries serão preservados.
         {session.startedAt
           ? ` Fuso registrado: UTC${session.startedAt.slice(-6)}.`
