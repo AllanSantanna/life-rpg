@@ -1,4 +1,14 @@
-import { daysBetween, isDate, shiftDate } from '../../../records/dates';
+import {
+  timingAt,
+  referenceInstant,
+  type StimulusTiming,
+} from '../sessionTiming';
+import {
+  daysBetween,
+  isDate,
+  localDate,
+  shiftDate,
+} from '../../../records/dates';
 import { normalizedName } from '../catalog';
 import { periodDays, type TrainingPeriod } from '../calculations';
 import { muscleLabels, type Muscle, type WorkoutSession } from '../types';
@@ -39,6 +49,9 @@ export interface MuscleSummary {
   recoveryLastDate: string | null;
   rirCount: number;
   history: MuscleDay[];
+  lastTiming: StimulusTiming | null;
+  recoveryTiming: StimulusTiming | null;
+  residualBurden: number;
 }
 export const defaultRecoveryConfig = {
   halfLifeDays: 2,
@@ -69,14 +82,15 @@ export function muscleParticipation(
   };
 }
 
-/** Pure projection. Civil dates only: never fabricates a workout timestamp. */
+/** Pure projection. Numeric reference = live instant; civil date = historical end of day. */
 export function projectMuscles(
   sessions: readonly WorkoutSession[],
-  today: string,
+  reference: string | number,
   period: TrainingPeriod,
   config: RecoveryConfig = defaultRecoveryConfig,
 ) {
-  if (!isDate(today)) throw new Error('Data de referência inválida.');
+  const now = referenceInstant(reference);
+  const today = localDate(new Date(now));
   if (
     !Object.values(config).every(Number.isFinite) ||
     config.halfLifeDays <= 0 ||
@@ -90,19 +104,43 @@ export function projectMuscles(
   const days = Object.fromEntries(
     muscles.map((m) => [m, new Map<string, MuscleDay>()]),
   ) as Record<Muscle, Map<string, MuscleDay>>;
+  const stimuli = Object.fromEntries(
+    muscles.map((m) => [
+      m,
+      [] as {
+        timing: StimulusTiming;
+        burden: number;
+        rirCount: number;
+        session: WorkoutSession;
+      }[],
+    ]),
+  ) as Record<
+    Muscle,
+    {
+      timing: StimulusTiming;
+      burden: number;
+      rirCount: number;
+      session: WorkoutSession;
+    }[]
+  >;
   const previousVolumes = new Map<string, { date: string; volume: number }[]>();
   let unmappedSets = 0;
   // Group each date before comparisons, so same-day ordering never changes the estimate.
   const completed = sessions
     .filter(
       (s) =>
-        s.status === 'completed' &&
-        isDate(s.date) &&
-        daysBetween(today, s.date) >= 0,
+        s.status === 'completed' && isDate(s.date) && timingAt(s, now) !== null,
     )
-    .sort((a, b) => a.date.localeCompare(b.date));
+    .sort(
+      (a, b) =>
+        a.date.localeCompare(b.date) ||
+        (a.startedAt && b.startedAt
+          ? Date.parse(a.startedAt) - Date.parse(b.startedAt)
+          : 0),
+    );
   for (const session of completed) {
     const age = daysBetween(today, session.date);
+    const timing = timingAt(session, now)!;
     for (const entry of session.exercises) {
       const sets = entry.sets.filter(
         (s) =>
@@ -182,6 +220,12 @@ export function projectMuscles(
         day.rirCount += knownRir.length;
         day.sessions.add(session.id);
         days[m].set(session.date, day);
+        stimuli[m].push({
+          timing,
+          burden: burden * weight,
+          rirCount: knownRir.length,
+          session,
+        });
       }
       previousVolumes.set(entry.exercise.id, [
         ...(previousVolumes.get(entry.exercise.id) ?? []),
@@ -195,16 +239,30 @@ export function projectMuscles(
       const history = all.filter(
         (d) => daysBetween(today, d.date) < periodDays[period],
       );
-      const recent = all.filter(
-        (d) => daysBetween(today, d.date) < config.lookbackDays,
+      const recent = stimuli[m].filter(({ timing }) =>
+        timing.startedAt
+          ? timing.minElapsedHours < config.lookbackDays * 24
+          : daysBetween(today, timing.date) < config.lookbackDays,
       );
       const units = history.reduce((sum, d) => sum + d.units, 0);
       const burden = recent.reduce(
-        (sum, d) =>
+        (sum, stimulus) =>
           sum +
-          d.burden * 2 ** (-daysBetween(today, d.date) / config.halfLifeDays),
+          stimulus.burden *
+            2 **
+              (-stimulus.timing.minElapsedHours / (24 * config.halfLifeDays)),
         0,
       );
+      const latestTiming = (events: typeof recent) =>
+        [...events].sort(
+          (a, b) => b.timing.latestPossibleAt - a.timing.latestPossibleAt,
+        )[0]?.timing ?? null;
+      const lastTiming = latestTiming(
+        stimuli[m].filter(
+          (s) => daysBetween(today, s.timing.date) < periodDays[period],
+        ),
+      );
+      const recoveryTiming = latestTiming(recent);
       const result: MuscleSummary = {
         muscle: m,
         history,
@@ -224,8 +282,11 @@ export function projectMuscles(
                 Math.round(100 * Math.exp(-burden / config.capacity)),
               )
             : null,
-        recoveryLastDate: recent.at(-1)?.date ?? null,
+        recoveryLastDate: recoveryTiming?.date ?? null,
         rirCount: recent.reduce((sum, d) => sum + d.rirCount, 0),
+        lastTiming,
+        recoveryTiming,
+        residualBurden: burden,
       };
       return [m, result];
     }),

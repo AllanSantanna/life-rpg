@@ -1,3 +1,4 @@
+import { displaySessionDate, elapsedLabel } from '../sessionTiming';
 import { Icon } from '../../../../shared/components/Icon';
 import { displayDate } from '../../../records/dates';
 import { number } from '../calculations';
@@ -35,8 +36,9 @@ export function MuscleDetails({
   const surface = findSurface(selection);
   const group = anatomicalGroups[surface.group];
   const value = summary?.[mode] ?? null;
-  const lastDate =
-    mode === 'recovery' ? summary?.recoveryLastDate : summary?.lastDate;
+  const timing =
+    mode === 'recovery' ? summary?.recoveryTiming : summary?.lastTiming;
+  const lastDate = timing?.date;
   const tone = metricTone(value, mode);
   const max =
     mode === 'recovery'
@@ -114,7 +116,23 @@ export function MuscleDetails({
               <Icon name="calendar" size={16} />
               Último estímulo
             </dt>
-            <dd>{lastDate ? displayDate(lastDate) : '—'}</dd>
+            <dd>
+              {lastDate
+                ? displaySessionDate({
+                    date: lastDate,
+                    ...(timing?.startedAt
+                      ? { startedAt: timing.startedAt }
+                      : {}),
+                  })
+                : '—'}
+            </dd>
+          </div>
+          <div>
+            <dt>
+              <Icon name="history" size={16} />
+              Tempo transcorrido
+            </dt>
+            <dd>{timing ? elapsedLabel(timing) : '—'}</dd>
           </div>
           <div>
             <dt>
@@ -192,7 +210,12 @@ export function MuscleDetails({
         <p className="record-hint">
           {value === null
             ? 'Indeterminado: sem estímulo válido nos últimos 14 dias para estimar.'
-            : 'Janela fixa de 14 dias; atualização por data, sem horário de treino registrado. RIR ausente não equivale a zero.'}{' '}
+            : 'Janela de 14 dias; atualização a cada minuto enquanto a tela está visível. RIR ausente não equivale a zero.'}{' '}
+          {timing &&
+            !timing.startedAt &&
+            'Horário não informado: usamos o menor tempo decorrido possível, sem atribuir um horário ao registro. '}
+          {timing?.startedAt &&
+            `Início registrado no fuso UTC${timing.startedAt.slice(-6)}; sem duração inferida. `}
           Estimativa baseada no histórico registrado; não substitui percepção de
           fadiga e recuperação.
         </p>
