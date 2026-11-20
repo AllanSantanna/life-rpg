@@ -207,7 +207,15 @@ export function MuscleDetails({
           </ul>
         </details>
       </div>
-      {group && <ExerciseTrace summary={summary} mode={mode} days={days} />}
+      {group && (
+        // Outro grupo ou período: seções voltam fechadas e com 5 registros.
+        <ExerciseTrace
+          key={`${group}:${days}`}
+          summary={summary}
+          mode={mode}
+          days={days}
+        />
+      )}
       {mode === 'recovery' && (
         <p className="record-hint">
           {value === null

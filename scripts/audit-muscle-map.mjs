@@ -75,9 +75,30 @@ export async function auditMuscleMap({ page, width, capture, check }) {
   const adductor = front.getByRole('button', { name: /Adutores · esquerda/ });
   if (width < 768) await adductor.tap();
   else await adductor.click();
-  const trace = details.getByRole('region', {
-    name: 'Exercícios que estimularam este músculo',
+  const traceHeader = details.getByRole('button', {
+    name: /^Exercícios que estimularam este músculo \(\d+\)$/,
   });
+  const trace = details.getByRole('region', {
+    name: /^Exercícios que estimularam este músculo/,
+  });
+  check(
+    (await traceHeader.getAttribute('aria-expanded')) === 'false' &&
+      (await trace.getByRole('listitem').count()) === 0,
+    'muscle-trace-collapsed',
+    width,
+    'Seção de exercícios não começou recolhida',
+  );
+  await traceHeader.scrollIntoViewIfNeeded();
+  await capture(page, 'muscle-trace-closed', width);
+  // Teclado real: Enter no botão do cabeçalho abre a seção.
+  await traceHeader.focus();
+  await page.keyboard.press('Enter');
+  check(
+    (await traceHeader.getAttribute('aria-expanded')) === 'true',
+    'muscle-trace-keyboard',
+    width,
+    'Enter não expandiu a seção',
+  );
   // Depende só do histórico da fixture: agachamento registrado → rastreio dele.
   const hasSquat = await page.evaluate(() =>
     JSON.parse(
@@ -102,12 +123,26 @@ export async function auditMuscleMap({ page, width, capture, check }) {
     width,
     `Rastreio de Adutores incoerente com o histórico (agachamento: ${hasSquat})`,
   );
-  await trace.scrollIntoViewIfNeeded();
+  const items = await trace.getByRole('listitem').count();
+  check(
+    items <= 5,
+    'muscle-trace-page',
+    width,
+    `Mais de 5 registros visíveis ao abrir: ${items}`,
+  );
   await capture(page, 'muscle-trace', width);
   // Região pequena no celular: usa a alternativa documentada da lista (44 px).
   const abductor = map.getByRole('button', { name: /^Abdutores/ });
   if (width < 768) await abductor.tap();
   else await abductor.click();
+  check(
+    (await traceHeader.getAttribute('aria-expanded')) === 'false',
+    'muscle-trace-reset',
+    width,
+    'Trocar de músculo manteve a seção expandida',
+  );
+  if (width < 768) await traceHeader.tap();
+  else await traceHeader.click();
   check(
     (await details
       .getByRole('img', { name: 'Índice estimado: indeterminado' })
