@@ -1,3 +1,4 @@
+import { currentSessionStart } from './sessionTiming';
 import {
   Icon as WorkoutIcon,
   type IconName as WorkoutIconName,
@@ -77,7 +78,17 @@ export function AdvancedWorkouts({
       return;
     }
     const id = crypto.randomUUID();
-    if (!onCommand({ type: 'startSession', id, planId, date: today })) open(id);
+    const startedAt = currentSessionStart(today);
+    if (
+      !onCommand({
+        type: 'startSession',
+        id,
+        planId,
+        date: today,
+        ...(startedAt !== undefined ? { startedAt } : {}),
+      })
+    )
+      open(id);
   }
   function moveTab(event: KeyboardEvent<HTMLButtonElement>, index: number) {
     const next =
