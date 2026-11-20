@@ -1,5 +1,5 @@
 import { useId, useLayoutEffect, useRef, useState } from 'react';
-import { muscleLabels } from '../types';
+import { mapGroupLabels } from './participation';
 import {
   anatomicalGroups,
   anatomicalLabels,
@@ -130,7 +130,7 @@ export function AnatomyFigure({
               <title>
                 {name} ·{' '}
                 {group
-                  ? `Grupo: ${muscleLabels[group]}`
+                  ? `Grupo: ${mapGroupLabels[group]}`
                   : 'Sem grupo correspondente nos registros'}{' '}
                 · {status}
               </title>

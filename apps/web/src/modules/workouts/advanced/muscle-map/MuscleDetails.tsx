@@ -2,7 +2,8 @@ import { displaySessionDate, elapsedLabel } from '../sessionTiming';
 import { Icon } from '../../../../shared/components/Icon';
 import { displayDate } from '../../../records/dates';
 import { number } from '../calculations';
-import { muscleLabels } from '../types';
+import { mapGroupLabels } from './participation';
+import { ExerciseTrace } from './ExerciseTrace';
 import {
   anatomicalGroups,
   anatomicalLabels,
@@ -65,7 +66,7 @@ export function MuscleDetails({
           <h4>{anatomicalLabels[surface.group]}</h4>
           <p>
             Grupo:{' '}
-            {group ? muscleLabels[group] : 'Não registrado separadamente'}
+            {group ? mapGroupLabels[group] : 'Não registrado separadamente'}
           </p>
         </div>
       </header>
@@ -149,7 +150,7 @@ export function MuscleDetails({
       </p>
       {group ? (
         <p className="record-hint">
-          Dados agregados de {muscleLabels[group]}; o histórico não distingue
+          Dados agregados de {mapGroupLabels[group]}; o histórico não distingue
           lados ou subdivisões.{' '}
           {summary?.sets
             ? `${summary.direct} séries diretas e ${summary.secondary} secundárias em ${days} dias.`
@@ -206,6 +207,7 @@ export function MuscleDetails({
           </ul>
         </details>
       </div>
+      {group && <ExerciseTrace summary={summary} mode={mode} days={days} />}
       {mode === 'recovery' && (
         <p className="record-hint">
           {value === null

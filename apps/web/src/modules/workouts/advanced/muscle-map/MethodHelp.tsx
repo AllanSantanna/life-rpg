@@ -15,8 +15,17 @@ export function MethodHelp() {
           Volume envolvido = carga × repetições das séries em que o grupo
           participa. Não é uma divisão da tonelagem do treino: não some os
           volumes de diferentes grupos. Os lados e subdivisões recebem os dados
-          do mesmo grupo; adutores e abdutores ficam indeterminados porque não
-          existem separadamente no cadastro atual.
+          do mesmo grupo.
+        </p>
+        <h4>Principal, secundário e estabilizador</h4>
+        <p>
+          Cada exercício tem papéis por grupo. Principal vale 1 por série;
+          secundário, 0,5. Estabilizador (por exemplo, o abdômen no agachamento
+          ou o glúteo médio no afundo) aparece na lista de exercícios do grupo,
+          mas não vira série equivalente nem carga de recuperação. Lombar,
+          adutores e abdutores são grupos do mapa derivados de uma revisão do
+          catálogo; exercícios próprios mantêm os papéis cadastrados. Não usamos
+          porcentagens de eletromiografia como medida de estímulo.
         </p>
         <h4>Recuperação: índice estimado, com incerteza</h4>
         <p>

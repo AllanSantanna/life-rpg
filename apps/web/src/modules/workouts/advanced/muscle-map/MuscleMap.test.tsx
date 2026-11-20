@@ -81,7 +81,7 @@ describe('mapa anatômico integrado', () => {
     expect(
       within(
         screen.getByLabelText('Detalhes do músculo selecionado'),
-      ).getByText('Grupo: Costas'),
+      ).getByText('Grupo: Lombar'),
     ).toBeInTheDocument();
     expect(save).not.toHaveBeenCalled();
   });
@@ -123,16 +123,93 @@ describe('mapa anatômico integrado', () => {
       screen.getByText('Peito: 2 séries válidas no período.'),
     ).toBeInTheDocument();
   });
-  it('explica regiões sem correspondência em vez de atribuir a músculos vizinhos', () => {
+  it('não atribui a adutores estímulo de exercícios vizinhos sem relação', () => {
     render(<MuscleMap sessions={sessions} today={today} period="week" />);
     fireEvent.click(
       screen.getAllByRole('button', { name: /Adutores · esquerda/ })[0]!,
     );
+    const details = screen.getByLabelText('Detalhes do músculo selecionado');
+    expect(within(details).getByText('Grupo: Adutores')).toBeInTheDocument();
     expect(
-      screen.getByText('Grupo: Não registrado separadamente'),
+      within(details).getByRole('img', {
+        name: 'Esforço relativo: indeterminado',
+      }),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/Não atribuímos séries ou percentuais/),
+      within(details).getByText(
+        'Nenhum estímulo contabilizado para este músculo no período selecionado.',
+      ),
     ).toBeInTheDocument();
+  });
+  it('rastreia exercícios reais por grupo, separando estabilizador de estímulo contabilizado', () => {
+    const save = vi.spyOn(Storage.prototype, 'setItem');
+    const squats = Array.from({ length: 6 }, (_, i) =>
+      testSession(
+        `sq${i}`,
+        `2026-11-${String(14 + i).padStart(2, '0')}`,
+        [testSet('a', 60, 8, 'working', 2), testSet('b', 60, 8)],
+        'squat',
+      ),
+    );
+    render(<MuscleMap sessions={squats} today={today} period="month" />);
+    fireEvent.click(screen.getByRole('button', { name: /^Abdômen/ }));
+    const details = () =>
+      screen.getByLabelText('Detalhes do músculo selecionado');
+    const trace = () =>
+      within(details()).getByRole('region', {
+        name: 'Exercícios que estimularam este músculo',
+      });
+    expect(
+      within(trace()).getByText(
+        'Nenhum estímulo contabilizado para este músculo no período selecionado.',
+      ),
+    ).toBeInTheDocument();
+    const stabilizers = within(trace()).getByRole('list', {
+      name: 'Participação estabilizadora',
+    });
+    expect(within(stabilizers).getAllByRole('listitem')).toHaveLength(5);
+    expect(
+      within(stabilizers).getAllByLabelText('Papel: Estabilizador')[0],
+    ).toBeInTheDocument();
+    expect(
+      within(stabilizers).getAllByText(
+        'Não entra no cálculo: participação estabilizadora.',
+      )[0],
+    ).toBeInTheDocument();
+    const more = within(trace()).getByRole('button', {
+      name: 'Mostrar todos (6)',
+    });
+    expect(more).toHaveAttribute('aria-expanded', 'false');
+    fireEvent.click(more);
+    expect(within(stabilizers).getAllByRole('listitem')).toHaveLength(6);
+    expect(more).toHaveAttribute('aria-expanded', 'true');
+    fireEvent.click(screen.getByRole('tab', { name: 'Recuperação' }));
+    expect(
+      within(trace()).getByText(
+        'Nenhum estímulo contabilizado para este músculo nos últimos 14 dias.',
+      ),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /^Quadríceps/ }));
+    const counted = within(trace()).getByRole('list', {
+      name: 'Estímulo contabilizado',
+    });
+    const first = within(counted).getAllByRole('listitem')[0]!;
+    expect(within(first).getByText('Agachamento livre')).toBeInTheDocument();
+    expect(
+      within(first).getByLabelText('Papel: Principal'),
+    ).toBeInTheDocument();
+    expect(
+      within(first).getByText('19/11/2026 · 2 séries válidas'),
+    ).toBeInTheDocument();
+    expect(
+      within(first).getByText(/^Carga residual atual:/),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('tab', { name: 'Esforço' }));
+    expect(
+      within(trace()).getAllByText(
+        'Contribuição: 2 séries equivalentes (2 × 1).',
+      )[0],
+    ).toBeInTheDocument();
+    expect(save).not.toHaveBeenCalled();
   });
 });
