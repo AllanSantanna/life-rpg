@@ -44,6 +44,12 @@ de variante legítima, evolua o componente e documente-a antes de copiar o CSS.
 - [CustomTimePicker](../../apps/web/src/shared/components/CustomTimePicker.tsx):
   horário de 24 horas (`HH:mm`), controlado por `value/onChange`, com `required`,
   `disabled` e `describedBy`. Reutilize no lugar de `input type="time"`.
+- [Disclosure](../../apps/web/src/shared/components/Disclosure.tsx): seção
+  recolhível com botão `aria-expanded`/`aria-controls` no título, seta, `count`
+  opcional (“Título (6)”), `hint` visual (“Mostrar/Ocultar detalhes”, oculto do
+  leitor de tela), níveis h2–h6 e conteúdo montado só quando aberto. Troque a
+  `key` para reiniciar o estado. Usa as classes `.finance-disclosure*` existentes
+  até a migração da cópia de Finanças; não crie outra seção recolhível.
 - Os três compartilham [useAnchoredPopover](../../apps/web/src/shared/components/useAnchoredPopover.ts)
   para portal, geometria, fechamento e movimento reduzido.
 
@@ -143,12 +149,12 @@ escolha de valores.
 Componentes locais de [FinanceLayout](../../apps/web/src/modules/finances/FinanceLayout.tsx),
 restritos ao módulo Finanças até que outra tela precise do mesmo contrato:
 
-| Componente           | Uso                                                                                                                   |
-| -------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `FinanceTabs`        | `tablist/tab/tabpanel`, roving tabIndex, setas, Home/End; botões com `.filter-button` e `.active`                     |
-| `Disclosure`         | Título com botão `aria-expanded` e seta (`chevron`); conteúdo montado só quando aberto; `label` evita nomes repetidos |
-| `InlineForm`         | Envolve um `RecordForm` aberto sob demanda: foca o primeiro campo e devolve o foco ao controle que o abriu            |
-| `DeleteConfirmation` | Exclusões financeiras via `FinancialConfirmation`, com “Confirmar exclusão” e cancelamento sem alterar dados          |
+| Componente           | Uso                                                                                                                                                   |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `FinanceTabs`        | `tablist/tab/tabpanel`, roving tabIndex, setas, Home/End; botões com `.filter-button` e `.active`                                                     |
+| `Disclosure`         | Cópia local anterior ao [Disclosure compartilhado](../../apps/web/src/shared/components/Disclosure.tsx); migração pendente, fora do escopo de Treinos |
+| `InlineForm`         | Envolve um `RecordForm` aberto sob demanda: foca o primeiro campo e devolve o foco ao controle que o abriu                                            |
+| `DeleteConfirmation` | Exclusões financeiras via `FinancialConfirmation`, com “Confirmar exclusão” e cancelamento sem alterar dados                                          |
 
 `Actions` aceita `cancel` para o rótulo do cancelamento (padrão “Cancelar edição”;
 formulários de criação usam “Cancelar”). A seta gira sem transição com
