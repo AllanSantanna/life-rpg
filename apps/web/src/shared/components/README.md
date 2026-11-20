@@ -44,6 +44,17 @@ leitura). Não há elementos `<select>` nativos no código da interface. Os test
 em livros diferentes, com correção, recarga e preservação dos outros pilares.
 As suítes financeiras também cobrem Bitcoin, USD e caixinhas com esses controles.
 
+## Disclosure
+
+`Disclosure.tsx` é a seção recolhível compartilhada, promovida a partir do contrato
+local de Finanças quando o Mapa muscular passou a precisar dele. Props: `title`,
+`label`, `level` (2–6), `defaultOpen`, `className`, `variant`, `count` e `hint`.
+O botão do título tem `aria-expanded` e `aria-controls`; a seta gira sem
+transição com movimento reduzido, e o conteúdo entra com fade curto, também
+desligado com `prefers-reduced-motion`. O conteúdo só é montado aberto. Para
+reiniciar (outro item, outro período), o componente pai troca a `key`. A cópia
+em `FinanceLayout.tsx` permanece até uma tarefa autorizada de Finanças.
+
 ## CustomTimePicker
 
 `CustomTimePicker.tsx` substitui o `input type="time"` nativo, cuja aparência
