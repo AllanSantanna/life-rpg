@@ -14,7 +14,7 @@ import {
   type PlayerState,
 } from '../../../app/playerState';
 import { testSession, testSet, testState } from './testFixtures';
-import { selectDate } from '../../../test/selectOption';
+import { selectDate, selectTime } from '../../../test/selectOption';
 import {
   createSessionStart,
   localWorkoutTime,
@@ -39,10 +39,11 @@ const tab = (name: string) =>
   fireEvent.click(screen.getByRole('tab', { name }));
 const click = (name: string) =>
   fireEvent.click(screen.getByRole('button', { name }));
-const changeTime = (value: string) =>
-  fireEvent.change(screen.getByLabelText('Horário do treino'), {
-    target: { value },
-  });
+const timeControl = () =>
+  screen.getByRole('combobox', { name: 'Horário do treino' });
+const changeTime = (value: string) => selectTime(timeControl(), value);
+const shownTime = () =>
+  within(timeControl()).getByText(/^(\d{2}:\d{2}|Não informado)$/).textContent;
 function correction() {
   tab('Histórico');
   click('Corrigir sessão');
@@ -54,9 +55,7 @@ describe('horário na criação e correção real de sessões', () => {
   it('preenche o início local somente na nova sessão e retoma sem duplicar ou trocar o horário', () => {
     open([]);
     tab('Registrar treino');
-    expect(screen.getByLabelText('Horário do treino')).toHaveValue(
-      localWorkoutTime(),
-    );
+    expect(shownTime()).toBe(localWorkoutTime());
     click('Iniciar sessão');
     const first = stored().records.advancedWorkouts!.sessions[0]!;
     expect(first.startedAt).toBe(
@@ -88,7 +87,7 @@ describe('horário na criação e correção real de sessões', () => {
     const { unmount } = open([legacy]);
     const before = stored();
     correction();
-    expect(screen.getByLabelText('Horário do treino')).toHaveValue('');
+    expect(shownTime()).toBe('Não informado');
     selectDate(
       screen.getByRole('combobox', { name: 'Data da sessão' }),
       '2026-11-19',
@@ -145,7 +144,7 @@ describe('horário na criação e correção real de sessões', () => {
     };
     open([original]);
     correction();
-    expect(screen.getByLabelText('Horário do treino')).toHaveValue('08:00');
+    expect(shownTime()).toBe('08:00');
     changeTime('15:30');
     click('Salvar data/hora');
     const result = stored().records.advancedWorkouts!.sessions;

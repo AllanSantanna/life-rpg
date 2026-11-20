@@ -10,6 +10,7 @@ import {
 import { useState } from 'react';
 import { CustomDatePicker } from '../../../shared/components/CustomDatePicker';
 import { CustomSelect } from '../../../shared/components/CustomSelect';
+import { CustomTimePicker } from '../../../shared/components/CustomTimePicker';
 import { Field } from '../../records/RecordUI';
 import { displayDate } from '../../records/dates';
 import { blankSet } from './commands';
@@ -197,16 +198,17 @@ export function SessionPanel({
               />
             </Field>
             <Field label="Horário do treino">
-              <input
-                type="time"
-                lang="pt-BR"
-                step={60}
+              <CustomTimePicker
+                label="Horário do treino"
                 value={
                   time ??
                   (date === today ? localWorkoutTime(new Date(clock)) : '')
                 }
-                onChange={(e) => setTime(e.target.value)}
-                aria-describedby="new-session-time-hint"
+                onChange={(value) => {
+                  setTime(value);
+                  setTimingError(null);
+                }}
+                describedBy="new-session-time-hint"
               />
             </Field>
           </div>
