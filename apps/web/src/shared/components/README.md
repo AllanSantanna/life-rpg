@@ -46,14 +46,14 @@ As suítes financeiras também cobrem Bitcoin, USD e caixinhas com esses control
 
 ## Disclosure
 
-`Disclosure.tsx` é a seção recolhível compartilhada, promovida a partir do contrato
-local de Finanças quando o Mapa muscular passou a precisar dele. Props: `title`,
-`label`, `level` (2–6), `defaultOpen`, `className`, `variant`, `count` e `hint`.
-O botão do título tem `aria-expanded` e `aria-controls`; a seta gira sem
-transição com movimento reduzido, e o conteúdo entra com fade curto, também
-desligado com `prefers-reduced-motion`. O conteúdo só é montado aberto. Para
-reiniciar (outro item, outro período), o componente pai troca a `key`. A cópia
-em `FinanceLayout.tsx` permanece até uma tarefa autorizada de Finanças.
+`Disclosure.tsx` é a seção recolhível oficial, usada por Finanças (históricos e
+“Ver detalhes” dos cartões) e pelo Mapa muscular. Props: `title`, `label`, `level`
+(2–6), `defaultOpen`, `className`, `variant`, `count`, `hint` e `animated`. O
+botão do título tem `aria-expanded` e `aria-controls`; a seta gira sem transição
+com movimento reduzido. Sem `hint`, a seta fica direto no botão; sem `animated`,
+o conteúdo aparece sem animação (comportamento de Finanças). Com `animated`, entra
+com fade curto, desligado por `prefers-reduced-motion`. O conteúdo só é montado
+aberto. Para reiniciar (outro item, outro período), o pai troca a `key`.
 
 ## CustomTimePicker
 

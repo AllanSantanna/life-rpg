@@ -46,5 +46,39 @@ describe('Disclosure compartilhado', () => {
     expect(button.closest('h6')).not.toBeNull();
     expect(button).toHaveAttribute('aria-expanded', 'true');
     expect(screen.getByText('Itens')).toBeInTheDocument();
+    // Mesma estrutura da antiga cópia de Finanças: seta direto no botão e
+    // conteúdo sem animação quando `hint`/`animated` não são usados.
+    expect(button.lastElementChild).toHaveClass('disclosure__chevron');
+    expect(button.querySelector('.disclosure__toggle')).toBeNull();
+    expect(
+      document.getElementById(button.getAttribute('aria-controls')!),
+    ).not.toHaveClass('disclosure__content');
+  });
+
+  it('variante textual e animação opcional seguem o contrato oficial', () => {
+    render(
+      <Disclosure
+        title="Ver detalhes"
+        label="Ver detalhes de Caixinha"
+        level={4}
+        variant="text"
+        animated
+        className="investment-card__details"
+      >
+        <p>Notas</p>
+      </Disclosure>,
+    );
+    const button = screen.getByRole('button', {
+      name: 'Ver detalhes de Caixinha',
+    });
+    expect(button).toHaveClass('text-action');
+    expect(button.closest('section')).toHaveClass(
+      'investment-card__details',
+      'disclosure',
+    );
+    fireEvent.click(button);
+    expect(
+      document.getElementById(button.getAttribute('aria-controls')!),
+    ).toHaveClass('disclosure__content');
   });
 });
