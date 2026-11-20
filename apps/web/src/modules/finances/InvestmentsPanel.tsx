@@ -10,7 +10,8 @@ import type { RecordCommand, RecordPageProps } from '../records/types';
 import { investmentTotals, money } from './calculations';
 import { CategoryIcon } from './CategoryIcon';
 import type { PendingDeletion } from './DeleteConfirmation';
-import { Disclosure, InlineForm } from './FinanceLayout';
+import { Disclosure } from '../../shared/components/Disclosure';
+import { InlineForm } from './FinanceLayout';
 import { FinancialConfirmation } from './FinancialConfirmation';
 import { entryFromForm, investmentCommand } from './financeForms';
 import {

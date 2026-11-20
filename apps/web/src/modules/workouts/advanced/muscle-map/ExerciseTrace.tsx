@@ -140,6 +140,7 @@ export function ExerciseTrace({
         title="Exercícios que estimularam este músculo"
         count={counted.length}
         hint={detailsHint}
+        animated
         level={5}
         className="muscle-v2-trace-section"
       >
@@ -169,6 +170,7 @@ export function ExerciseTrace({
           title="Participação estabilizadora · não contabilizada"
           count={stabilizing.length}
           hint={detailsHint}
+          animated
           level={6}
           className="muscle-v2-trace-section muscle-v2-trace-stabilizer"
         >

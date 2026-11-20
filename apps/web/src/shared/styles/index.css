@@ -1922,10 +1922,10 @@
 .finance-inline-form {
   min-width: 0;
 }
-.finance-disclosure > .finance-disclosure__heading {
+.disclosure > .disclosure__heading {
   margin: 0;
 }
-.finance-disclosure__heading button:not(.text-action) {
+.disclosure__heading button:not(.text-action) {
   display: flex;
   width: 100%;
   min-height: var(--control-height);
@@ -1935,17 +1935,15 @@
   text-align: left;
   overflow-wrap: anywhere;
 }
-.finance-disclosure__chevron {
+.disclosure__chevron {
   flex-shrink: 0;
   transform: rotate(90deg);
   transition: transform 0.2s ease;
 }
-.finance-disclosure__heading
-  button[aria-expanded='true']
-  .finance-disclosure__chevron {
+.disclosure__heading button[aria-expanded='true'] .disclosure__chevron {
   transform: rotate(-90deg);
 }
-/* Disclosure compartilhado: complementos às regras .finance-disclosure*. */
+/* Disclosure oficial: texto auxiliar opcional e entrada animada opcional. */
 .disclosure__toggle {
   display: inline-flex;
   flex-shrink: 0;
@@ -1981,7 +1979,7 @@
   margin-top: var(--space-3);
 }
 @media (prefers-reduced-motion: reduce) {
-  .finance-disclosure__chevron {
+  .disclosure__chevron {
     transition: none;
   }
 }

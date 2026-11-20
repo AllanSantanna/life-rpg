@@ -2,11 +2,10 @@ import { useId, useState, type ReactNode } from 'react';
 import { Icon } from './Icon';
 
 /**
- * Seção recolhível: botão com `aria-expanded` dentro do título e seta que gira.
- * O conteúdo só é montado quando aberto, evitando listas longas na página.
- * Para reiniciar o estado (ex.: outro item selecionado), troque a `key`.
- * Reutiliza as classes `.finance-disclosure*` da versão local de Finanças, para
- * não duplicar estilos; a migração daquela cópia para este componente é pendente.
+ * Seção recolhível oficial: botão com `aria-expanded`/`aria-controls` dentro do
+ * título e seta que gira. O conteúdo só é montado quando aberto, evitando listas
+ * longas na página. Para reiniciar o estado (ex.: outro item selecionado),
+ * troque a `key` no componente pai.
  */
 export function Disclosure({
   title,
@@ -17,6 +16,7 @@ export function Disclosure({
   variant = 'section',
   count,
   hint,
+  animated = false,
   children,
 }: {
   title: string;
@@ -31,17 +31,22 @@ export function Disclosure({
   count?: number;
   /** Texto visual ao lado da seta; o estado já é anunciado por `aria-expanded`. */
   hint?: { open: string; closed: string };
+  /** Entrada discreta do conteúdo; desligada com movimento reduzido. */
+  animated?: boolean;
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(defaultOpen);
   const id = useId();
   const Heading = (['h2', 'h3', 'h4', 'h5', 'h6'] as const)[level - 2]!;
+  const chevron = (
+    <Icon name="chevron" size={18} className="disclosure__chevron" />
+  );
   return (
     <section
-      className={`${className} finance-disclosure`}
+      className={`${className} disclosure`}
       aria-labelledby={`${id}-title`}
     >
-      <Heading className="finance-disclosure__heading">
+      <Heading className="disclosure__heading">
         <button
           type="button"
           className={variant === 'text' ? 'text-action' : undefined}
@@ -55,21 +60,23 @@ export function Disclosure({
             {title}
             {count !== undefined && ` (${count})`}
           </span>
-          <span className="disclosure__toggle">
-            {hint && (
+          {hint ? (
+            <span className="disclosure__toggle">
               <span className="disclosure__hint" aria-hidden="true">
                 {open ? hint.open : hint.closed}
               </span>
-            )}
-            <Icon
-              name="chevron"
-              size={18}
-              className="finance-disclosure__chevron"
-            />
-          </span>
+              {chevron}
+            </span>
+          ) : (
+            chevron
+          )}
         </button>
       </Heading>
-      <div id={`${id}-content`} className="disclosure__content" hidden={!open}>
+      <div
+        id={`${id}-content`}
+        className={animated ? 'disclosure__content' : undefined}
+        hidden={!open}
+      >
         {open && children}
       </div>
     </section>

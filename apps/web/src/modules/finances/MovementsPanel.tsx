@@ -16,7 +16,8 @@ import type { RecordCommand, RecordPageProps } from '../records/types';
 import { AccountField } from './CashLedgerPanel';
 import { money } from './calculations';
 import type { PendingDeletion } from './DeleteConfirmation';
-import { Disclosure, InlineForm } from './FinanceLayout';
+import { Disclosure } from '../../shared/components/Disclosure';
+import { InlineForm } from './FinanceLayout';
 import { movementFromForm } from './financeForms';
 import {
   ALL,
