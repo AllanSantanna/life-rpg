@@ -1,3 +1,4 @@
+import { sessionTime, withSessionTiming } from '../sessionTiming';
 import { exerciseCatalog } from '../catalog';
 import { sessionFromPlan } from '../commands';
 import type {
@@ -99,10 +100,11 @@ export function prepareWorkoutImport(
       ? state.plans.find((p) => p.id === target.planId)
       : null;
   if (plan === undefined) throw new Error('Ficha de destino não encontrada.');
-  const value = structuredClone(
+  let value = structuredClone(
     expected ?? sessionFromPlan(plan, state, id(), target.date ?? ''),
   );
-  if (target.date) value.date = target.date;
+  if (target.date)
+    value = withSessionTiming(value, target.date, sessionTime(value));
   const importedIds: string[] = [];
   for (const row of rows) {
     const exercise = catalog.find((e) => e.id === row.exerciseId);

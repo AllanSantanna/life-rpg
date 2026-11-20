@@ -383,7 +383,10 @@ describe('musculação opcional na aplicação real', () => {
     expect(
       screen.getByText('Peito: 1 série válida no período.'),
     ).toBeInTheDocument();
-    button('Anual');
+    selectOption(
+      screen.getByRole('combobox', { name: 'Período do mapa' }),
+      'Últimos 365 dias',
+    );
     expect(screen.getByRole('button', { name: 'Peito 2' })).toBeInTheDocument();
     tab('Histórico');
     fireEvent.click(

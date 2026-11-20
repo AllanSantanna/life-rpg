@@ -53,3 +53,11 @@ Não espalhe hex/RGB/HSL no JSX. Valores dinâmicos de gráficos podem usar geom
 inline; cores devem vir de tokens, classes ou `currentColor`. O ESLint verifica
 literais hex e funções de cor inline e utilitários Tailwind com cores arbitrárias;
 cores nomeadas, CSS externo e expressões indiretas ainda exigem revisão.
+
+## Mapa muscular
+
+Os tokens `--color-muscle-ready` (verde), `--color-muscle-recovering` (amarelo)
+e `--color-muscle-tired` (laranja) são exclusivos da recuperação estimada no mapa.
+O vermelho reutiliza `--color-primary`; esforço usa somente a família vermelha
+existente. Ausência usa `--color-muted`, com texto “Indeterminado”. Nenhuma dessas
+cores representa diagnóstico. São tokens temáticos, sem overrides de outros módulos.

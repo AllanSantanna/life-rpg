@@ -16,3 +16,18 @@ export function selectDate(control: HTMLElement, value: string) {
   );
   fireEvent.click(within(calendar).getByRole('button', { name: 'Aplicar' }));
 }
+
+/** Preenche pelo campo de digitação do seletor de horário ("" usa Limpar). */
+export function selectTime(control: HTMLElement, value: string) {
+  fireEvent.click(control);
+  const panel = screen.getByRole('dialog');
+  if (!value) {
+    fireEvent.click(within(panel).getByRole('button', { name: 'Limpar' }));
+    return;
+  }
+  fireEvent.change(
+    within(panel).getByRole('textbox', { name: 'Digitar horário' }),
+    { target: { value } },
+  );
+  fireEvent.click(within(panel).getByRole('button', { name: 'Aplicar' }));
+}

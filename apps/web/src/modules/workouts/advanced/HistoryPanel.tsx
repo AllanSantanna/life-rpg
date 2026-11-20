@@ -1,4 +1,4 @@
-import { displayDate } from '../../records/dates';
+import { displaySessionDate, sessionTime } from './sessionTiming';
 import { consideredSets, number, sessionVolume } from './calculations';
 import { DeleteAction } from './Controls';
 import type { AdvancedCommandHandler, AdvancedWorkoutState } from './types';
@@ -20,14 +20,19 @@ export function HistoryPanel({
       )}
       {[...state.sessions]
         .reverse()
-        .sort((a, b) => b.date.localeCompare(a.date))
+        .sort(
+          (a, b) =>
+            b.date.localeCompare(a.date) ||
+            sessionTime(b).localeCompare(sessionTime(a)),
+        )
         .map((session) => (
           <article className="strength-exercise" key={session.id}>
             <div className="strength-heading">
               <div>
                 <h4>{session.planName}</h4>
                 <p>
-                  {displayDate(session.date)} ·{' '}
+                  {displaySessionDate(session)}
+                  {!session.startedAt && ' · horário não informado'} ·{' '}
                   {session.status === 'completed'
                     ? 'Concluída'
                     : 'Em andamento'}

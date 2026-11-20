@@ -2,6 +2,8 @@ import fs from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import { auditStatistics } from './audit-statistics.mjs';
+import { auditMuscleMap } from './audit-muscle-map.mjs';
+import { auditTimePicker } from './audit-time-picker.mjs';
 
 // Opcional: Playwright pertence ao ambiente de auditoria, não ao bundle do app.
 let chromium;
@@ -457,6 +459,8 @@ try {
       reducedMotion: 'reduce',
       locale: 'pt-BR',
       timezoneId: 'America/Sao_Paulo',
+      // Larguras de celular auditam toque real (tap), como o executor do mapa.
+      hasTouch: width < 768,
     });
     await context.route('**/*', (route) =>
       route.request().url().startsWith(base) ? route.continue() : route.abort(),
@@ -589,12 +593,15 @@ try {
       })) {
         await page.getByRole('tab', { name: label, exact: true }).click();
         await capture(page, `treinos-${name}`, width);
+        if (name === 'muscular')
+          await auditMuscleMap({ page, width, capture, check });
       }
       await page.getByRole('tab', { name: 'Minhas fichas' }).click();
       await page
         .getByRole('button', { name: 'Iniciar treino', exact: true })
         .click();
       await capture(page, 'sessao', width);
+      await auditTimePicker({ page, width, capture, check });
       await page.goto(base + '/quests');
       await page
         .getByRole('button', { name: 'Criar minha quest', exact: true })

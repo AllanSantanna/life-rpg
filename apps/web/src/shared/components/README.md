@@ -44,6 +44,37 @@ leitura). Não há elementos `<select>` nativos no código da interface. Os test
 em livros diferentes, com correção, recarga e preservação dos outros pilares.
 As suítes financeiras também cobrem Bitcoin, USD e caixinhas com esses controles.
 
+## Disclosure
+
+`Disclosure.tsx` é a seção recolhível oficial, usada por Finanças (históricos e
+“Ver detalhes” dos cartões) e pelo Mapa muscular. Props: `title`, `label`, `level`
+(2–6), `defaultOpen`, `className`, `variant`, `count`, `hint` e `animated`. O
+botão do título tem `aria-expanded` e `aria-controls`; a seta gira sem transição
+com movimento reduzido. Sem `hint`, a seta fica direto no botão; sem `animated`,
+o conteúdo aparece sem animação (comportamento de Finanças). Com `animated`, entra
+com fade curto, desligado por `prefers-reduced-motion`. O conteúdo só é montado
+aberto. Para reiniciar (outro item, outro período), o pai troca a `key`.
+
+## CustomTimePicker
+
+`CustomTimePicker.tsx` substitui o `input type="time"` nativo, cuja aparência
+varia por sistema operacional. Valor controlado `HH:mm` (24 horas) ou `""` para
+horário desconhecido; não cria horário ao abrir nem ao navegar. Props: `label`,
+`value`, `onChange`, `required`, `disabled` e `describedBy`.
+
+O gatilho reutiliza `.custom-select__trigger` com ícone de relógio. O painel
+reutiliza `.custom-calendar` (diálogo modal em portal, cabeçalho, digitação,
+rodapé, animação e movimento reduzido); só as colunas `.custom-time-picker__*`
+são novas. Duas listas (`role="listbox"`): horas 00–23 e minutos 00–59. Tocar
+na hora leva o foco aos minutos; tocar no minuto confirma e fecha. Teclado:
+setas, Home/End e PageUp/Down (5 em 5) movem a opção; →/← trocam de coluna;
+Enter/Espaço avançam ou confirmam. **Confirmar** aplica a escolha, **Agora**
+usa o horário local, **Limpar** (somente se opcional) remove o horário. Escape e
+clique fora cancelam e devolvem o foco ao controle. **Digitar horário** aceita
+`15:30`, `1530` ou `9:05`, com máscara numérica; valores fora de 00:00–23:59
+exibem erro acessível. No celular, opções têm 44 px e o diálogo, na camada
+superior, fica acima da navegação inferior e dentro do viewport visual.
+
 ## CustomDatePicker
 
 `CustomDatePicker.tsx` substitui todos os campos nativos de data e mês, mantendo

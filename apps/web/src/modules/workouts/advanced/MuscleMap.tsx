@@ -1,199 +1,272 @@
-import { useState } from 'react';
-import { muscleActivity, number, type TrainingPeriod } from './calculations';
-import { muscleLabels, type Muscle, type WorkoutSession } from './types';
-import { plural } from '../../../shared/lib/plural';
-const front: Partial<Record<Muscle, string[]>> = {
-  chest: [
-    'M70 75 Q83 69 97 77 L97 103 Q78 107 66 95Z',
-    'M103 77 Q118 69 131 75 L134 95 Q122 107 103 103Z',
-  ],
-  shoulders: [
-    'M60 68 Q70 65 74 73 L65 95 51 97 Q48 77 60 68Z',
-    'M140 68 Q130 65 126 73 L135 95 149 97 Q152 77 140 68Z',
-  ],
-  biceps: [
-    'M51 100 64 101 55 128 43 137 39 125Z',
-    'M149 100 136 101 145 128 157 137 161 125Z',
-  ],
-  forearms: [
-    'M41 137 53 132 46 160 32 184 25 180Z',
-    'M159 137 147 132 154 160 168 184 175 180Z',
-  ],
-  trapezius: [
-    'M90 56 L89 63 66 67 70 71 Q82 70 92 66Z',
-    'M110 56 L111 63 134 67 130 71 Q118 70 108 66Z',
-  ],
-  core: [
-    'M79 108 97 110 97 161 84 170 76 142Z',
-    'M103 110 121 108 124 142 116 170 103 161Z',
-  ],
-  quadriceps: [
-    'M78 181 97 177 94 225 86 247 73 236 68 204Z',
-    'M103 177 122 181 132 204 127 236 114 247 106 225Z',
-  ],
-  calves: [
-    'M76 258 88 259 86 299 80 317 72 314 69 285Z',
-    'M112 259 124 258 131 285 128 314 120 317 114 299Z',
-  ],
-};
-const back: Partial<Record<Muscle, string[]>> = {
-  back: [
-    'M70 75 97 67 97 151 84 163 70 135 64 96Z',
-    'M103 67 130 75 136 96 130 135 116 163 103 151Z',
-  ],
-  trapezius: [
-    'M97 54 L90 56 Q78 63 66 68 L74 74 Q86 84 97 112Z',
-    'M103 54 L110 56 Q122 63 134 68 L126 74 Q114 84 103 112Z',
-  ],
-  shoulders: front.shoulders!,
-  triceps: [
-    'M51 100 64 98 57 129 45 137 39 125Z',
-    'M149 100 136 98 143 129 155 137 161 125Z',
-  ],
-  forearms: front.forearms!,
-  glutes: [
-    'M82 164 98 159 98 197 78 204 69 190 73 175Z',
-    'M102 159 118 164 127 175 131 190 122 204 102 197Z',
-  ],
-  hamstrings: [
-    'M72 207 96 203 92 237 84 250 73 243 67 224Z',
-    'M104 203 128 207 133 224 127 243 116 250 108 237Z',
-  ],
-  calves: [
-    'M74 256 Q88 250 91 270 L84 304 76 317 69 291Z',
-    'M109 270 Q112 250 126 256 L131 291 124 317 116 304Z',
-  ],
-};
-function Body({
-  side,
-  paths,
-  counts,
-  selected,
-  onSelect,
-}: {
-  side: string;
-  paths: typeof front;
-  counts: Record<Muscle, number>;
-  selected: Muscle | null;
-  onSelect: (m: Muscle) => void;
-}) {
-  const max = Math.max(1, ...Object.values(counts));
-  return (
-    <figure>
-      <figcaption>{side}</figcaption>
-      <svg
-        viewBox="0 0 200 350"
-        role="group"
-        aria-label={`Mapa muscular · visão ${side.toLocaleLowerCase('pt-BR')}`}
-      >
-        <g fill="#333333" stroke="#777777" strokeWidth="1.5">
-          <ellipse cx="100" cy="30" rx="18" ry="23" />
-          <path d="M89 52 88 62 61 66Q46 70 42 95L32 132 20 181 25 195 34 191 49 163 62 138 71 127 75 153 68 184 62 209 70 250 66 282 72 320 65 333 68 340 85 338 93 314 99 257 100 213 101 257 107 314 115 338 132 340 135 333 128 320 134 282 130 250 138 209 132 184 125 153 129 127 138 138 151 163 166 191 175 195 180 181 168 132 158 95Q154 70 139 66L112 62 111 52Z" />
-        </g>
-        {(Object.entries(paths) as [Muscle, string[]][]).map(
-          ([muscle, regions]) => (
-            <g key={muscle}>
-              {regions.map((d, index) => (
-                <path
-                  key={index}
-                  d={d}
-                  fill={
-                    counts[muscle]
-                      ? `rgba(220,38,38,${0.3 + (0.7 * counts[muscle]) / max})`
-                      : '#424242'
-                  }
-                  stroke={selected === muscle ? '#fff1e9' : '#161015'}
-                  strokeWidth={selected === muscle ? 2 : 1.5}
-                  role="button"
-                  tabIndex={0}
-                  aria-label={`${side} · ${muscleLabels[muscle]}: ${plural(counts[muscle], 'série válida', 'séries válidas')}`}
-                  onClick={() => onSelect(muscle)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      onSelect(muscle);
-                    }
-                  }}
-                >
-                  <title>
-                    {muscleLabels[muscle]}:{' '}
-                    {plural(counts[muscle], 'série válida', 'séries válidas')}
-                  </title>
-                </path>
-              ))}
-            </g>
-          ),
-        )}
-      </svg>
-    </figure>
-  );
-}
+import { useWorkoutClock } from './useWorkoutClock';
+import { localDate } from '../../records/dates';
+import { useId, useMemo, useRef, useState } from 'react';
+import { CustomSelect } from '../../../shared/components/CustomSelect';
+import { Icon } from '../../../shared/components/Icon';
+import { shiftDate } from '../../records/dates';
+import { number, periodDays, type TrainingPeriod } from './calculations';
+import type { WorkoutSession } from './types';
+import { mapGroupLabels, type MapGroup } from './muscle-map/participation';
+import { AnatomyFigure } from './muscle-map/AnatomyFigure';
+import {
+  anatomicalGroups,
+  anatomicalLabels,
+  findSurface,
+  type Selection,
+} from './muscle-map/anatomy';
+import { Legend } from './muscle-map/Legend';
+import { MethodHelp } from './muscle-map/MethodHelp';
+import { MuscleDetails, type HistoryPoint } from './muscle-map/MuscleDetails';
+import {
+  dailyHistory,
+  metricTone,
+  projectMuscles,
+  type MapMode,
+} from './muscle-map/model';
+import './muscle-map/muscle-map.css';
+import { SelectionConnector } from './muscle-map/SelectionConnector';
+
 export function MuscleMap({
   sessions,
-  today,
   period,
+  onPeriodChange,
 }: {
   sessions: WorkoutSession[];
   today: string;
   period: TrainingPeriod;
+  onPeriodChange?: (period: TrainingPeriod) => void;
 }) {
-  const counts = muscleActivity(sessions, today, period);
-  const [selected, setSelected] = useState<Muscle | null>(null);
-  return (
-    <div className="strength-stack">
-      <h3>Mapa muscular</h3>
-      <details className="strength-catalog">
-        <summary>Sobre o mapa muscular</summary>
-        <p className="record-hint">
-          Séries válidas concluídas por grupo muscular. A cor mostra apenas a
-          quantidade registrada, sem medir recuperação, hipertrofia ou qualidade
-          do treino. Grupos principais e secundários recebem a mesma contagem de
-          participação.
-        </p>
-      </details>
-      <div className="strength-body-map">
-        <Body
-          side="Frontal"
-          paths={front}
-          counts={counts}
-          selected={selected}
-          onSelect={setSelected}
-        />
-        <Body
-          side="Traseira"
-          paths={back}
-          counts={counts}
-          selected={selected}
-          onSelect={setSelected}
-        />
-      </div>
-      <p aria-live="polite">
-        {selected
-          ? `${muscleLabels[selected]}: ${number(counts[selected])} ${counts[selected] === 1 ? 'série válida' : 'séries válidas'} no período.`
-          : 'Selecione um músculo ou consulte a legenda.'}
-      </p>
-      <ul className="strength-muscle-legend">
-        {(Object.entries(muscleLabels) as [Muscle, string][]).map(
-          ([muscle, label]) => (
-            <li key={muscle}>
-              <button
-                type="button"
-                aria-pressed={selected === muscle}
-                onClick={() => setSelected(muscle)}
-              >
-                <span className={counts[muscle] ? 'muscle-worked' : ''} />
-                {label}
-                <strong>{counts[muscle]}</strong>
-              </button>
-            </li>
-          ),
-        )}
-      </ul>
-      {!Object.values(counts).some(Boolean) && (
-        <p className="record-empty">
-          Nenhuma série válida concluída neste período.
-        </p>
-      )}
-    </div>
+  const [mode, setMode] = useState<MapMode>('effort');
+  const [selection, setSelection] = useState<Selection>({
+    view: 'front',
+    id: 'CHEST_LEFT',
+  });
+  const now = useWorkoutClock();
+  const referenceDay = localDate(new Date(now));
+  const uid = useId();
+  const grid = useRef<HTMLDivElement>(null);
+  const { summaries, unmappedSets } = useMemo(
+    () => projectMuscles(sessions, now, period),
+    [sessions, now, period],
   );
+  const selectedGroup = anatomicalGroups[findSurface(selection).group];
+  const summary = selectedGroup ? summaries[selectedGroup] : undefined;
+  const history = useMemo<HistoryPoint[]>(() => {
+    if (mode === 'recovery')
+      return Array.from({ length: 14 }, (_, i) => {
+        const date = shiftDate(referenceDay, i - 13);
+        return {
+          date,
+          value: selectedGroup
+            ? projectMuscles(sessions, i === 13 ? now : date, period).summaries[
+                selectedGroup
+              ].recovery
+            : null,
+        };
+      });
+    if (!summary) return [];
+    const daily = dailyHistory(summary, referenceDay, period);
+    const bucketSize = Math.ceil(daily.length / 14);
+    return Array.from(
+      { length: Math.ceil(daily.length / bucketSize) },
+      (_, i) => {
+        const chunk = daily.slice(i * bucketSize, (i + 1) * bucketSize);
+        const values = chunk.filter((d) => d.units !== null);
+        return {
+          date: chunk[0]!.date,
+          endDate: chunk.at(-1)!.date,
+          value: values.length
+            ? values.reduce((sum, d) => sum + d.units!, 0)
+            : null,
+        };
+      },
+    );
+  }, [mode, period, selectedGroup, sessions, summary, referenceDay, now]);
+  function selectGroup(muscle: MapGroup) {
+    setSelection(documentedSelection(muscle));
+  }
+  return (
+    <section className="muscle-v2" aria-label="Mapa muscular">
+      <header className="muscle-v2-heading">
+        <div className="muscle-v2-title">
+          <span className="muscle-v2-emblem">
+            <Icon name="dumbbell" size={30} />
+          </span>
+          <div>
+            <h3>Mapa muscular</h3>
+            <p>
+              Visualize o esforço dos treinos e a recuperação estimada de cada
+              grupo.
+            </p>
+          </div>
+        </div>
+        <MethodHelp />
+      </header>
+      <div className="muscle-v2-toolbar">
+        <div
+          className="muscle-v2-modes"
+          role="tablist"
+          aria-label="Modo do mapa muscular"
+        >
+          {(['effort', 'recovery'] as const).map((value) => (
+            <button
+              type="button"
+              key={value}
+              id={`${uid}-${value}`}
+              role="tab"
+              aria-selected={mode === value}
+              aria-controls={`${uid}-panel`}
+              tabIndex={mode === value ? 0 : -1}
+              onClick={() => setMode(value)}
+              onKeyDown={(e) => {
+                if (
+                  ['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)
+                ) {
+                  e.preventDefault();
+                  const next =
+                    e.key === 'Home'
+                      ? 'effort'
+                      : e.key === 'End'
+                        ? 'recovery'
+                        : mode === 'effort'
+                          ? 'recovery'
+                          : 'effort';
+                  setMode(next);
+                  document.getElementById(`${uid}-${next}`)?.focus();
+                }
+              }}
+            >
+              <Icon
+                name={value === 'effort' ? 'dumbbell' : 'shield'}
+                size={22}
+              />
+              {value === 'effort' ? 'Esforço' : 'Recuperação'}
+            </button>
+          ))}
+        </div>
+        {onPeriodChange && (
+          <CustomSelect
+            label="Período do mapa"
+            icon="calendar"
+            value={period}
+            options={(Object.keys(periodDays) as TrainingPeriod[]).map(
+              (value) => ({
+                value,
+                label: `Últimos ${periodDays[value]} dias`,
+              }),
+            )}
+            onChange={onPeriodChange}
+          />
+        )}
+      </div>
+      <div
+        id={`${uid}-panel`}
+        role="tabpanel"
+        aria-labelledby={`${uid}-${mode}`}
+      >
+        <div className="muscle-v2-grid" ref={grid}>
+          <SelectionConnector container={grid} selection={selection} />
+          <div className="muscle-v2-stage">
+            <div className="muscle-v2-bodies">
+              <AnatomyFigure
+                view="front"
+                mode={mode}
+                selection={selection}
+                summaries={summaries}
+                onSelect={setSelection}
+              />
+              <AnatomyFigure
+                view="back"
+                mode={mode}
+                selection={selection}
+                summaries={summaries}
+                onSelect={setSelection}
+              />
+            </div>
+            <p className="muscle-v2-stage-caption">
+              {anatomicalLabels[findSurface(selection).group]} ·{' '}
+              {summary?.[mode] === null || summary?.[mode] === undefined
+                ? 'Indeterminado'
+                : `${summary[mode]}%${mode === 'recovery' ? ' · índice estimado' : ' · esforço relativo'}`}
+              <br />
+              Selecione uma região no corpo ou na lista abaixo.
+            </p>
+          </div>
+          <MuscleDetails
+            selection={selection}
+            summary={summary}
+            mode={mode}
+            history={history}
+            days={periodDays[period]}
+          />
+        </div>
+        <Legend mode={mode} />
+        <p className="muscle-v2-announcement" aria-live="polite">
+          {selectedGroup
+            ? `${mapGroupLabels[selectedGroup]}: ${number(summary?.sets ?? 0)} ${summary?.sets === 1 ? 'série válida' : 'séries válidas'} no período.`
+            : 'Grupo sem correspondência nos registros.'}
+        </p>
+        {mode === 'recovery' && (
+          <p className="record-hint">
+            Estimativa baseada no histórico registrado; não substitui percepção
+            de fadiga e recuperação.
+          </p>
+        )}
+        <details className="muscle-v2-picker" open>
+          <summary>Grupos musculares · dados agregados</summary>
+          <ul>
+            {(Object.entries(mapGroupLabels) as [MapGroup, string][]).map(
+              ([muscle, label]) => (
+                <li key={muscle}>
+                  <button
+                    type="button"
+                    aria-pressed={selectedGroup === muscle}
+                    onClick={() => selectGroup(muscle)}
+                  >
+                    <span
+                      className={`muscle-v2-dot muscle-tone-${metricTone(summaries[muscle][mode], mode)}`}
+                      aria-hidden="true"
+                    />
+                    {label}
+                    <strong>{summaries[muscle].sets}</strong>
+                  </button>
+                </li>
+              ),
+            )}
+          </ul>
+        </details>
+        {unmappedSets > 0 && (
+          <p className="record-hint">
+            {unmappedSets} séries sem grupo reconhecido não receberam pontuação.
+          </p>
+        )}
+        {!Object.values(summaries).some((s) => s.sets > 0) && (
+          <p className="record-empty">
+            Nenhuma série válida concluída neste período.
+          </p>
+        )}
+      </div>
+    </section>
+  );
+}
+// Seleções canônicas da lista; grupos só do mapa não alteram snapshots nem tipos salvos.
+function documentedSelection(muscle: MapGroup): Selection {
+  const selections: Record<MapGroup, Selection> = {
+    chest: { view: 'front', id: 'CHEST_LEFT' },
+    shoulders: { view: 'front', id: 'SHOULDER_FRONT_LEFT' },
+    biceps: { view: 'front', id: 'BICEPS_LEFT' },
+    triceps: { view: 'back', id: 'TRICEPS_LEFT' },
+    forearms: { view: 'front', id: 'FOREARM_LEFT' },
+    core: { view: 'front', id: 'CORE_LEFT' },
+    trapezius: { view: 'back', id: 'TRAPEZIUS_LEFT' },
+    back: { view: 'back', id: 'LATISSIMUS_LEFT' },
+    lowerBack: { view: 'back', id: 'LOWER_BACK_LEFT' },
+    adductors: { view: 'front', id: 'ADDUCTOR_LEFT' },
+    abductors: { view: 'front', id: 'ABDUCTOR_LEFT' },
+    glutes: { view: 'back', id: 'GLUTEUS_LEFT' },
+    quadriceps: { view: 'front', id: 'QUADRICEPS_LEFT' },
+    hamstrings: { view: 'back', id: 'HAMSTRINGS_LEFT' },
+    calves: { view: 'back', id: 'CALVES_LEFT' },
+  };
+  return selections[muscle];
 }

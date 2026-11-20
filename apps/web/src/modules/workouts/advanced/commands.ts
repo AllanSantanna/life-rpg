@@ -35,11 +35,13 @@ export function sessionFromPlan(
   state: AdvancedWorkoutState,
   id: string,
   date: string,
+  startedAt?: string,
 ): WorkoutSession {
   const catalog = exerciseCatalog(state);
   return {
     id,
     date,
+    ...(startedAt !== undefined ? { startedAt } : {}),
     planId: plan?.id ?? null,
     planName: plan?.name ?? 'Treino livre',
     notes: plan?.notes ?? '',
@@ -180,7 +182,13 @@ export function applyAdvancedWorkoutCommand(
         ...state,
         sessions: [
           ...state.sessions,
-          sessionFromPlan(plan, state, command.id, command.date),
+          sessionFromPlan(
+            plan,
+            state,
+            command.id,
+            command.date,
+            command.startedAt,
+          ),
         ],
       };
       break;
@@ -250,7 +258,7 @@ export function applyAdvancedWorkoutCommand(
   }
   assert(
     isAdvancedWorkoutState(next),
-    'Verifique os campos: nome obrigatório, carga de 0 a 2.000 kg, repetições inteiras de 1 a 1.000 e RIR opcional de 0 a 10. Séries concluídas exigem carga e repetições.',
+    'Verifique os campos: nome obrigatório, carga de 0 a 2.000 kg, repetições inteiras de 1 a 1.000 e RIR opcional de 0 a 10. Séries concluídas exigem carga e repetições. Horário, quando informado, deve ser HH:mm válido e corresponder à data.',
   );
   return next;
 }

@@ -1,3 +1,4 @@
+import { isSessionStart } from './sessionTiming';
 import { isDate } from '../../records/dates';
 import { exerciseCatalog, normalizedName, starterExercises } from './catalog';
 import { normalizeExerciseName } from './importing/normalize';
@@ -89,6 +90,7 @@ export function isSession(v: unknown): v is WorkoutSession {
     !object(v) ||
     !id(v.id) ||
     !isDate(v.date) ||
+    (v.startedAt !== undefined && !isSessionStart(v.startedAt, v.date)) ||
     !(v.planId === null || id(v.planId)) ||
     !id(v.planName) ||
     !text(v.notes) ||
