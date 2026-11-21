@@ -174,7 +174,9 @@ como função testada e não soma prêmios de quests.
   conclusão/desfazer; contrato compartilhado em `shared/components/README.md`.
 
 O estado `PlayerState.goals` contém quests e atualizações em **versão 4**, na mesma
-chave `life-rpg:player-state`. V3 recebe apenas `goals` vazio: perfil, progressão
+chave `life-rpg:player-state` na época. Hoje integra o envelope v8 no IndexedDB,
+com o original legado preservado (ver [persistência](../../shared/storage/README.md)).
+V3 recebe apenas `goals` vazio: perfil, progressão
 real, eventos históricos de missões, preferências e todos os registros são copiados intactos.
 V1/v2 passam pela correção de progressão real e recebem quests vazias. A migração
 ocorre uma vez, sem recreditar recompensas. Falhas de escrita preservam o envelope

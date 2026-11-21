@@ -5,7 +5,8 @@ Finanças, Treinos, Descanso e Conhecimento, defina quests, ganhe XP e visualize
 sua dedicação recente no Radar de Evolução.
 
 O frontend funciona de forma independente, com salvamento automático no
-`localStorage`. Não requer conta, backend ou banco de dados para usar os recursos
+IndexedDB, preservando os originais legados do `localStorage`. Não requer conta,
+backend ou banco remoto para usar os recursos
 atuais. O projeto também contém uma base de API para evoluções futuras.
 
 ## Funcionalidades
@@ -32,7 +33,7 @@ atuais. O projeto também contém uma base de API para evoluções futuras.
 - **Perfil:** nome editável, avatar atual, classe automática, nível, XP e Radar. A classe
   considera a dedicação real dos últimos 30 dias, atribuindo imediatamente a classe pelo pilar de maior pontuação.
   Veja as [regras de classes e migração](apps/web/src/modules/profile/README.md).
-- **Persistência:** formato v7, com migração automática das versões anteriores,
+- **Persistência:** formato v8 em IndexedDB transacional, com importação validada e cópia original das versões anteriores,
   preservando registros reais, quests, XP e nível. O perfil antigo perde apenas os campos cosméticos descontinuados.
 - **Navegação:** URLs próprias, acesso direto, recarga e Voltar/Avançar.
 - **Acessibilidade/PWA:** seletores e calendários customizados dark em todo o aplicativo,
@@ -48,16 +49,16 @@ navegador remove o progresso local.
 
 ## Tecnologias
 
-| Camada                    | Tecnologias                                              |
-| ------------------------- | -------------------------------------------------------- |
-| Frontend                  | React 19, TypeScript, Vite, Tailwind CSS 4, SVG nativo   |
-| Persistência atual        | `localStorage`, validação e migração tipadas             |
-| PWA                       | `vite-plugin-pwa` e Workbox                              |
-| API preparada             | Node.js, Express 5, Helmet e CORS                        |
-| Banco preparado, opcional | PostgreSQL 17 via Docker Compose e configuração Prisma 7 |
-| Testes                    | Vitest, Testing Library, jsdom e Supertest               |
-| Qualidade                 | TypeScript estrito, ESLint e Prettier                    |
-| Organização               | Monorepo com npm workspaces                              |
+| Camada                    | Tecnologias                                                   |
+| ------------------------- | ------------------------------------------------------------- |
+| Frontend                  | React 19, TypeScript, Vite, Tailwind CSS 4, SVG nativo        |
+| Persistência atual        | IndexedDB, revisões e cópias transacionais; legado preservado |
+| PWA                       | `vite-plugin-pwa` e Workbox                                   |
+| API preparada             | Node.js, Express 5, Helmet e CORS                             |
+| Banco preparado, opcional | PostgreSQL 17 via Docker Compose e configuração Prisma 7      |
+| Testes                    | Vitest, Testing Library, jsdom e Supertest                    |
+| Qualidade                 | TypeScript estrito, ESLint e Prettier                         |
+| Organização               | Monorepo com npm workspaces                                   |
 
 A API atual fornece infraestrutura e health check. Não existem autenticação,
 modelos de negócio no banco, integrações com corretoras ou dispositivos de saúde.

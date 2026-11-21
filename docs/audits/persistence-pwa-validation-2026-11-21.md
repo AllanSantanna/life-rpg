@@ -1,5 +1,43 @@
 # Validação complementar de persistência e PWA — 21/11/2026
 
+Este documento conserva a reprodução anterior à correção. A implementação
+aprovada posteriormente usa IndexedDB transacional; consulte a
+[decisão, garantias e limites atuais](../architecture/transactional-persistence.md).
+Os bloqueios e contagens abaixo descrevem a revisão histórica `59aebc9`, não
+atestam o resultado das verificações da implementação nova.
+
+## Validação final da implementação IndexedDB
+
+Executada em 21/11/2026 sobre a implementação transacional, antes da integração.
+
+| Verificação                                        | Resultado                                               |
+| -------------------------------------------------- | ------------------------------------------------------- |
+| `npm run check`                                    | Aprovado: 8 de padrões, 24 da API e 609 do web          |
+| `npm run format:check` e `npm run standards:check` | Aprovados                                               |
+| `scripts/audit-indexed-storage.mjs`                | 28 cenários, 0 falhas, 0 erros de página                |
+| `scripts/audit-storage-pwa.mjs`                    | 21 cenários (8 de PWA), 0 falhas, 0 bloqueios, 0 erros  |
+| `npm run audit:visual`                             | 364 capturas, 0 erros de página, 0 falhas de layout     |
+| `node scripts/audit-muscle-map.mjs`                | 55 capturas, 0 erros, 0 falhas                          |
+| `npm audit`                                        | 4 moderadas, 0 altas, 0 críticas (mesma cadeia de B-12) |
+
+Correções feitas nesta etapa:
+
+- A auditoria PWA saía com código 1 por duas exceções não tratadas na página:
+  uma falha que aborta a transação de imediato em `copies.add` era seguida de
+  novo uso da transação no mesmo handler. Os dados ficavam íntegros, mas a
+  exceção escapava. Agora a cópia é sempre a última operação síncrona.
+- O hook pede confirmação de `beforeunload` enquanto uma gravação aguarda
+  commit, com teste de regressão. O ramo defensivo de conflito por legado
+  surgido após leitura vazia também guarda a proposta, como o ramo principal.
+- `statistics-customize-persist` verificava a tela logo após recarregar, antes
+  da hidratação assíncrona, e falhava de forma intermitente. A auditoria agora
+  aguarda o app carregado; as asserções não mudaram.
+
+O relatório externo dos 32 achados continua indisponível nesta sessão; a revisão
+item a item permanece pendente.
+
+## Revisão histórica
+
 Origem: `fix/audit-technical-compliance`, base `6b0d981`, revisão inicial
 `cabfc00` (16 commits, 101 arquivos). Este documento registra novos testes e
 limites, sem substituir ou copiar o relatório externo dos 32 achados.
