@@ -30,7 +30,7 @@ componentes compartilhados não gravam registros nem calculam recompensas.
 
 ```text
 Interface → onCommand → comando puro/validação → novo estado
-          → usePlayerState → adaptador local → localStorage
+          → usePlayerState → repositório transacional → IndexedDB
           → projeções de personagem, XP, Radar e indicadores → interface
 ```
 
@@ -65,13 +65,18 @@ continua local.
 [playerState.ts](../../apps/web/src/app/playerState.ts) define `PlayerState`,
 validação, migração, `PLAYER_STORAGE_KEY = 'life-rpg:player-state'` e versão 8.
 O envelope é `{ version, data }`.
-[localStateStorage.ts](../../apps/web/src/shared/storage/localStateStorage.ts)
-isola JSON, acesso ao navegador, validação e tratamento de falhas.
+[transactionalStateStorage.ts](../../apps/web/src/shared/storage/transactionalStateStorage.ts)
+é a fonte de verdade do jogador em IndexedDB. Importação com cópia original,
+comparação de revisão, gravação e recuperação usam transações. A chave legada
+`life-rpg:player-state` permanece intacta. O adaptador síncrono `localStateStorage.ts`
+continua nas preferências descartáveis e na classificação dos formatos históricos.
+Veja [persistência transacional](transactional-persistence.md).
 
 Não há backend de dados do jogador nem sincronização entre dispositivos.
-Storage ausente, inválido, incompatível e indisponível são estados diferentes.
-Versão desconhecida ou leitura indisponível não deve ser sobrescrita. StrictMode
-não deve duplicar migração, recompensas ou gravações na montagem.
+Ausente, inválido, incompatível e indisponível são estados diferentes. Conteúdo
+inválido/futuro fica protegido, e indisponibilidade não monta um jogador vazio
+no lugar dos registros. StrictMode e duas abas não duplicam a importação.
+A interface aguarda hidratação e commit, sem anunciar salvamento antecipado.
 Não use `localStorage.clear()` em código de produção nem grave por fora do hook.
 Detalhes e histórico em [Persistência](../../apps/web/src/shared/storage/README.md).
 
@@ -155,3 +160,10 @@ Há um roteiro de auditoria responsiva em Chromium separado das suítes Vitest:
 geometria e captura imagens, sem comparação automática de pixels.
 Supertest precisa poder abrir porta local. Não exige banco ou integrações reais.
 Comandos e limitações estão nas [regras de desenvolvimento](../ai/development-rules.md).
+
+Os testes de componentes injetam um adaptador síncrono no limite da persistência,
+sem mockar o hook ou as regras de domínio. A suíte assíncrona do hook testa filas,
+confirmação, conflitos e leituras atrasadas. `npm run audit:persistence` exercita o
+repositório nativo no Chromium, migrações, concorrência forçada entre abas,
+recuperação, código legado e atualizações reais do service worker. O CI possui
+um job `persistence` separado, com builds históricos e contextos descartáveis.
