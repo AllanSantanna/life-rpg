@@ -109,6 +109,8 @@ describe('proteção dos registros salvos', () => {
     ).toBeInTheDocument();
     train();
     expect(localStorage.getItem(PLAYER_STORAGE_KEY)).toBe(raw);
+    expect(screen.getByText('Alteração aplicada.')).toBeInTheDocument();
+    expect(screen.queryByText('Alteração salva.')).not.toBeInTheDocument();
     // Começar do zero exige confirmação; Cancelar não altera nada.
     fireEvent.click(
       within(notice).getByRole('button', {
@@ -133,6 +135,7 @@ describe('proteção dos registros salvos', () => {
     expect(
       screen.queryByRole('alert', { name: 'Registros salvos protegidos' }),
     ).not.toBeInTheDocument();
+    expect(document.getElementById('main')).toHaveFocus();
     // Reversível: restaurar devolve o bruto original (de novo protegido) e
     // guarda o estado novo como outra cópia.
     const fresh = localStorage.getItem(PLAYER_STORAGE_KEY)!;

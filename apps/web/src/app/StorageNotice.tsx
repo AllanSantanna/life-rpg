@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { ConfirmAction } from '../shared/components/ConfirmAction';
 import { downloadRaw } from '../shared/storage/backups';
 import type { Persistence } from './usePlayerState';
@@ -21,6 +21,13 @@ export function StorageNotice({
   onStartFresh: () => string;
 }) {
   const [error, setError] = useState<string | null>(null);
+  const returnToContent = useRef(false);
+  useLayoutEffect(() => {
+    if (persistence.kind === 'saved' && returnToContent.current) {
+      document.getElementById('main')?.focus();
+      returnToContent.current = false;
+    }
+  }, [persistence.kind]);
   if (persistence.kind === 'conflict')
     return (
       <section
@@ -35,7 +42,14 @@ export function StorageNotice({
           alteração, se ainda for necessária.
         </p>
         <div className="record-actions">
-          <button type="button" className="record-primary" onClick={onReload}>
+          <button
+            type="button"
+            className="record-primary"
+            onClick={() => {
+              returnToContent.current = true;
+              onReload();
+            }}
+          >
             Carregar registros atuais
           </button>
         </div>
@@ -72,6 +86,9 @@ export function StorageNotice({
           onConfirm={() => {
             try {
               onStartFresh();
+              // O aviso e seu botão desaparecem após a recuperação. Devolver
+              // o foco ao conteúdo evita deixá-lo no body sem contexto.
+              returnToContent.current = true;
               setError(null);
             } catch (reason) {
               setError(
