@@ -21,6 +21,7 @@ import {
   dailyHistory,
   metricTone,
   projectMuscles,
+  windowMetrics,
   type MapMode,
 } from './muscle-map/model';
 import './muscle-map/muscle-map.css';
@@ -51,6 +52,7 @@ export function MuscleMap({
   );
   const selectedGroup = anatomicalGroups[findSurface(selection).group];
   const summary = selectedGroup ? summaries[selectedGroup] : undefined;
+  const selectedSets = windowMetrics(summary, mode).sets;
   const history = useMemo<HistoryPoint[]>(() => {
     if (mode === 'recovery')
       return Array.from({ length: 14 }, (_, i) => {
@@ -203,7 +205,7 @@ export function MuscleMap({
         <Legend mode={mode} />
         <p className="muscle-v2-announcement" aria-live="polite">
           {selectedGroup
-            ? `${mapGroupLabels[selectedGroup]}: ${number(summary?.sets ?? 0)} ${summary?.sets === 1 ? 'série válida' : 'séries válidas'} no período.`
+            ? `${mapGroupLabels[selectedGroup]}: ${number(selectedSets)} ${selectedSets === 1 ? 'série válida' : 'séries válidas'} ${mode === 'effort' ? 'no período' : 'nos últimos 14 dias'}.`
             : 'Grupo sem correspondência nos registros.'}
         </p>
         {mode === 'recovery' && (
@@ -213,7 +215,12 @@ export function MuscleMap({
           </p>
         )}
         <details className="muscle-v2-picker" open>
-          <summary>Grupos musculares · dados agregados</summary>
+          <summary>
+            Grupos musculares · séries{' '}
+            {mode === 'effort'
+              ? `em ${periodDays[period]} dias`
+              : 'em 14 dias (recuperação)'}
+          </summary>
           <ul>
             {(Object.entries(mapGroupLabels) as [MapGroup, string][]).map(
               ([muscle, label]) => (
@@ -228,7 +235,9 @@ export function MuscleMap({
                       aria-hidden="true"
                     />
                     {label}
-                    <strong>{summaries[muscle].sets}</strong>
+                    <strong>
+                      {windowMetrics(summaries[muscle], mode).sets}
+                    </strong>
                   </button>
                 </li>
               ),

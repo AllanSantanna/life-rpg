@@ -3,7 +3,9 @@ import { CustomDatePicker } from '../../../shared/components/CustomDatePicker';
 import { ActionButton } from '../../../shared/components/ActionButton';
 import { CustomTimePicker } from '../../../shared/components/CustomTimePicker';
 import { Field } from '../../records/RecordUI';
+import { StartOccurrenceSelect } from './StartOccurrenceSelect';
 import {
+  AmbiguousTimeError,
   assertStartNotFuture,
   sessionTime,
   withSessionTiming,
@@ -21,6 +23,12 @@ export function SessionTimingEditor({
   const [date, setDate] = useState(session.date);
   const [time, setTime] = useState(sessionTime(session));
   const [error, setError] = useState<string | null>(null);
+  const [offsets, setOffsets] = useState<string[]>([]);
+  const [offset, setOffset] = useState('');
+  const resetOccurrence = () => {
+    setOffsets([]);
+    setOffset('');
+  };
   return (
     <form
       aria-label="Correção de data e horário"
@@ -30,10 +38,16 @@ export function SessionTimingEditor({
         try {
           if (date > today)
             throw new Error('Informe uma data válida até hoje.');
-          const corrected = withSessionTiming(session, date, time);
+          const corrected = withSessionTiming(
+            session,
+            date,
+            time,
+            offset || undefined,
+          );
           assertStartNotFuture(corrected.startedAt);
           setError(onSave(corrected));
         } catch (reason) {
+          if (reason instanceof AmbiguousTimeError) setOffsets(reason.offsets);
           setError(
             reason instanceof Error
               ? reason.message
@@ -51,6 +65,7 @@ export function SessionTimingEditor({
             onChange={(value) => {
               setDate(value);
               setError(null);
+              resetOccurrence();
             }}
           />
         </Field>
@@ -61,10 +76,19 @@ export function SessionTimingEditor({
             onChange={(value) => {
               setTime(value);
               setError(null);
+              resetOccurrence();
             }}
             describedBy="session-time-hint"
           />
         </Field>
+        <StartOccurrenceSelect
+          offsets={offsets}
+          value={offset}
+          onChange={(value) => {
+            setOffset(value);
+            setError(null);
+          }}
+        />
       </div>
       <p id="session-time-hint" className="record-hint">
         Início do treino · 24 horas (HH:mm). Use “Limpar” se desconhecido.

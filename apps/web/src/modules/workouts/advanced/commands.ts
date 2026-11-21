@@ -1,4 +1,5 @@
 import { advanceRotation } from './rotation';
+import { assertStartNotFuture } from './sessionTiming';
 import { isDate } from '../../records/dates';
 import { exerciseCatalog, normalizedName, starterExercises } from './catalog';
 import { isAdvancedWorkoutState } from './validation';
@@ -173,6 +174,8 @@ export function applyAdvancedWorkoutCommand(
         !state.sessions.some((s) => s.id === command.id),
         'Identificador de sessão já utilizado.',
       );
+      // M-01: mesma regra do formulário, da correção e da importação.
+      assertStartNotFuture(command.startedAt);
       const plan =
         command.planId === null
           ? null
@@ -202,6 +205,12 @@ export function applyAdvancedWorkoutCommand(
         isDate(command.value.date) && command.value.date <= today,
         'Informe uma data válida até hoje.',
       );
+      // Só um horário alterado é conferido: registros antigos continuam editáveis.
+      if (
+        command.value.startedAt !==
+        state.sessions.find((s) => s.id === command.value.id)?.startedAt
+      )
+        assertStartNotFuture(command.value.startedAt);
       next = { ...state, sessions: upsert(state.sessions, command.value) };
       break;
     }

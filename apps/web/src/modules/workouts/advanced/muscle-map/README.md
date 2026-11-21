@@ -134,7 +134,12 @@ volta a 5 registros. A paginação é só visual. A lista inclui apenas
 sessões concluídas e registradas: nome, data e horário (se houver), séries
 válidas, papel, contribuição (séries equivalentes no Esforço; carga residual
 atual e inicial na Recuperação) e motivo. No Esforço, a janela é o período
-escolhido; na Recuperação, os 14 dias da estimativa. Sem estímulo, a mensagem é
+escolhido; na Recuperação, os 14 dias da estimativa. As contagens do painel
+(séries válidas, volume, sessões, diretas e secundárias), o anúncio para leitor
+de tela e a lista de grupos seguem a mesma janela do modo (`windowMetrics`), e o
+texto indica qual é. A ordem é do mais recente ao mais antigo pelo instante real
+(`compareSessionsDesc`, com o deslocamento UTC gravado); no mesmo dia, sessões
+sem horário vêm depois das com horário. Sem estímulo, a mensagem é
 “Nenhum estímulo contabilizado para este músculo no período selecionado.”;
 estabilizadores ficam numa lista separada, marcada como não contabilizada. A
 lista é recalculada a cada renderização a partir das sessões (registrar, editar
@@ -214,8 +219,14 @@ de minuto e o deslocamento UTC local vigente, por exemplo
 `2026-11-19T15:30:00-03:00`. A data civil (`date`) permanece o campo canônico e
 precisa coincidir com a data de `startedAt`. Não registramos duração nem horário
 de conclusão. Nova sessão do dia corrente recebe o horário local atual, editável;
-datas passadas ficam sem horário até o usuário informar. Inícios no futuro e
-horários inexistentes no fuso local (transição de horário de verão) são rejeitados.
+datas passadas ficam sem horário até o usuário informar. Inícios no futuro são
+rejeitados no formulário, na correção, nos comandos e na importação (uma
+importação que mude a data e leve o início registrado ao futuro é recusada com
+orientação); um horário já gravado e não alterado continua editável. Horários
+inexistentes no fuso local (início do horário de verão) são rejeitados. Horários
+repetidos (fim do horário de verão, ex.: 01:30 em 01/11/2026 em Nova York) não
+são resolvidos em silêncio: o formulário pede “Ocorrência do horário” e grava o
+deslocamento escolhido; o instante atual (“agora”) usa o deslocamento vigente.
 
 Sessões antigas, sem `startedAt`, continuam válidas e **não recebem horário
 fictício** (nem 00:00, 12:00 ou o horário atual). Não houve migração: o campo é
