@@ -147,6 +147,12 @@ describe('Seletores customizados nos módulos do aplicativo', () => {
     app.unmount();
     render(<App />);
     expect(localStorage.getItem(PLAYER_STORAGE_KEY)).toBe(saved);
+    // Após recarregar, a seção recolhível volta fechada, como no navegador.
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: 'Contas, transferências e avaliações manuais',
+      }),
+    );
     fireEvent.click(screen.getByRole('button', { name: 'Editar avaliação' }));
     form = screen.getByRole('form', { name: 'Editar avaliação' });
     expect(
