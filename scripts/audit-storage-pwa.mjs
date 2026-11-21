@@ -28,6 +28,7 @@ let release = 'current';
 let interrupt = false;
 let raceArrival;
 let raceResponse;
+let queuedArrival;
 const types = {
   '.js': 'text/javascript',
   '.css': 'text/css',
@@ -43,6 +44,11 @@ const server = http.createServer(async (req, res) => {
     new URL(req.url, 'http://127.0.0.1').pathname,
   );
   res.setHeader('Cache-Control', 'no-store');
+  if (pathname === '/race-queued') {
+    queuedArrival?.();
+    res.end('queued');
+    return;
+  }
   if (pathname === '/race-barrier') {
     raceResponse = res;
     raceArrival?.();
@@ -117,7 +123,64 @@ async function pageIn(ctx) {
   );
   return page;
 }
-const rawAt = (page) => page.evaluate((key) => localStorage.getItem(key), KEY);
+const legacyAt = (page) =>
+  page.evaluate((key) => localStorage.getItem(key), KEY);
+const rawAt = async (page) => {
+  await page.locator('.app-shell').waitFor();
+  await page
+    .getByText('Gravação em andamento · aguarde a confirmação', { exact: true })
+    .waitFor({ state: 'hidden' });
+  return page.evaluate(async (key) => {
+    const dbs = await indexedDB.databases();
+    if (!dbs.some((db) => db.name === 'life-rpg:records'))
+      return localStorage.getItem(key);
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open('life-rpg:records', 1);
+      request.onerror = () => reject(new Error('Falha na leitura canônica'));
+      request.onsuccess = () => {
+        const db = request.result;
+        const tx = db.transaction('state', 'readonly');
+        const get = tx.objectStore('state').get('current');
+        let raw;
+        get.onsuccess = () => {
+          raw = get.result?.raw ?? localStorage.getItem(key);
+        };
+        tx.oncomplete = () => {
+          db.close();
+          resolve(raw);
+        };
+        tx.onabort = () => {
+          db.close();
+          reject(new Error('Leitura abortada'));
+        };
+      };
+    });
+  }, KEY);
+};
+const copiesAt = (page) =>
+  page.evaluate(async () => {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open('life-rpg:records', 1);
+      request.onerror = () => reject(new Error('Falha na leitura das cópias'));
+      request.onsuccess = () => {
+        const db = request.result;
+        const tx = db.transaction('copies', 'readonly');
+        const get = tx.objectStore('copies').getAll();
+        let rows = [];
+        get.onsuccess = () => {
+          rows = get.result;
+        };
+        tx.oncomplete = () => {
+          db.close();
+          resolve(rows);
+        };
+        tx.onabort = () => {
+          db.close();
+          reject(new Error('Cópias indisponíveis'));
+        };
+      };
+    });
+  });
 async function seed(page, raw) {
   await page.goto(`${base}/blank.html`);
   await page.evaluate(({ key, raw }) => localStorage.setItem(key, raw), {
@@ -277,13 +340,24 @@ try {
         await page
           .getByRole('tab', { name: 'Mapa muscular', exact: true })
           .waitFor();
-        assert.equal(await rawAt(page), raw, 'Abertura não deve regravar v7');
+        assert.equal(
+          await legacyAt(page),
+          raw,
+          'A importação preserva integralmente a chave antiga',
+        );
+        assert.equal(
+          JSON.parse(await rawAt(page)).version,
+          8,
+          'Proteção ativa antes da primeira ação',
+        );
+        assert.ok((await copiesAt(page)).some((copy) => copy.raw === raw));
         await capture(page, 'v7-before-first-write');
         await train(page);
-        await page.waitForFunction(
-          (key) => JSON.parse(localStorage.getItem(key)).version === 8,
-          KEY,
-        );
+        await page
+          .getByText('Registros salvos neste navegador · evolução real', {
+            exact: true,
+          })
+          .waitFor();
         const saved = JSON.parse(await rawAt(page));
         for (const key of [
           'profile',
@@ -331,7 +405,7 @@ try {
   );
 
   await scenario(
-    'risco residual: app antigo com v7 antes da primeira gravação atual',
+    'versão antiga antes da primeira ação: canônico preservado e alteração antiga recuperável',
     async () => {
       release = 'current';
       const ctx = await context();
@@ -340,27 +414,35 @@ try {
         const raw = envelope(7);
         await seed(page, raw);
         await page.goto(`${base}/treinos`);
-        await page
-          .getByRole('tab', { name: 'Mapa muscular', exact: true })
-          .waitFor();
-        assert.equal(await rawAt(page), raw);
+        const canonical = await rawAt(page);
+        assert.equal(JSON.parse(canonical).version, 8);
+        assert.equal(await legacyAt(page), raw);
         release = 'legacy';
         await page.goto(`${base}/treinos`);
         await train(page);
-        const lost = JSON.parse(await rawAt(page));
-        if (
-          !lost.data.records.advancedWorkouts ||
-          lost.data.records.sleep.length !== fixture.records.sleep.length
-        ) {
-          blockers.push({
-            finding: 'A-02/C-01',
-            evidence:
-              'App 43ddebbe (v7 anterior ao Trapézio) substituiu a fixture v7 por estado vazio após uma ação; app atual ainda não havia gravado v8.',
-            consequence:
-              'Perda silenciosa de registros antes do primeiro write v8.',
-          });
-        }
-        await capture(page, 'legacy-before-v8-write');
+        const overwrittenLegacy = await legacyAt(page);
+        assert.notEqual(
+          overwrittenLegacy,
+          raw,
+          'O código legado realmente reproduz a sobrescrita da chave antiga',
+        );
+        assert.equal(
+          await rawAt(page),
+          canonical,
+          'A versão antiga não alcança os registros canônicos',
+        );
+        release = 'current';
+        await page.goto(`${base}/treinos`);
+        await page
+          .getByRole('alert', {
+            name: 'Uma versão antiga alterou a cópia local',
+          })
+          .waitFor();
+        assert.equal(await rawAt(page), canonical);
+        assert.ok(
+          (await copiesAt(page)).some((copy) => copy.raw === overwrittenLegacy),
+        );
+        await capture(page, 'legacy-before-first-action-protected');
       } finally {
         await ctx.close();
         release = 'current';
@@ -449,13 +531,8 @@ try {
             await page.evaluate(() => document.activeElement?.id),
             'main',
           );
-          const copies = await page.evaluate(
-            (key) =>
-              Object.keys(localStorage)
-                .filter((k) => k.startsWith(key + ':backup:'))
-                .map((k) => localStorage.getItem(k)),
-            KEY,
-          );
+          const copies = (await copiesAt(page)).map((copy) => copy.raw);
+          assert.equal(await legacyAt(page), raw);
           assert.ok(copies.includes(raw));
           assert.equal(JSON.parse(await rawAt(page)).version, 8);
           assert.ok(
@@ -478,15 +555,16 @@ try {
       try {
         const raw = envelope(8);
         await seed(page, raw);
-        await page.addInitScript(() => {
-          const set = Storage.prototype.setItem;
-          Storage.prototype.setItem = function (key, value) {
-            if (key === 'life-rpg:player-state')
-              throw new DOMException('Simulated quota', 'QuotaExceededError');
-            return set.call(this, key, value);
+        await page.goto(`${base}/treinos`);
+        await page.locator('.app-shell').waitFor();
+        await page.evaluate(() => {
+          const put = IDBObjectStore.prototype.put;
+          IDBObjectStore.prototype.put = function (...args) {
+            const request = put.apply(this, args);
+            if (this.name === 'state') this.transaction.abort();
+            return request;
           };
         });
-        await page.goto(`${base}/treinos`);
         await train(page);
         await page
           .getByText(
@@ -538,7 +616,7 @@ try {
   );
 
   await scenario(
-    'duas abas: intercalação entre leitura condicional e setItem',
+    'duas abas: transação pausada após a leitura da revisão, segunda gravação concorrente',
     async () => {
       const ctx = await context();
       const a = await pageIn(ctx);
@@ -548,24 +626,40 @@ try {
         await seed(a, envelope(8));
         await a.goto(`${base}/treinos`);
         await b.goto(`${base}/descanso`);
-        await a.getByRole('form', { name: 'Treinou hoje?' }).waitFor();
+        await rawAt(a);
+        await rawAt(b);
+        const form = b.getByRole('form', {
+          name: 'Registrar sono',
+          exact: true,
+        });
+        await form.getByRole('textbox', { name: 'Horas dormidas' }).fill('8');
         await a.evaluate(() => {
-          const get = Storage.prototype.getItem;
-          let reads = 0;
-          Storage.prototype.getItem = function (key) {
-            const value = get.call(this, key);
-            // First read is latestBase; second is the conditional writer. Pause
-            // after the real browser read, before returning its snapshot.
-            if (key === 'life-rpg:player-state' && ++reads === 2) {
+          const put = IDBObjectStore.prototype.put;
+          let paused = false;
+          IDBObjectStore.prototype.put = function (...args) {
+            if (this.name === 'state' && !paused) {
+              paused = true;
               const request = new XMLHttpRequest();
               request.open('GET', '/race-barrier', false);
               request.send();
             }
-            return value;
+            return put.apply(this, args);
+          };
+        });
+        await b.evaluate(() => {
+          const transaction = IDBDatabase.prototype.transaction;
+          IDBDatabase.prototype.transaction = function (...args) {
+            const tx = transaction.apply(this, args);
+            if (this.name === 'life-rpg:records' && args[1] === 'readwrite')
+              void fetch('/race-queued');
+            return tx;
           };
         });
         const arrived = new Promise((done) => {
           raceArrival = done;
+        });
+        const queued = new Promise((done) => {
+          queuedArrival = done;
         });
         pending = train(a);
         await Promise.race([
@@ -577,39 +671,168 @@ try {
             ),
           ),
         ]);
-        const form = b.getByRole('form', {
-          name: 'Registrar sono',
-          exact: true,
-        });
-        await form.getByRole('textbox', { name: 'Horas dormidas' }).fill('8');
         await form.getByRole('button', { name: /Salvar|Registrar/ }).click();
-        const other = JSON.parse(await rawAt(b));
-        assert.ok(
-          other.data.records.sleep.some(
-            (row) => row.date === today && row.hours === 8,
+        await Promise.race([
+          queued,
+          new Promise((_, reject) =>
+            setTimeout(
+              () => reject(new Error('Segunda transação não iniciou')),
+              10000,
+            ),
           ),
+        ]);
+        assert.equal(
+          await b
+            .getByText('Gravação em andamento · aguarde a confirmação', {
+              exact: true,
+            })
+            .count(),
+          1,
         );
         raceResponse.end('continue');
+        raceResponse = undefined;
         await pending;
+        await b
+          .getByRole('alert', { name: 'Registros alterados em outra aba' })
+          .waitFor();
         const final = JSON.parse(await rawAt(a));
-        if (
-          !final.data.records.sleep.some(
-            (row) => row.date === today && row.hours === 8,
-          )
-        )
-          blockers.push({
-            finding: 'C-01/concurrency',
-            evidence:
-              'Duas abas reais: B gravou sono depois do getItem de A e antes do setItem de A. A sobrescreveu o sono de B sem conflito.',
-            consequence:
-              'A comparação de texto em localStorage não é uma operação atômica entre abas.',
-          });
-        await capture(a, 'two-tabs-interleaved-write');
+        assert.ok(
+          final.data.records.workouts.some(
+            (row) => row.date === today && row.trained,
+          ),
+        );
+        assert.ok(
+          !final.data.records.sleep.some((row) => row.date === today),
+          'A proposta financeira/domínio não é mesclada com o vencedor',
+        );
+        const copies = await copiesAt(b);
+        assert.ok(
+          copies.some((copy) =>
+            JSON.parse(copy.raw).data.records.sleep.some(
+              (row) => row.date === today && row.hours === 8,
+            ),
+          ),
+        );
+        await capture(b, 'two-tabs-real-transaction-conflict');
       } finally {
         raceResponse?.end();
         raceArrival = undefined;
         raceResponse = undefined;
+        queuedArrival = undefined;
         if (pending) await pending.catch(() => {});
+        await ctx.close();
+      }
+    },
+  );
+
+  await scenario(
+    'fechamento da aba durante uma transação não deixa escrita parcial',
+    async () => {
+      const ctx = await context();
+      const a = await pageIn(ctx);
+      const b = await pageIn(ctx);
+      let pending;
+      try {
+        await seed(a, envelope(8));
+        await a.goto(`${base}/treinos`);
+        await b.goto(`${base}/treinos`);
+        const before = await rawAt(a);
+        await rawAt(b);
+        await a.evaluate(() => {
+          const put = IDBObjectStore.prototype.put;
+          IDBObjectStore.prototype.put = function (...args) {
+            if (this.name === 'state') {
+              const req = new XMLHttpRequest();
+              req.open('GET', '/race-barrier', false);
+              req.send();
+            }
+            return put.apply(this, args);
+          };
+        });
+        const arrived = new Promise((done) => {
+          raceArrival = done;
+        });
+        pending = train(a).catch(() => {});
+        await Promise.race([
+          arrived,
+          new Promise((_, reject) =>
+            setTimeout(
+              () => reject(new Error('Barreira de fechamento não alcançada')),
+              10000,
+            ),
+          ),
+        ]);
+        await a.close();
+        raceResponse?.end();
+        raceResponse = undefined;
+        assert.equal(await rawAt(b), before);
+        await capture(b, 'closed-tab-transaction-aborted');
+      } finally {
+        raceResponse?.end();
+        raceResponse = undefined;
+        raceArrival = undefined;
+        if (pending) await pending;
+        await ctx.close();
+      }
+    },
+  );
+
+  await scenario(
+    'falha ao guardar alterações antigas é explícita e exporta todos os brutos observados',
+    async () => {
+      release = 'current';
+      const ctx = await context();
+      const a = await pageIn(ctx);
+      const old = await pageIn(ctx);
+      try {
+        await seed(a, envelope(7));
+        await a.goto(`${base}/treinos`);
+        const canonical = await rawAt(a);
+        await old.goto(`${base}/blank.html`);
+        await a.evaluate(() => {
+          const add = IDBObjectStore.prototype.add;
+          window.restoreAuditAdd = () => {
+            IDBObjectStore.prototype.add = add;
+          };
+          IDBObjectStore.prototype.add = function (value, ...args) {
+            const request = add.call(this, value, ...args);
+            if (this.name === 'copies' && value.reason === 'legacy-change')
+              this.transaction.abort();
+            return request;
+          };
+        });
+        const incoming = ['legacy-failed-1', 'legacy-failed-2'];
+        await old.evaluate((values) => {
+          for (const raw of values)
+            localStorage.setItem('life-rpg:player-state', raw);
+        }, incoming);
+        const notice = a.getByRole('alert', {
+          name: 'Uma versão antiga alterou a cópia local',
+        });
+        await notice.getByText(/Não foi possível guardar todas/).waitFor();
+        const pending = a.waitForEvent('download');
+        await notice
+          .getByRole('button', { name: 'Baixar alterações não guardadas' })
+          .click();
+        const download = await pending;
+        const bundle = JSON.parse(
+          await fs.readFile(await download.path(), 'utf8'),
+        );
+        for (const raw of incoming) assert.ok(bundle.entries.includes(raw));
+        assert.equal(await rawAt(a), canonical);
+        await capture(a, 'legacy-archive-failure');
+        await a.evaluate(() => window.restoreAuditAdd());
+        await notice
+          .getByRole('button', {
+            name: 'Manter registros atuais e fechar aviso',
+          })
+          .click();
+        await notice.waitFor({ state: 'detached' });
+        const copies = await copiesAt(a);
+        for (const raw of incoming)
+          assert.ok(copies.some((copy) => copy.raw === raw));
+        assert.equal(await rawAt(a), canonical);
+      } finally {
         await ctx.close();
       }
     },
@@ -727,12 +950,17 @@ try {
           await page
             .getByRole('tab', { name: 'Mapa muscular', exact: true })
             .waitFor();
-          assert.equal(await rawAt(page), before);
-          await train(page, 'Não');
-          await page.waitForFunction(
-            (key) => JSON.parse(localStorage.getItem(key)).version === 8,
-            KEY,
+          assert.deepEqual(
+            JSON.parse(await rawAt(page)).data,
+            JSON.parse(before).data,
           );
+          assert.equal(await legacyAt(page), before);
+          await train(page, 'Não');
+          await page
+            .getByText('Registros salvos neste navegador · evolução real', {
+              exact: true,
+            })
+            .waitFor();
           const after = await rawAt(page);
           const data = JSON.parse(after).data;
           assert.deepEqual(

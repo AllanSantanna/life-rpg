@@ -1,3 +1,4 @@
+import { readSnapshot } from './audit-storage-helpers.mjs';
 /**
  * Audita o CustomTimePicker na correção e na criação de sessões.
  * Recebe a página isolada da auditoria, já com uma sessão em andamento aberta.
@@ -6,12 +7,8 @@ export async function auditTimePicker({ page, width, capture, check }) {
   const touch = width < 768;
   const press = (locator) => (touch ? locator.tap() : locator.click());
   const viewport = page.viewportSize();
-  const stored = () =>
-    page.evaluate(
-      () =>
-        JSON.parse(localStorage.getItem('life-rpg:player-state')).data.records
-          .advancedWorkouts,
-    );
+  const stored = async () =>
+    JSON.parse(await readSnapshot(page)).data.records.advancedWorkouts;
   async function openPicker(name) {
     const trigger = page.getByRole('combobox', {
       name: 'Horário do treino',
