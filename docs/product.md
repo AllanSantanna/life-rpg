@@ -18,7 +18,7 @@ Missions organiza as ações do jogador; gamification determina sua progressão.
 
 ## MVP futuro proposto
 
-Este recorte orienta planejamento; não representa funcionalidades entregues nesta estrutura inicial.
+Este recorte orienta planejamento; não representa funcionalidades entregues nesta estrutura inicial. **Histórico:** a lista abaixo é a proposta original. Hoje não há autenticação nem missões; o XP é projetado dos registros reais dos quatro pilares e das Quests, e o estado local usa o envelope v8 (ver [persistência](../apps/web/src/shared/storage/README.md)).
 
 - Autenticação e perfil básico.
 - Criação, listagem e conclusão manual de missões.
@@ -51,11 +51,13 @@ Tokens centralizados em `apps/web/src/shared/styles/index.css`. Tipografia de si
 
 ## Integrações externas futuras
 
-Uma camada de adaptadores no backend poderá atender investimentos, cotações e dados de saúde. Os módulos consumirão contratos internos, sem conhecer SDKs de provedores. A arquitetura e os limites estão em [architecture.md](architecture.md). A consulta pública BTC/BRL no frontend é a integração atual, sem SDK, chave ou sincronização.
+Uma camada de adaptadores no backend poderá atender investimentos, cotações e dados de saúde. Os módulos consumirão contratos internos, sem conhecer SDKs de provedores. A arquitetura e os limites estão em [architecture.md](architecture.md). Integrações atuais: BTC/BRL público e PTAX (USD) consultados no frontend, sem chave, e cotações de ações e FIIs via proxy `market` da API (brapi), com o token apenas no servidor. Nenhuma sincronização de dados do usuário.
 Contas locais, transferências, avaliações e gráficos estão descritos no
 [módulo financeiro](../apps/web/src/modules/finances/README.md).
 
 ## Sprint 1 — Dashboard do Jogador
+
+_Registro histórico: missões diárias e dados de demonstração foram removidos depois; o armazenamento atual é a v8._
 
 Interface responsiva com identidade dark/vermelho, avatar em iniciais, nível e XP; atributos Força, Disciplina, Conhecimento e Riqueza; cartões de Finanças, Treinos, Descanso e Conhecimento; missões diárias e medalhas de conquistas. Navegação local entre Início, Missões, Estatísticas e Perfil.
 
@@ -64,6 +66,8 @@ Dados de demonstração centralizados em mocks tipados. Concluir ou desmarcar mi
 A regra de demonstração considera 2.000 XP por nível; não define a progressão definitiva do produto. Atributos e conquistas permanecem demonstrativos. Indicadores, radar e gráfico semanal refletem os registros e missões datados. Regras dos novos registros em [quatro pilares](four-pillars.md).
 
 ## Evolução real e armazenamento v3
+
+_Registro histórico da v3; a versão atual do envelope é a v8._
 
 A origem do jogador é nível 1/0 XP com limiar preservado de 2.000 XP. As projeções
 usam registros reais e confirmações datadas em `missionEvents`. Atributos e

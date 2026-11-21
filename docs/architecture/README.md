@@ -81,13 +81,18 @@ Detalhes e histórico em [Persistência](../../apps/web/src/shared/storage/READM
 [views.ts](../../apps/web/src/app/views.ts) define URLs e aliases. Preserve acesso
 direto, recarga, Voltar/Avançar e foco após navegar.
 
-As consultas externas existentes são isoladas em `bitcoinQuote.ts`, `usdQuote.ts`
-e seus hooks no módulo financeiro. Não adicione chamadas HTTP em elementos
-visuais compartilhados. Não há cliente geral de API consumindo contratos de negócio.
+As consultas externas existentes são isoladas no módulo financeiro:
+`bitcoinQuote.ts` (BTC/BRL público), `usdQuote.ts` (PTAX) e `marketQuote.ts`, que
+consulta ações e FIIs pelo proxy `market` da API (`VITE_API_URL`), com seus hooks.
+Não adicione chamadas HTTP em elementos visuais compartilhados. Não há cliente
+geral de API consumindo contratos de negócio.
 
 [API](../../apps/api/src/app.ts): Express com Helmet, CORS, JSON limitado,
 `GET /health`, 404 e middleware de erros. `server.ts` inicia o processo;
-`config/env.ts` valida ambiente. Os diretórios de domínio backend são reservas.
+`config/env.ts` valida ambiente. O módulo `market` está implementado (proxy de
+cotações da B3 via brapi, com cache e limites; ver
+[market](../../apps/api/src/modules/market/README.md)); os demais diretórios de
+domínio backend são reservas.
 Prisma/PostgreSQL estão preparados, sem modelos de negócio ou migrações.
 [contracts](../../packages/contracts/src/index.ts) ainda não exporta contratos de negócio.
 Não implemente camadas futuras apenas para aproximar o projeto de um diagrama ideal.
@@ -116,10 +121,26 @@ Atualizações são dirigidas, nunca `npm audit fix --force`. Situação em 20/1
   e forçar a troca ou rebaixar o plugin não se justifica. Reavaliar quando o
   `workbox-build` aceitar glob corrigido.
 
+### Tamanho do bundle
+
+O Vite avisa que dois chunks passam de 500 kB (minificados). Análise com
+sourcemaps em 20/11/2026: `LandscapeScene` (~556 kB) é o `three.js`, já
+carregado sob demanda só quando a paisagem 3D é exibida; o `index` (~772 kB,
+~250 kB gzip) reúne `react-dom`, Treinos (incluindo os vetores anatômicos do
+mapa), Finanças, `fuse.js` e os demais módulos. Como o PWA pré-carrega todos os
+chunks, dividir rotas reduziria principalmente o parse inicial, não o download.
+A divisão com benefício maior seria carregar Treinos Avançados sob demanda; ela
+foi adiada porque exige reescrever dezenas de testes de fluxo como assíncronos.
+O aviso permanece ativo de propósito (não se eleva `chunkSizeWarningLimit`).
+
 As actions do CI ficam fixadas por SHA com a versão em comentário (ver
 `.github/workflows/quality.yml`).
 
 ## Testes e validação
+
+O Vitest do web usa `maxWorkers: '50%'`: com o padrão (núcleos − 1 processos
+jsdom), fluxos de integração de 1 a 3 s passavam de 5 s de forma intermitente
+pela disputa de CPU com o Vite e o editor. Nenhum tempo limite foi alterado.
 
 Vitest com jsdom/Testing Library no web e ambiente Node/Supertest na API.
 Testes `*.test.ts(x)` ficam próximos ao código. `test/setup.ts` fixa a data,

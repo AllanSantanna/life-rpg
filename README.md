@@ -27,8 +27,8 @@ atuais. O projeto também contém uma base de API para evoluções futuras.
   Busca por título/descrição, filtros em chips e ordenação sem alterar os dados.
 - **Progressão:** XP e níveis recalculados a partir das fontes de dados, limites de
   recompensa por área/dia e prevenção de duplicação com quests e confirmações históricas.
-- **Estatísticas:** radar dinâmico de 7/30/90 dias, comparação com o período anterior
-  e gráfico semanal de XP das ações datadas.
+- **Estatísticas:** radar dinâmico de 7/30/90 dias, comparação com o período anterior,
+  paisagem da evolução e calendário de atividades. Não há gráfico semanal de XP.
 - **Perfil:** nome editável, avatar atual, classe automática, nível, XP e Radar. A classe
   considera a dedicação real dos últimos 30 dias, atribuindo imediatamente a classe pelo pilar de maior pontuação.
   Veja as [regras de classes e migração](apps/web/src/modules/profile/README.md).

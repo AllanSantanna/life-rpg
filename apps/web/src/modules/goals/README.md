@@ -152,8 +152,10 @@ Geral pode dar XP dentro desses limites, mas **nenhuma quest altera diretamente 
 Radar ou atributos**. O Radar continua usando esforço/consistência dos registros
 e missões dos quatro pilares. Atividades de uma quest automática já aparecem ali
 por sua fonte real. Quests criadas/editadas não produzem esforço artificial.
-O gráfico semanal de XP inclui os prêmios efetivos das quests e o nível continua
-`1 + floor(XP_total / 2000)`, com excedente na barra, sem alterar a fórmula.
+O XP total exibido (Início e Perfil) inclui os prêmios efetivos das quests, e o
+nível continua `1 + floor(XP_total / 2000)`, com excedente na barra, sem alterar a
+fórmula. Não há gráfico semanal de XP na interface; `weeklyRecordXP` existe só
+como função testada e não soma prêmios de quests.
 
 ## Arquitetura e persistência
 
@@ -217,8 +219,8 @@ já aplicada às barras. A navegação móvel acomoda o novo item sem ocultá-lo
    o painel inteiro desaparece e conquistas ocupam o espaço. Confira larguras de
    320, 768 e 1440 px, títulos longos, foco de teclado e movimento reduzido.
 9. Reabra `/missoes`: deve chegar a `/quests`, sem missões ou prêmios novos.
-10. Consulte Estatísticas para o XP semanal e o Radar, que permanece baseado
-    somente nas fontes reais dos quatro pilares.
+10. Consulte o XP no Início/Perfil e o Radar em Estatísticas, que permanece
+    baseado somente nas fontes reais dos quatro pilares.
 
 Testes cobrem criação livre/modelos, modos manual/automático, todos os indicadores,
 calendário/recorrência, pausas, edição/exclusão, conclusão/desfazer, limites XP,
