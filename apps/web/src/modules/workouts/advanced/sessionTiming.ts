@@ -29,28 +29,94 @@ export function sessionTime(
 ): string {
   return session.startedAt?.slice(11, 16) ?? '';
 }
-export function createSessionStart(date: string, time: string): string {
+const formatOffset = (minutes: number) => {
+  const abs = Math.abs(minutes);
+  return `${minutes >= 0 ? '+' : '-'}${String(Math.floor(abs / 60)).padStart(2, '0')}:${String(abs % 60).padStart(2, '0')}`;
+};
+/**
+ * Deslocamentos UTC em que `date time` existe no fuso local, do instante mais
+ * cedo para o mais tarde: nenhum (horário pulado no início do horário de
+ * verão), um (caso comum) ou dois (horário repetido no fim do horário de verão).
+ */
+export function localStartOffsets(date: string, time: string): string[] {
+  const [y, m, d] = date.split('-').map(Number);
+  const [hh, mm] = time.split(':').map(Number);
+  const wall = Date.UTC(y!, m! - 1, d!, hh!, mm!);
+  const offsets = new Set<number>();
+  for (let h = -30; h <= 30; h += 1)
+    offsets.add(-new Date(wall + h * HOUR_MS).getTimezoneOffset());
+  return [...offsets]
+    .map((offset) => ({ offset, instant: wall - offset * 60_000 }))
+    .filter(({ instant }) => {
+      const local = new Date(instant);
+      return localDate(local) === date && localWorkoutTime(local) === time;
+    })
+    .sort((a, b) => a.instant - b.instant)
+    .map(({ offset }) => formatOffset(offset));
+}
+/** Horário repetido no fim do horário de verão: o usuário escolhe a ocorrência. */
+export class AmbiguousTimeError extends Error {
+  constructor(
+    readonly time: string,
+    readonly offsets: string[],
+  ) {
+    super(
+      `O horário ${time} ocorre duas vezes nesta data por causa da troca de horário de verão. Escolha qual ocorrência é o início do treino.`,
+    );
+    this.name = 'AmbiguousTimeError';
+  }
+}
+export function createSessionStart(
+  date: string,
+  time: string,
+  offset?: string,
+): string {
   if (!isDate(date) || !isWorkoutTime(time))
     throw new Error(
       'Informe data válida e horário no formato HH:mm (00:00 a 23:59).',
     );
-  const local = new Date(`${date}T${time}:00`);
-  // Reject nonexistent wall-clock times at DST transitions, rather than silently shifting them.
-  if (localDate(local) !== date || localWorkoutTime(local) !== time)
+  const options = localStartOffsets(date, time);
+  // Horário pulado no início do horário de verão: recusar, sem deslocar.
+  if (!options.length)
     throw new Error(
       'Este horário não existe no fuso local nesta data. Escolha outro horário.',
     );
-  const minutes = -local.getTimezoneOffset();
-  const abs = Math.abs(minutes);
-  return `${date}T${time}:00${minutes >= 0 ? '+' : '-'}${String(Math.floor(abs / 60)).padStart(2, '0')}:${String(abs % 60).padStart(2, '0')}`;
+  // Horário repetido: nunca escolher em silêncio uma das duas ocorrências.
+  const chosen =
+    options.length === 1
+      ? options[0]
+      : offset && options.includes(offset)
+        ? offset
+        : null;
+  if (!chosen) throw new AmbiguousTimeError(time, options);
+  return `${date}T${time}:00${chosen}`;
+}
+/**
+ * Ordem mais recente primeiro: data civil; no mesmo dia, o instante real (com o
+ * deslocamento UTC gravado); sessões sem horário vêm depois das com horário.
+ * Empates mantêm a ordem recebida (ordenação estável), o que é determinístico.
+ */
+export function compareSessionsDesc(
+  a: Pick<WorkoutSession, 'date' | 'startedAt'>,
+  b: Pick<WorkoutSession, 'date' | 'startedAt'>,
+): number {
+  if (a.date !== b.date) return b.date.localeCompare(a.date);
+  if (a.startedAt && b.startedAt)
+    return Date.parse(b.startedAt) - Date.parse(a.startedAt);
+  return a.startedAt ? -1 : b.startedAt ? 1 : 0;
 }
 /** Auto-fill only when the chosen civil date is the device's current local date. */
 export function currentSessionStart(
   date: string,
   now = new Date(),
 ): string | undefined {
+  // O instante atual tem deslocamento conhecido, mesmo na hora repetida.
   return date === localDate(now)
-    ? createSessionStart(date, localWorkoutTime(now))
+    ? createSessionStart(
+        date,
+        localWorkoutTime(now),
+        formatOffset(-now.getTimezoneOffset()),
+      )
     : undefined;
 }
 /** A start after "now" would hide the session from recovery; reject it on input. */
@@ -67,12 +133,18 @@ export function withSessionTiming(
   session: WorkoutSession,
   date: string,
   time: string,
+  offset?: string,
 ): WorkoutSession {
   if (!isDate(date)) throw new Error('Informe uma data válida.');
-  if (date === session.date && time === sessionTime(session)) return session;
+  if (
+    date === session.date &&
+    time === sessionTime(session) &&
+    (!offset || session.startedAt?.endsWith(offset))
+  )
+    return session;
   const next: WorkoutSession = { ...session, date };
   // Clearing the time removes the key: unknown start is never stored as a value.
-  if (time) next.startedAt = createSessionStart(date, time);
+  if (time) next.startedAt = createSessionStart(date, time, offset);
   else delete next.startedAt;
   return next;
 }

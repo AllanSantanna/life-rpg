@@ -12,6 +12,7 @@ import {
 } from './anatomy';
 import {
   metricTone,
+  windowMetrics,
   toneLabels,
   type MapMode,
   type MuscleSummary,
@@ -41,6 +42,11 @@ export function MuscleDetails({
     mode === 'recovery' ? summary?.recoveryTiming : summary?.lastTiming;
   const lastDate = timing?.date;
   const tone = metricTone(value, mode);
+  const metrics = windowMetrics(summary, mode);
+  const windowLabel =
+    mode === 'effort'
+      ? `nos últimos ${days} dias`
+      : 'nos últimos 14 dias (janela da recuperação)';
   const max =
     mode === 'recovery'
       ? 100
@@ -103,14 +109,14 @@ export function MuscleDetails({
               <Icon name="layers" size={16} />
               Séries válidas
             </dt>
-            <dd>{summary?.sets || '—'}</dd>
+            <dd>{metrics.sets || '—'}</dd>
           </div>
           <div>
             <dt>
               <Icon name="chart" size={16} />
               Volume envolvido
             </dt>
-            <dd>{summary?.sets ? `${number(summary.volume)} kg·rep` : '—'}</dd>
+            <dd>{metrics.sets ? `${number(metrics.volume)} kg·rep` : '—'}</dd>
           </div>
           <div>
             <dt>
@@ -140,7 +146,7 @@ export function MuscleDetails({
               <Icon name="history" size={16} />
               Sessões
             </dt>
-            <dd>{summary?.sessions || '—'}</dd>
+            <dd>{metrics.sessions || '—'}</dd>
           </div>
         </dl>
       </div>
@@ -152,9 +158,9 @@ export function MuscleDetails({
         <p className="record-hint">
           Dados agregados de {mapGroupLabels[group]}; o histórico não distingue
           lados ou subdivisões.{' '}
-          {summary?.sets
-            ? `${summary.direct} séries diretas e ${summary.secondary} secundárias em ${days} dias.`
-            : 'Nenhuma série válida neste período.'}
+          {metrics.sets
+            ? `${metrics.direct} séries diretas e ${metrics.secondary} secundárias ${windowLabel}.`
+            : `Nenhuma série válida ${windowLabel}.`}
         </p>
       ) : (
         <p className="record-hint">

@@ -35,6 +35,9 @@ concluída recalcula os indicadores avançados derivados daquela sessão.
 Importar não altera o registro diário, XP, Radar, classes, níveis, conquistas ou
 rotação. Exercícios adicionais entram somente na sessão, sem alterar a ficha.
 O cabeçalho escrito no texto não escolhe o destino automaticamente.
+Ao mudar a data de uma sessão existente, o horário de início gravado é mantido;
+se o resultado ficar no futuro, a importação é recusada com orientação, pela
+mesma regra do registro e da correção manuais.
 
 Sem marcador de tipo, a série é válida. Avisos referem-se ao texto interpretado;
 editar o texto, destino ou data invalida a prévia e exige nova interpretação.
