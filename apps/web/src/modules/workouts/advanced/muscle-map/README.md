@@ -1,7 +1,7 @@
 # Mapa muscular V2
 
 Projeção somente de leitura dos Treinos Avançados. Não recebe callbacks de
-comandos, não grava em storage, não modifica o contrato v1/envelope v7 e não
+comandos, não grava em storage, não modifica o contrato v1 nem o envelope salvo e não
 altera XP, Radar, Finanças ou o registro diário. Funciona offline: anatomia e
 bases visuais entram no bundle/PWA. Origem de desenvolvimento preservada em
 `http://127.0.0.1:5173`.

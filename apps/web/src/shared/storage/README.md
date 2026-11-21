@@ -175,7 +175,7 @@ envelope original.
 `records.advancedWorkouts` é opcional, com contrato interno `version: 1`.
 Guarda a preferência, exercícios personalizados, fichas e snapshots de sessões
 com séries, cargas, repetições, RIR e observações. A ausência do campo representa
-modo desativado sem dados; dados anteriores continuam válidos no envelope v7,
+modo desativado sem dados; dados anteriores continuam válidos no envelope (v7 na época, v8 hoje),
 sem migração ou gravação na montagem. Desativar o modo preserva o conteúdo.
 Recordes, volumes e evolução são projeções; não existe crédito de XP avançado.
 A conclusão pode atualizar atomicamente o registro diário existente por data.

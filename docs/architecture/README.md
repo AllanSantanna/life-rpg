@@ -63,7 +63,7 @@ continua local.
 ## Persistência
 
 [playerState.ts](../../apps/web/src/app/playerState.ts) define `PlayerState`,
-validação, migração, `PLAYER_STORAGE_KEY = 'life-rpg:player-state'` e versão 7.
+validação, migração, `PLAYER_STORAGE_KEY = 'life-rpg:player-state'` e versão 8.
 O envelope é `{ version, data }`.
 [localStateStorage.ts](../../apps/web/src/shared/storage/localStateStorage.ts)
 isola JSON, acesso ao navegador, validação e tratamento de falhas.

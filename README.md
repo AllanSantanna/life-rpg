@@ -111,7 +111,7 @@ controles de progresso da página Quests. Sem quests ativas, as conquistas usam 
 disponível. O endereço antigo `/missoes` redireciona para `/quests`; não há novas
 conclusões ou recompensas de missões fixas. Links antigos de `/metas` também
 continuam funcionando e abrem `/quests`, inclusive os detalhes já compartilhados.
-Confirmações legítimas anteriores permanecem preservadas como histórico no envelope v7.
+Confirmações legítimas anteriores permanecem preservadas como histórico no envelope salvo (v8).
 
 ### Backend e ambiente opcionais
 

@@ -23,7 +23,7 @@
 - Confirmação atômica, bloqueio de cliques repetidos e repetição idempotente do
   mesmo comando. Uma sessão alterada após a prévia exige nova conferência.
 - Persistência pelo mecanismo local existente, sem alteração do contrato v1,
-  envelope v7 ou chave `life-rpg:player-state`.
+  do envelope ou da chave `life-rpg:player-state`.
 - Preservação de fichas permanentes, exercícios personalizados, snapshots e
   sessões não selecionadas. Séries substituídas reutilizam os IDs dos slots.
 - Layout dark/vermelho e regras responsivas para os formulários de importação.
