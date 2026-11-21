@@ -11,7 +11,8 @@ com os mesmos limites de área/data compartilhados com registros e quests.
 Não há criação automática de atividades, duplicação de créditos nem alteração de
 registros dos pilares. O catálogo não é exibido nem oferecido como modelo.
 
-O envelope continua v4: não é preciso apagar/migrar eventos históricos ou
+O envelope atual é a v8 (ver [persistência](../../shared/storage/README.md));
+a remoção das missões não exigiu apagar/migrar eventos históricos ou
 preferências legadas. A migração v1/v2 continua retirando apenas demonstração,
 sem perder confirmações comprovadas. Testes de migração, recarga, navegação e
 progressão validam essa compatibilidade.

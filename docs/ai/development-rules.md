@@ -47,7 +47,7 @@ ser executado, registre a limitação e os passos que não chegaram a rodar.
 Não enfraqueça testes nem desative validações para obter aprovação. Falhas
 preexistentes devem ser identificadas com evidência, sem mudanças fora do escopo.
 
-O [CI](../../.github/workflows/quality.yml) executa `npm ci` e `npm run check` em
+O [CI](../../.github/workflows/quality.yml) executa `npm ci`, `npm run check` e `npm run format:check` em
 push e pull request. A configuração de proteção da branch depende do repositório
 remoto; este projeto não altera essas permissões automaticamente. Um job separado
 executa `npm run audit:visual`, com ferramentas temporárias de navegador e

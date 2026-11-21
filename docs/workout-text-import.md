@@ -5,7 +5,9 @@
 - Botão **Importar treino** disponível em todas as abas do modo avançado.
 - Fluxo **colar → interpretar → revisar/editar → confirmar → salvar**.
 - Seleção de ficha A–E/personalizada, treino livre ou sessão existente; data
-  selecionável para novas sessões.
+  selecionável para novas sessões. A data detectada no texto também pode mudar a
+  data de uma sessão existente, mantendo o horário de início gravado. Sessões
+  novas criadas pela importação ficam sem horário de início (não é inventado).
 - Interpretação de blocos e linhas compactas, kg, decimais com ponto/vírgula,
   `x`/`×`, RIR opcional, aquecimento e séries válidas, mantendo a ordem.
 - Normalização de acentos/caixa e Fuse.js, com sinônimos, catálogo completo,
@@ -45,33 +47,37 @@ Os erros de validação nos campos refletem as correções feitas na prévia.
 
 ## Arquivos desta implementação
 
-| Arquivo                                                                       | Responsabilidade                                             |
-| ----------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| `apps/web/package.json`                                                       | Dependência Fuse.js                                          |
-| `package-lock.json`                                                           | Versão resolvida da dependência                              |
-| `apps/web/src/modules/workouts/advanced/AdvancedWorkouts.tsx`                 | Entrada e navegação do fluxo                                 |
-| `apps/web/src/modules/workouts/advanced/types.ts`                             | Comando de importação atômica                                |
-| `apps/web/src/modules/workouts/advanced/commands.ts`                          | Integração ao executor existente                             |
-| `apps/web/src/modules/workouts/advanced/importing/types.ts`                   | Modelos temporários da prévia e destino                      |
-| `apps/web/src/modules/workouts/advanced/importing/normalize.ts`               | Normalização dos nomes                                       |
-| `apps/web/src/modules/workouts/advanced/importing/matcher.ts`                 | Fuse.js, sinônimos, confiança e alternativas                 |
-| `apps/web/src/modules/workouts/advanced/importing/parser.ts`                  | Interpretação local do texto                                 |
-| `apps/web/src/modules/workouts/advanced/importing/validation.ts`              | Validação das séries importadas                              |
-| `apps/web/src/modules/workouts/advanced/importing/ImportPreview.tsx`          | Prévia editável e decisões de conflito                       |
-| `apps/web/src/modules/workouts/advanced/importing/TextWorkoutImport.tsx`      | Destino, texto, interpretação e confirmação                  |
-| `apps/web/src/modules/workouts/advanced/importing/sessionIntegration.ts`      | Associação de IDs, snapshots e mesclagem                     |
-| `apps/web/src/modules/workouts/advanced/importing/persistence.ts`             | Confirmação atômica e proteção de alterações concorrentes    |
-| `apps/web/src/modules/workouts/advanced/importing/importing.css`              | Estilos específicos e responsividade                         |
-| `apps/web/src/modules/workouts/advanced/importing/importing.test.ts`          | 44 testes de interpretação, busca, integração e persistência |
-| `apps/web/src/modules/workouts/advanced/importing/TextWorkoutImport.test.tsx` | 12 testes da interface e aplicação real                      |
-| `apps/web/src/modules/workouts/README.md`                                     | Documentação do fluxo e decisões                             |
-| `docs/workout-text-import.md`                                                 | Este relatório                                               |
+| Arquivo                                                                       | Responsabilidade                                          |
+| ----------------------------------------------------------------------------- | --------------------------------------------------------- |
+| `apps/web/package.json`                                                       | Dependência Fuse.js                                       |
+| `package-lock.json`                                                           | Versão resolvida da dependência                           |
+| `apps/web/src/modules/workouts/advanced/AdvancedWorkouts.tsx`                 | Entrada e navegação do fluxo                              |
+| `apps/web/src/modules/workouts/advanced/types.ts`                             | Comando de importação atômica                             |
+| `apps/web/src/modules/workouts/advanced/commands.ts`                          | Integração ao executor existente                          |
+| `apps/web/src/modules/workouts/advanced/importing/types.ts`                   | Modelos temporários da prévia e destino                   |
+| `apps/web/src/modules/workouts/advanced/importing/normalize.ts`               | Normalização dos nomes                                    |
+| `apps/web/src/modules/workouts/advanced/importing/matcher.ts`                 | Fuse.js, sinônimos, confiança e alternativas              |
+| `apps/web/src/modules/workouts/advanced/importing/parser.ts`                  | Interpretação local do texto                              |
+| `apps/web/src/modules/workouts/advanced/importing/validation.ts`              | Validação das séries importadas                           |
+| `apps/web/src/modules/workouts/advanced/importing/ImportPreview.tsx`          | Prévia editável e decisões de conflito                    |
+| `apps/web/src/modules/workouts/advanced/importing/TextWorkoutImport.tsx`      | Destino, texto, interpretação e confirmação               |
+| `apps/web/src/modules/workouts/advanced/importing/sessionIntegration.ts`      | Associação de IDs, snapshots e mesclagem                  |
+| `apps/web/src/modules/workouts/advanced/importing/persistence.ts`             | Confirmação atômica e proteção de alterações concorrentes |
+| `apps/web/src/modules/workouts/advanced/importing/importing.css`              | Estilos específicos e responsividade                      |
+| `apps/web/src/modules/workouts/advanced/importing/importing.test.ts`          | Interpretação, busca, integração e persistência           |
+| `apps/web/src/modules/workouts/advanced/importing/contextual.test.ts`         | Interpretação contextual de linhas e metadados            |
+| `apps/web/src/modules/workouts/advanced/importing/TextWorkoutImport.test.tsx` | Interface e aplicação real                                |
+| `apps/web/src/modules/workouts/README.md`                                     | Documentação do fluxo e decisões                          |
+| `docs/workout-text-import.md`                                                 | Este relatório                                            |
 
 O workspace já continha outras alterações e o módulo avançado ainda não rastreado
 pelo Git. Essas alterações anteriores foram preservadas; a tabela lista somente
 os arquivos envolvidos neste trabalho.
 
-## Verificação
+## Verificação na entrega original
+
+_Registro histórico da entrega; as contagens atuais estão no resultado de
+`npm test`._
 
 - `npm run typecheck`: passou em todos os workspaces.
 - `npm run lint`: passou, sem avisos.

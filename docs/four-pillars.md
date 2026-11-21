@@ -2,8 +2,9 @@
 
 Os módulos são acessíveis pelos cartões do dashboard, pela aba **Pilares** e
 pelas URLs `/financas`, `/treinos`, `/descanso` e `/conhecimento`.
-Os registros continuam locais, sem autenticação. Finanças consulta a cotação
-pública BTC/BRL; os demais pilares não dependem dessa integração.
+Os registros continuam locais, sem autenticação. Finanças consulta BTC/BRL e PTAX
+(USD) públicos e cotações de ações e FIIs pelo proxy `market` da API; os demais
+pilares não dependem dessas integrações.
 
 ## Registros e cálculos
 
@@ -96,7 +97,8 @@ metas dos quatro pilares em 7 dias. Não há desbloqueios iniciais nem bônus de
 
 ## Persistência e migração
 
-Mesma chave `life-rpg:player-state`, versão **3**. V1/v2 válidas são migradas uma
+Mesma chave `life-rpg:player-state`; a versão atual é **8** (histórico abaixo:
+introduzido na v3). V1/v2 válidas são migradas uma
 única vez, normalizando a origem de progresso e retirando dados demonstrativos.
 O perfil pessoal, preferências e todos os registros reais são preservados. Falhas
 de gravação mantêm o original; versões desconhecidas não são sobrescritas.
