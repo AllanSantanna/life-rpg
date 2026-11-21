@@ -1,3 +1,4 @@
+import { ConfirmAction } from '../../shared/components/ConfirmAction';
 import { CustomDatePicker } from '../../shared/components/CustomDatePicker';
 import { useCommand } from '../records/useCommand';
 import { formText, formNumber } from '../records/form';
@@ -134,12 +135,15 @@ export function RestPage({ records, today, onCommand }: RecordPageProps) {
                   <button type="button" onClick={() => setEditing(day.date)}>
                     Editar sono de {displayDate(day.date)}
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => run({ type: 'deleteSleep', date: day.date })}
-                  >
-                    Excluir sono de {displayDate(day.date)}
-                  </button>
+                  <ConfirmAction
+                    label="Excluir"
+                    ariaLabel={`Excluir sono de ${displayDate(day.date)}`}
+                    className=""
+                    detail={`O registro de sono de ${displayDate(day.date)} será excluído e o XP correspondente, recalculado.`}
+                    onConfirm={() =>
+                      run({ type: 'deleteSleep', date: day.date })
+                    }
+                  />
                 </div>
               </li>
             ))}

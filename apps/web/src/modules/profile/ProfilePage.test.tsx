@@ -232,6 +232,7 @@ describe('perfil simples integrado', () => {
     fireEvent.click(
       screen.getByRole('button', { name: 'Remover registro do dia' }),
     );
+    fireEvent.click(screen.getByRole('button', { name: 'Confirmar remoção' }));
     expect(saved().records.workouts).toEqual(state.records.workouts);
     nav('Perfil');
     expect(currentClass()).toHaveTextContent('Guerreiro');

@@ -215,9 +215,21 @@ describe('Fluxos reais dos quatro pilares', () => {
     expect(
       screen.getByRole('region', { name: 'Histórico de sono' }),
     ).toHaveTextContent('8,5 h');
+    const before = stored().records.sleep;
     fireEvent.click(
       screen.getByRole('button', { name: 'Excluir sono de 12/11/2026' }),
     );
+    // Exclusão exige confirmação; Cancelar não altera nada e devolve o foco.
+    expect(screen.getByRole('button', { name: 'Cancelar' })).toHaveFocus();
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
+    expect(stored().records.sleep).toEqual(before);
+    expect(
+      screen.getByRole('button', { name: 'Excluir sono de 12/11/2026' }),
+    ).toHaveFocus();
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Excluir sono de 12/11/2026' }),
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Confirmar exclusão' }));
     expect(stored().records.sleep).toEqual([]);
   });
   it('cadastra vários livros, impede excesso de leitura e preserva livros finalizados após recarga', () => {

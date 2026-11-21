@@ -80,7 +80,10 @@ export function ImportPreview({
                       : 'Catálogo geral'}
             </small>
             {!selected && (
-              <p className="record-error">
+              <p
+                className="record-error"
+                id={`import-${row.id}-exercise-error`}
+              >
                 {row.alternatives.length
                   ? 'Nome ambíguo ou aproximação incerta. Escolha uma das alternativas.'
                   : 'Exercício não reconhecido. Escolha no catálogo ou corrija o texto.'}
@@ -89,6 +92,10 @@ export function ImportPreview({
             <Field label={`Exercício ${exerciseIndex + 1}`}>
               <CustomSelect
                 label={`Exercício ${exerciseIndex + 1}`}
+                describedBy={
+                  selected ? undefined : `import-${row.id}-exercise-error`
+                }
+                invalid={!selected}
                 value={row.exerciseId ?? ''}
                 options={[
                   { value: '', label: 'Escolha o exercício' },
@@ -180,17 +187,25 @@ export function ImportPreview({
                   key={set.id}
                   className="strength-set import-set"
                   disabled={ignored}
+                  aria-describedby={
+                    errors.length ? `import-${set.id}-errors` : undefined
+                  }
                 >
                   <legend>Série {index + 1}</legend>
                   {set.needsOrder && (
                     <div className="import-set-errors strength-stack">
-                      <p className="record-error">
+                      <p
+                        className="record-error"
+                        id={`import-${set.id}-order-error`}
+                      >
                         Ordem indefinida: {set.needsOrder.first ?? '—'} ×{' '}
                         {set.needsOrder.second ?? '—'}. Escolha como interpretar
                         estes números.
                       </p>
                       <CustomSelect
                         label={`Ordem · ${label}`}
+                        describedBy={`import-${set.id}-order-error`}
+                        invalid
                         value=""
                         options={[
                           { value: '', label: 'Escolha a ordem dos números' },
@@ -254,7 +269,10 @@ export function ImportPreview({
                     </Field>
                   ))}
                   {errors.length > 0 && (
-                    <p className="record-error import-set-errors">
+                    <p
+                      className="record-error import-set-errors"
+                      id={`import-${set.id}-errors`}
+                    >
                       {errors.join(' ')}
                     </p>
                   )}
@@ -274,7 +292,7 @@ export function ImportPreview({
               );
             })}
             {!ignored && !row.sets.length && (
-              <p className="record-error">
+              <p className="record-error" id={`import-${row.id}-sets-error`}>
                 Adicione ao menos uma série ou remova este exercício.
               </p>
             )}
@@ -282,6 +300,11 @@ export function ImportPreview({
               type="button"
               className="filter-button"
               disabled={ignored || row.sets.length >= 100}
+              aria-describedby={
+                !ignored && !row.sets.length
+                  ? `import-${row.id}-sets-error`
+                  : undefined
+              }
               onClick={() =>
                 patch(row.id, {
                   sets: [...row.sets, blankSet(crypto.randomUUID())],

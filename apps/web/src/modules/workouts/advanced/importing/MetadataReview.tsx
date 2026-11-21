@@ -64,6 +64,7 @@ export function MetadataReview({
             type="button"
             className="filter-button"
             aria-pressed={choice === 'selected'}
+            aria-describedby={choice ? undefined : 'import-date-choice-error'}
             onClick={() => onDateChoice('selected')}
           >
             Manter data selecionada: {displayDate(selectedDate)}
@@ -82,7 +83,9 @@ export function MetadataReview({
             </button>
           ))}
           {!choice && (
-            <p className="record-error">Escolha uma data para continuar.</p>
+            <p className="record-error" id="import-date-choice-error">
+              Escolha uma data para continuar.
+            </p>
           )}
         </div>
       )}

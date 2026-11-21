@@ -28,6 +28,10 @@ interface Props<Value extends string> {
   disabled?: boolean;
   compact?: boolean;
   icon?: IconName;
+  /** IDs de textos que explicam o campo (dicas, erros associados). */
+  describedBy?: string | undefined;
+  /** Marca o campo como inválido para tecnologias assistivas. */
+  invalid?: boolean;
 }
 const normalize = (value: string) =>
   value
@@ -46,6 +50,8 @@ export function CustomSelect<Value extends string>({
   disabled = false,
   compact = false,
   icon,
+  describedBy,
+  invalid = false,
 }: Props<Value>) {
   const [localValue, setLocalValue] = useState<Value>(
     () =>
@@ -193,7 +199,10 @@ export function CustomSelect<Value extends string>({
         type="button"
         role="combobox"
         aria-label={label}
-        aria-describedby={`${id}-value`}
+        aria-describedby={[`${id}-value`, describedBy]
+          .filter(Boolean)
+          .join(' ')}
+        aria-invalid={invalid || undefined}
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={mounted ? listId : undefined}
