@@ -30,14 +30,16 @@ export function MethodHelp() {
         <h4>Recuperação: índice estimado, com incerteza</h4>
         <p>
           Usamos os estímulos dos últimos 14 dias, independentemente do filtro
-          de esforço. Cada participação decai pela metade a cada 48 horas,
-          contadas continuamente a partir do início registrado do treino, sem
-          salto na virada da meia-noite. Sem horário registrado, usamos o menor
-          tempo possível desde o fim daquele dia (estimativa conservadora). As
-          participações se somam: treinos frequentes mantêm maior carga
-          residual. Índice = 100 × exp(−carga residual ÷ 12), limitado a 99. Não
-          significa porcentagem de tecido recuperado nem autorização para
-          treinar.
+          de esforço. A carga residual de cada estímulo contabilizado cai pela
+          metade a cada 48 horas, contadas continuamente a partir do início
+          registrado do treino, sem salto na virada da meia-noite. Por isso, sem
+          novos treinos, o índice de recuperação estimada sobe com o tempo.
+          Participações estabilizadoras não entram na fórmula. Sem horário
+          registrado, usamos o menor tempo possível desde o fim daquele dia
+          (estimativa conservadora). As participações se somam: treinos
+          frequentes mantêm maior carga residual. Índice = 100 × exp(−carga
+          residual ÷ 12), limitado a 99. Não significa porcentagem de tecido
+          recuperado nem autorização para treinar.
         </p>
         <p>
           RIR preenchido de 0 a 3 aumenta o peso em até 20%; ausência é mantida

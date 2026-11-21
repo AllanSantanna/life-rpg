@@ -1,7 +1,7 @@
 # Mapa muscular V2
 
 Projeção somente de leitura dos Treinos Avançados. Não recebe callbacks de
-comandos, não grava em storage, não modifica o contrato v1/envelope v7 e não
+comandos, não grava em storage, não modifica o contrato v1 nem o envelope salvo e não
 altera XP, Radar, Finanças ou o registro diário. Funciona offline: anatomia e
 bases visuais entram no bundle/PWA. Origem de desenvolvimento preservada em
 `http://127.0.0.1:5173`.
@@ -134,7 +134,12 @@ volta a 5 registros. A paginação é só visual. A lista inclui apenas
 sessões concluídas e registradas: nome, data e horário (se houver), séries
 válidas, papel, contribuição (séries equivalentes no Esforço; carga residual
 atual e inicial na Recuperação) e motivo. No Esforço, a janela é o período
-escolhido; na Recuperação, os 14 dias da estimativa. Sem estímulo, a mensagem é
+escolhido; na Recuperação, os 14 dias da estimativa. As contagens do painel
+(séries válidas, volume, sessões, diretas e secundárias), o anúncio para leitor
+de tela e a lista de grupos seguem a mesma janela do modo (`windowMetrics`), e o
+texto indica qual é. A ordem é do mais recente ao mais antigo pelo instante real
+(`compareSessionsDesc`, com o deslocamento UTC gravado); no mesmo dia, sessões
+sem horário vêm depois das com horário. Sem estímulo, a mensagem é
 “Nenhum estímulo contabilizado para este músculo no período selecionado.”;
 estabilizadores ficam numa lista separada, marcada como não contabilizada. A
 lista é recalculada a cada renderização a partir das sessões (registrar, editar
@@ -214,8 +219,14 @@ de minuto e o deslocamento UTC local vigente, por exemplo
 `2026-11-19T15:30:00-03:00`. A data civil (`date`) permanece o campo canônico e
 precisa coincidir com a data de `startedAt`. Não registramos duração nem horário
 de conclusão. Nova sessão do dia corrente recebe o horário local atual, editável;
-datas passadas ficam sem horário até o usuário informar. Inícios no futuro e
-horários inexistentes no fuso local (transição de horário de verão) são rejeitados.
+datas passadas ficam sem horário até o usuário informar. Inícios no futuro são
+rejeitados no formulário, na correção, nos comandos e na importação (uma
+importação que mude a data e leve o início registrado ao futuro é recusada com
+orientação); um horário já gravado e não alterado continua editável. Horários
+inexistentes no fuso local (início do horário de verão) são rejeitados. Horários
+repetidos (fim do horário de verão, ex.: 01:30 em 01/11/2026 em Nova York) não
+são resolvidos em silêncio: o formulário pede “Ocorrência do horário” e grava o
+deslocamento escolhido; o instante atual (“agora”) usa o deslocamento vigente.
 
 Sessões antigas, sem `startedAt`, continuam válidas e **não recebem horário
 fictício** (nem 00:00, 12:00 ou o horário atual). Não houve migração: o campo é
@@ -245,8 +256,13 @@ registrado (ou o limite conservador acima). Com meia-vida `T = 48 h`:
 nos últimos 14 dias. `peso_i` é 1 para participação direta e 0,5 para secundária.
 Estímulos sobrepostos se somam, incorporando frequência e sessões consecutivas.
 `B_g` depende apenas dos registros do próprio grupo: nenhum máximo global,
-percentil ou comparação com outros músculos. A função é contínua no tempo e
-estritamente decrescente entre registros; não há degrau à meia-noite.
+percentil ou comparação com outros músculos. A carga residual `B_g` é contínua
+no tempo e estritamente decrescente entre registros; por isso `Recuperação_g`
+é não decrescente sem novos treinos (o índice sobe à medida que a carga cai) e
+não tem degrau à meia-noite. Novos estímulos aumentam `B_g` e reduzem o índice.
+Participações estabilizadoras têm peso 0 e não entram em `B_g`. O percentual é
+uma heurística do aplicativo, não uma medida fisiológica validada nem garantia
+de prontidão.
 
 O relógio (`useWorkoutClock`) recalcula a cada minuto com a tela visível e ao
 voltar ao aplicativo, sem gravar storage. Instantes são comparados em UTC a partir

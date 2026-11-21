@@ -47,7 +47,7 @@ export function AliasManager({
                 'Ficha excluída')}
           </small>
           {aliasIssue(state, alias) && (
-            <p className="record-error">
+            <p className="record-error" id={`alias-${alias.id}-issue`}>
               {aliasIssue(state, alias)} Associação inativa; edite ou exclua.
             </p>
           )}
@@ -57,6 +57,9 @@ export function AliasManager({
               className="filter-button"
               onClick={() => edit(alias)}
               aria-label={`Editar apelido ${alias.name}`}
+              aria-describedby={
+                aliasIssue(state, alias) ? `alias-${alias.id}-issue` : undefined
+              }
             >
               Editar apelido
             </button>

@@ -1,3 +1,4 @@
+import { ActionButton } from '../../shared/components/ActionButton';
 import { useRef, useState } from 'react';
 import type { LifeRecords } from '../records/types';
 import {
@@ -87,10 +88,9 @@ export function GoalsPage({
             <p>Transforme seus próximos passos em conquistas reais.</p>
           </div>
           {(liveCount > 0 || filters.archived) && (
-            <button className="record-primary" type="button" onClick={create}>
-              <Icon name="plus" size={17} />
+            <ActionButton icon="plus" onClick={create}>
               Criar minha quest
-            </button>
+            </ActionButton>
           )}
         </header>
       )}
@@ -202,10 +202,9 @@ export function GoalsPage({
                   : 'Experimente outro pilar, status ou termo de busca.'}
             </p>
             {liveCount === 0 && !filters.archived ? (
-              <button type="button" className="record-primary" onClick={create}>
-                <Icon name="plus" size={17} />
+              <ActionButton icon="plus" onClick={create}>
                 Criar minha quest
-              </button>
+              </ActionButton>
             ) : (
               hasFilters && (
                 <button

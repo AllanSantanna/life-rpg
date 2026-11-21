@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { ConfirmAction } from '../../../shared/components/ConfirmAction';
 import { periodOptions, type TrainingPeriod } from './calculations';
+/** Exclusão confirmada; delega ao componente compartilhado `ConfirmAction`. */
 export function DeleteAction({
   label,
   detail,
@@ -9,41 +10,7 @@ export function DeleteAction({
   detail: string;
   onConfirm: () => void;
 }) {
-  const [confirming, setConfirming] = useState(false);
-  return confirming ? (
-    <div
-      className="strength-confirm"
-      role="group"
-      aria-label={`Confirmar ${label.toLowerCase()}`}
-    >
-      <p>{detail}</p>
-      <button
-        type="button"
-        className="record-primary"
-        onClick={() => {
-          onConfirm();
-          setConfirming(false);
-        }}
-      >
-        Confirmar exclusão
-      </button>
-      <button
-        type="button"
-        className="filter-button"
-        onClick={() => setConfirming(false)}
-      >
-        Cancelar
-      </button>
-    </div>
-  ) : (
-    <button
-      type="button"
-      className="text-action"
-      onClick={() => setConfirming(true)}
-    >
-      {label}
-    </button>
-  );
+  return <ConfirmAction label={label} detail={detail} onConfirm={onConfirm} />;
 }
 export function PeriodControl({
   value,

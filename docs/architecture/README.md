@@ -30,7 +30,7 @@ componentes compartilhados não gravam registros nem calculam recompensas.
 
 ```text
 Interface → onCommand → comando puro/validação → novo estado
-          → usePlayerState → adaptador local → localStorage
+          → usePlayerState → repositório transacional → IndexedDB
           → projeções de personagem, XP, Radar e indicadores → interface
 ```
 
@@ -63,15 +63,20 @@ continua local.
 ## Persistência
 
 [playerState.ts](../../apps/web/src/app/playerState.ts) define `PlayerState`,
-validação, migração, `PLAYER_STORAGE_KEY = 'life-rpg:player-state'` e versão 7.
+validação, migração, `PLAYER_STORAGE_KEY = 'life-rpg:player-state'` e versão 8.
 O envelope é `{ version, data }`.
-[localStateStorage.ts](../../apps/web/src/shared/storage/localStateStorage.ts)
-isola JSON, acesso ao navegador, validação e tratamento de falhas.
+[transactionalStateStorage.ts](../../apps/web/src/shared/storage/transactionalStateStorage.ts)
+é a fonte de verdade do jogador em IndexedDB. Importação com cópia original,
+comparação de revisão, gravação e recuperação usam transações. A chave legada
+`life-rpg:player-state` permanece intacta. O adaptador síncrono `localStateStorage.ts`
+continua nas preferências descartáveis e na classificação dos formatos históricos.
+Veja [persistência transacional](transactional-persistence.md).
 
 Não há backend de dados do jogador nem sincronização entre dispositivos.
-Storage ausente, inválido, incompatível e indisponível são estados diferentes.
-Versão desconhecida ou leitura indisponível não deve ser sobrescrita. StrictMode
-não deve duplicar migração, recompensas ou gravações na montagem.
+Ausente, inválido, incompatível e indisponível são estados diferentes. Conteúdo
+inválido/futuro fica protegido, e indisponibilidade não monta um jogador vazio
+no lugar dos registros. StrictMode e duas abas não duplicam a importação.
+A interface aguarda hidratação e commit, sem anunciar salvamento antecipado.
 Não use `localStorage.clear()` em código de produção nem grave por fora do hook.
 Detalhes e histórico em [Persistência](../../apps/web/src/shared/storage/README.md).
 
@@ -81,13 +86,18 @@ Detalhes e histórico em [Persistência](../../apps/web/src/shared/storage/READM
 [views.ts](../../apps/web/src/app/views.ts) define URLs e aliases. Preserve acesso
 direto, recarga, Voltar/Avançar e foco após navegar.
 
-As consultas externas existentes são isoladas em `bitcoinQuote.ts`, `usdQuote.ts`
-e seus hooks no módulo financeiro. Não adicione chamadas HTTP em elementos
-visuais compartilhados. Não há cliente geral de API consumindo contratos de negócio.
+As consultas externas existentes são isoladas no módulo financeiro:
+`bitcoinQuote.ts` (BTC/BRL público), `usdQuote.ts` (PTAX) e `marketQuote.ts`, que
+consulta ações e FIIs pelo proxy `market` da API (`VITE_API_URL`), com seus hooks.
+Não adicione chamadas HTTP em elementos visuais compartilhados. Não há cliente
+geral de API consumindo contratos de negócio.
 
 [API](../../apps/api/src/app.ts): Express com Helmet, CORS, JSON limitado,
 `GET /health`, 404 e middleware de erros. `server.ts` inicia o processo;
-`config/env.ts` valida ambiente. Os diretórios de domínio backend são reservas.
+`config/env.ts` valida ambiente. O módulo `market` está implementado (proxy de
+cotações da B3 via brapi, com cache e limites; ver
+[market](../../apps/api/src/modules/market/README.md)); os demais diretórios de
+domínio backend são reservas.
 Prisma/PostgreSQL estão preparados, sem modelos de negócio ou migrações.
 [contracts](../../packages/contracts/src/index.ts) ainda não exporta contratos de negócio.
 Não implemente camadas futuras apenas para aproximar o projeto de um diagrama ideal.
@@ -96,7 +106,48 @@ PWA: Vite gera manifesto e cache de arquivos estáticos; não sincroniza dados.
 Decisões de infraestrutura e planos futuros estão no
 [registro arquitetural](../architecture.md).
 
+## Dependências e riscos residuais
+
+Atualizações são dirigidas, nunca `npm audit fix --force`. Situação em 20/11/2026:
+
+- `@prisma/client` foi removido da API: não havia uso. A CLI `prisma` continua
+  como dependência de desenvolvimento para `db:validate` e o schema preparado.
+- `effect` (ReDoS, GHSA-7589-6fvf-x4pw) chega pela CLI do Prisma, que fixa
+  `3.20.0`; nenhuma versão do Prisma corrige. O `overrides` da raiz usa `3.22.5`,
+  mesmo major; `npm run db:validate` foi conferido. Remover o override quando o
+  `@prisma/config` adotar uma versão corrigida.
+- `typescript-eslint` foi atualizado dentro da faixa `^8` (8.73.0), o que
+  corrigiu o `minimatch` usado por ele.
+- **Risco residual (4 moderadas):** `glob` ≤ 14.0.1 (GHSA-3g3m-2fjr-6pw4) e o
+  `minimatch` interno dele chegam por `vite-plugin-pwa` → `workbox-build`
+  (`glob ^11`). Afetam só a geração do service worker durante o build, com
+  caminhos do próprio projeto; não entram no bundle nem no servidor. A correção
+  exige glob 14+, fora da faixa do `workbox-build`; `npm audit fix` não a aplica,
+  e forçar a troca ou rebaixar o plugin não se justifica. Reavaliar quando o
+  `workbox-build` aceitar glob corrigido.
+
+### Tamanho do bundle
+
+O Vite avisa que dois chunks passam de 500 kB (minificados). Análise com
+sourcemaps em 20/11/2026: `LandscapeScene` (~556 kB) é o `three.js`, já
+carregado sob demanda só quando a paisagem 3D é exibida; o `index` (~772 kB,
+~250 kB gzip) reúne `react-dom`, Treinos (incluindo os vetores anatômicos do
+mapa), Finanças, `fuse.js` e os demais módulos. O PWA pré-carrega os chunks
+comuns, mas exclui `LandscapeScene` do precache e o obtém sob demanda; o cache
+desse renderer é limitado a duas entradas por 30 dias. Dividir as demais rotas,
+mantendo-as no precache, reduziria principalmente o parse inicial, não o download.
+A divisão com benefício maior seria carregar Treinos Avançados sob demanda; ela
+foi adiada porque exige reescrever dezenas de testes de fluxo como assíncronos.
+O aviso permanece ativo de propósito (não se eleva `chunkSizeWarningLimit`).
+
+As actions do CI ficam fixadas por SHA com a versão em comentário (ver
+`.github/workflows/quality.yml`).
+
 ## Testes e validação
+
+O Vitest do web usa `maxWorkers: '50%'`: com o padrão (núcleos − 1 processos
+jsdom), fluxos de integração de 1 a 3 s passavam de 5 s de forma intermitente
+pela disputa de CPU com o Vite e o editor. Nenhum tempo limite foi alterado.
 
 Vitest com jsdom/Testing Library no web e ambiente Node/Supertest na API.
 Testes `*.test.ts(x)` ficam próximos ao código. `test/setup.ts` fixa a data,
@@ -109,3 +160,10 @@ Há um roteiro de auditoria responsiva em Chromium separado das suítes Vitest:
 geometria e captura imagens, sem comparação automática de pixels.
 Supertest precisa poder abrir porta local. Não exige banco ou integrações reais.
 Comandos e limitações estão nas [regras de desenvolvimento](../ai/development-rules.md).
+
+Os testes de componentes injetam um adaptador síncrono no limite da persistência,
+sem mockar o hook ou as regras de domínio. A suíte assíncrona do hook testa filas,
+confirmação, conflitos e leituras atrasadas. `npm run audit:persistence` exercita o
+repositório nativo no Chromium, migrações, concorrência forçada entre abas,
+recuperação, código legado e atualizações reais do service worker. O CI possui
+um job `persistence` separado, com builds históricos e contextos descartáveis.

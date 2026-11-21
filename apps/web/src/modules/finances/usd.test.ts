@@ -166,7 +166,11 @@ describe('Dólar, patrimônio e compatibilidade', () => {
       value: { rateUnits: 52000, updatedAt: now, observedAt: now },
     });
     expect(storage.save(state)).toBe(true);
-    expect(storage.load()).toEqual({ status: 'loaded', data: state });
+    expect(storage.load()).toEqual({
+      status: 'loaded',
+      data: state,
+      raw: expect.any(String),
+    });
     expect(() =>
       apply(state.records, {
         type: 'saveInvestmentEntry',

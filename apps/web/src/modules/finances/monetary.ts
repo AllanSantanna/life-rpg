@@ -13,6 +13,23 @@ export function decimalToUnits(value: string, places: number): number {
     throw new Error('Valor excede a precisão suportada.');
   return result;
 }
+/**
+ * Valor em centavos de `quantidade × preço` sem ponto flutuante: a quantidade
+ * (até 8 casas, como nos formulários) vira inteiro em 1e-8 e o produto é
+ * arredondado ao centavo mais próximo (meio centavo para cima).
+ */
+export function quantityTimesPriceCents(
+  quantity: number,
+  priceCents: number,
+): number {
+  const units = BigInt(Math.round(quantity * 100_000_000));
+  const result = Number(
+    (units * BigInt(priceCents) + 50_000_000n) / 100_000_000n,
+  );
+  if (!Number.isSafeInteger(result))
+    throw new Error('Valor excede a precisão suportada.');
+  return result;
+}
 export function unitsToDecimal(units: number, places: number) {
   const digits = String(Math.abs(units)).padStart(places + 1, '0');
   return `${units < 0 ? '-' : ''}${digits.slice(0, -places)}.${digits.slice(-places)}`;

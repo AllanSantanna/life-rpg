@@ -27,7 +27,8 @@ Metadados e números pontuais usam `font-mono`; não torne todo o aplicativo mon
 Use os utilitários de texto existentes e mantenha a hierarquia h1/h2/h3.
 Não escolha tamanhos apenas para encaixar um texto: ajuste o layout e preserve
 quebra de linha. Os textos auxiliares de 10/11 px são padrões legados específicos,
-não uma regra para reduzir a legibilidade de novos formulários.
+não uma regra para reduzir a legibilidade de novos formulários. **Nenhum texto
+usa menos de 10 px**, inclusive rótulos de gráficos e versões compactas.
 
 Valores de métricas usam `clamp()` em contextos específicos. Tabelas de séries
 usam campos de 16 px. Não sobrescreva esses tamanhos com uma regra global de input.

@@ -39,7 +39,14 @@ export interface PlayerState extends LegacyPlayerState {
   goals: GoalState;
 }
 export const PLAYER_STORAGE_KEY = 'life-rpg:player-state';
-export const PLAYER_STORAGE_VERSION = 7;
+/**
+ * v8: mesmo formato de dados da v7. A troca de versão marca o contrato ampliado
+ * depois da v7 (Treinos Avançados, cotações de mercado, Trapézio, horário de
+ * início): uma versão antiga do app passa a ver os dados como desconhecidos e
+ * não grava por cima deles. Toda ampliação futura do vocabulário salvo exige
+ * nova versão (ver storageContract.test.ts).
+ */
+export const PLAYER_STORAGE_VERSION = 8;
 
 export function createInitialPlayerState(): PlayerState {
   return {
@@ -215,6 +222,8 @@ export function migratePlayerState(
   version: number,
   value: unknown,
 ): PlayerState | null {
+  // v7 → v8 só troca o envelope: os dados são validados e mantidos intactos.
+  if (version === 7) return isPlayerState(value) ? value : null;
   if (version === 5 || version === 6) {
     if (
       !isV4PlayerState(value) ||

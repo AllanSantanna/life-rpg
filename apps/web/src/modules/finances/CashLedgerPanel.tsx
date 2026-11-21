@@ -1,3 +1,4 @@
+import { Disclosure } from '../../shared/components/Disclosure';
 import { CustomSelect } from '../../shared/components/CustomSelect';
 import { MoneyInput } from './MoneyInput';
 import { FinancialConfirmation } from './FinancialConfirmation';
@@ -86,8 +87,10 @@ export function CashLedgerPanel({
   const valuation = ledger.valuations.find((item) => item.id === valuationId);
   const reset = () => setRevision((n) => n + 1);
   return (
-    <details className="panel record-section">
-      <summary>Contas, transferências e avaliações manuais</summary>
+    <Disclosure
+      title="Contas, transferências e avaliações manuais"
+      className="panel record-section"
+    >
       <p className="record-hint">
         Cadastre o saldo de abertura de cada conta no início da data escolhida.
         Apenas receitas, despesas, aportes e resgates dessa data em diante
@@ -441,6 +444,6 @@ export function CashLedgerPanel({
           </button>
         </FinancialConfirmation>
       )}
-    </details>
+    </Disclosure>
   );
 }

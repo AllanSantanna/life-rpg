@@ -1,8 +1,15 @@
 # Persistência local e evolução real
 
-Chave `life-rpg:player-state`, envelope `{ version: 7, data: PlayerState }`.
-O adaptador `localStateStorage.ts` isola leitura, validação, serialização e escrita;
-`app/usePlayerState.ts` hidrata o estado e salva alterações automaticamente.
+Fonte de verdade: IndexedDB `life-rpg:records` (schema 1), com as stores `state`
+e `copies`. O payload canônico usa `{ version: 8, data: PlayerState }`, acompanhado
+de uma revisão. `transactionalStateStorage.ts` implementa importação, cópias e
+comparação da revisão dentro de transações `readwrite`; o hook
+`app/usePlayerState.ts` confirma o salvamento somente após o commit.
+
+A chave legada `life-rpg:player-state` e suas cópias permanecem intactas: a versão
+nova nunca as regrava nem apaga. `localStateStorage.ts` continua como adaptador
+síncrono para classificação dos formatos históricos e preferências descartáveis.
+Detalhes, garantias e limites: [persistência transacional](../../../../../docs/architecture/transactional-persistence.md).
 
 ## Fontes de verdade
 
@@ -36,12 +43,17 @@ formato antigo não registrava a hora/data do clique: essas conclusões conserva
 13/11/2026, a data fixa à qual o aplicativo antigo já as associava. Não se presume
 que tenham ocorrido na data da atualização. Não são criados novos eventos: missões fixas foram removidas da interface. Histórico opaco sem origem verificável não é usado no Radar.
 
-A migração acontece em memória e retorna `migrated: true`. Após hidratação válida,
-o hook salva v7 em um `setItem`; em StrictMode essa gravação não se duplica. Na
-próxima carga v7 é validada diretamente: nenhuma recompensa ou migração é repetida.
-Uma falha de escrita mantém o conteúdo antigo intacto; a sessão usa a projeção real
-e o rodapé avisa que não foi possível salvar. Versões desconhecidas e dados de
-versões antigas que não possam ser migrados não são sobrescritos.
+A migração acontece em memória após validar a estrutura histórica. A ativação
+preserva o texto bruto original em `copies` e grava o payload validado no IndexedDB
+na mesma transação. Isso inclui v7 → v8 **antes da primeira ação**, sem regravar
+o `localStorage` e sem transformar valores financeiros antigos. Duas importações
+simultâneas conferem a existência do canônico dentro da transação; só uma o cria.
+A reconciliação da classe continua usando as regras vigentes do módulo.
+
+Falha de leitura, validação, cópia ou commit nunca ativa um jogador vazio sobre os
+registros existentes. Conteúdo inválido/futuro fica protegido, com original
+preservado; a indisponibilidade do IndexedDB bloqueia a abertura normal, com
+nova tentativa explícita. Não há fallback de gravação no `localStorage`.
 
 ## Progressão e missões
 
@@ -62,26 +74,48 @@ Atributos usam dedicação real de 7 dias; conquistas são derivadas de atividad
 constância, livros concluídos e metas. Elas não dão XP extra. Veja
 [quatro pilares](../../../../../docs/four-pillars.md) e `gamification/realProgress.ts`.
 
-## Falhas e limites
+## Falhas, cópias e concorrência
 
-Sem chave, usa-se estado inicial vazio, sem gravá-lo na montagem. Dados malformados
-da versão atual podem ser substituídos após uma ação do usuário, como antes;
-versões desconhecidas permanecem intactas. Falhas de acesso/leitura ou quota são
-capturadas. Não se usa `localStorage.clear()` nem se removem chaves de outros módulos.
-Preferências somente visuais de Estatísticas usam a chave própria
-`life-rpg:statistics-view` (versão 1) com o mesmo adaptador; ver o
-[módulo de Estatísticas](../../modules/statistics/README.md).
-O adaptador pode ser substituído futuramente por backend sem mudar as projeções.
+- Sem chave e sem canônico, o app mostra o estado inicial sem gravar um jogador
+  na montagem; a primeira ação válida cria o canônico em transação.
+- JSON/dados inválidos ou versão desconhecida não são convertidos em jogador.
+  O bruto é guardado sem ativação e continua protegido se uma versão antiga
+  escrever depois um fallback vazio. Baixar, começar do zero e restaurar são
+  ações explícitas; substituir/restaurar guarda antes o canônico anterior na
+  mesma transação. As cópias também aparecem no Perfil, com origem identificada.
+- Falhas de acesso/migração bloqueiam a abertura normal. Falha de gravação mantém
+  o último commit e a proposta na sessão, com aviso verdadeiro e sem indicar
+  sucesso. Não se usa `localStorage.clear()` ou limpeza de cópias.
+- Cada proposta carrega a revisão lida. Ler a revisão, compará-la e escrever o
+  estado ocorre na **mesma transação IndexedDB**, entre conexões e abas. Uma
+  revisão desatualizada vira conflito, sem mesclar Finanças ou ressuscitar
+  exclusões. A proposta rejeitada é guardada como cópia recuperável no mesmo
+  commit que confirma o conflito; também pode ser baixada na aba.
+- Notificações `BroadcastChannel`, foco e eventos `storage` só atualizam telas.
+  Não concedem exclusão mútua. Uma leitura atrasada não substitui um comando ou
+  commit mais recente. A ausência de Web Locks não altera a segurança, porque
+  a coordenação é feita pelas transações do IndexedDB.
+- Código antigo ainda pode alterar a chave legada. O app atual continua lendo o
+  canônico independente, guarda brutos divergentes para recuperação e mostra
+  aviso. Não mescla operações financeiras automaticamente. Falha ao guardar uma
+  alteração antiga mantém os brutos observados na memória e oferece exportação
+  explícita antes de fechar a aba, sem anunciar que foram preservados em disco.
 
-Os dados pertencem ao navegador e endereço (protocolo, host, porta) usados.
-Limpar os dados do site remove o progresso. Não há sincronização entre dispositivos
-ou resolução de alterações simultâneas entre abas.
+Preferências visuais de Estatísticas continuam na chave `life-rpg:statistics-view`
+(versão 1), com `overwriteInvalid` porque são descartáveis. Nenhuma regra de XP,
+Radar, Quests ou cálculo financeiro foi alterada por esta mudança de persistência.
+
+Os dados pertencem ao navegador e à origem (protocolo, host, porta). Limpeza de
+armazenamento pelo usuário/sistema, perda do dispositivo e gravações de código
+antigo ocorridas antes da primeira importação confirmada ficam fora do controle
+da versão nova. Não há backend nem sincronização entre dispositivos. Veja os
+[limites completos](../../../../../docs/architecture/transactional-persistence.md#limites-reais).
 
 ## Verificação manual
 
 1. Abra no mesmo endereço usado anteriormente. O progresso deve refletir apenas
    seus registros e missões confirmadas, mantendo o perfil e os quatro pilares.
-2. Em DevTools → Application → Local Storage, confira a versão 6. Recarregue:
+2. Em DevTools → Application → IndexedDB → `life-rpg:records` → `state`, confira o envelope versão 8 e a revisão. A chave legada deve permanecer igual. Recarregue:
    XP/nível devem permanecer iguais, sem novo crédito ou migração.
 3. Em uma origem/navegador sem dados, confira nível 1/0 XP, Radar zero e conquistas
    bloqueadas. Registre um treino: 150 XP. Sua quest automática de treino não duplica esse prêmio.
@@ -130,7 +164,7 @@ envelope original.
 `records.advancedWorkouts` é opcional, com contrato interno `version: 1`.
 Guarda a preferência, exercícios personalizados, fichas e snapshots de sessões
 com séries, cargas, repetições, RIR e observações. A ausência do campo representa
-modo desativado sem dados; dados anteriores continuam válidos no envelope v7,
+modo desativado sem dados; dados anteriores continuam válidos no envelope (v7 na época, v8 hoje),
 sem migração ou gravação na montagem. Desativar o modo preserva o conteúdo.
 Recordes, volumes e evolução são projeções; não existe crédito de XP avançado.
 A conclusão pode atualizar atomicamente o registro diário existente por data.
