@@ -17,13 +17,15 @@ export function ConfirmAction({
   label: string;
   /** Consequência da ação, exibida antes da confirmação. */
   detail: string;
-  onConfirm: () => void;
+  onConfirm: () => unknown;
   confirmLabel?: string;
   /** Nome acessível quando o rótulo visível se repete numa lista. */
   ariaLabel?: string;
   className?: string;
 }) {
   const [confirming, setConfirming] = useState(false);
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState('');
   const trigger = useRef<HTMLButtonElement>(null);
   const cancel = useRef<HTMLButtonElement>(null);
   const returnFocus = useRef(false);
@@ -43,24 +45,52 @@ export function ConfirmAction({
       role="group"
       aria-label={`Confirmar ${(ariaLabel ?? label).toLowerCase()}`}
       onKeyDown={(event) => {
-        if (event.key === 'Escape') close();
+        if (event.key === 'Escape' && !pending) close();
       }}
     >
       <p>{detail}</p>
+      {error && (
+        <p className="record-error" role="alert">
+          {error}
+        </p>
+      )}
       <button
         type="button"
         className="record-primary"
+        disabled={pending}
         onClick={() => {
-          onConfirm();
-          close();
+          setError('');
+          try {
+            const result = onConfirm();
+            if (result instanceof Promise) {
+              setPending(true);
+              void result.then(
+                () => {
+                  setPending(false);
+                  close();
+                },
+                () => {
+                  setPending(false);
+                  setError(
+                    'A operação não foi confirmada. Os registros anteriores foram preservados.',
+                  );
+                },
+              );
+            } else close();
+          } catch {
+            setError(
+              'A operação não foi confirmada. Os registros anteriores foram preservados.',
+            );
+          }
         }}
       >
-        {confirmLabel}
+        {pending ? 'Aguarde…' : confirmLabel}
       </button>
       <button
         ref={cancel}
         type="button"
         className="filter-button"
+        disabled={pending}
         onClick={close}
       >
         Cancelar

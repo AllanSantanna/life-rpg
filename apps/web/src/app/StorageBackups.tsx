@@ -1,10 +1,15 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ConfirmAction } from '../shared/components/ConfirmAction';
 import {
   downloadRaw,
   listBackups,
   type BackupAccess,
 } from '../shared/storage/backups';
+import {
+  isPromise,
+  type CopyRepository,
+  type MaybePromise,
+} from '../shared/storage/transactionalStateStorage';
 import { PLAYER_STORAGE_KEY } from './playerState';
 
 const browserStorage = (): BackupAccess => window.localStorage;
@@ -16,8 +21,10 @@ const browserStorage = (): BackupAccess => window.localStorage;
 export function StorageBackups({
   onRestore,
   access = browserStorage,
+  copyStore,
 }: {
-  onRestore: (backupKey: string) => void;
+  onRestore: (backupKey: string) => MaybePromise<void>;
+  copyStore?: CopyRepository;
   access?: () => BackupAccess;
 }) {
   const [revision, setRevision] = useState(0);
@@ -25,14 +32,39 @@ export function StorageBackups({
     text: string;
     error: boolean;
   } | null>(null);
+  const [storedCopies, setStoredCopies] = useState<
+    ReturnType<typeof listBackups>
+  >([]);
+  useEffect(() => {
+    if (!copyStore) return;
+    let active = true;
+    const result = copyStore.listCopies();
+    const success = (copies: ReturnType<typeof listBackups>) => {
+      if (active) setStoredCopies(copies);
+    };
+    if (isPromise(result))
+      void result.then(success, () => {
+        if (active)
+          setMessage({
+            text: 'Não foi possível listar as cópias protegidas. Tente novamente ao reabrir o Perfil.',
+            error: true,
+          });
+      });
+    else success(result);
+    return () => {
+      active = false;
+    };
+  }, [copyStore, revision]);
   let backups: ReturnType<typeof listBackups> = [];
   try {
-    backups = listBackups(access(), PLAYER_STORAGE_KEY);
+    backups = copyStore
+      ? storedCopies
+      : listBackups(access(), PLAYER_STORAGE_KEY);
   } catch {
     backups = [];
   }
   void revision;
-  if (!backups.length) return null;
+  if (!backups.length && !message) return null;
   const label = (createdAt: string) => {
     const date = new Date(createdAt);
     return Number.isNaN(date.getTime())
@@ -57,6 +89,7 @@ export function StorageBackups({
           <li key={backup.key}>
             <div>
               <strong>Cópia de {label(backup.createdAt)}</strong>
+              {backup.label && <p>{backup.label}</p>}
               <p>{Math.max(1, Math.round(backup.size / 1024))} KB</p>
             </div>
             <div className="record-actions">
@@ -64,12 +97,24 @@ export function StorageBackups({
                 type="button"
                 aria-label={`Baixar cópia de ${label(backup.createdAt)}`}
                 onClick={() => {
-                  const raw = access().getItem(backup.key);
-                  if (raw !== null)
-                    downloadRaw(
-                      raw,
-                      `life-rpg-copia-${backup.createdAt.slice(0, 10)}.json`,
+                  const download = (raw: string | null) => {
+                    if (raw !== null)
+                      downloadRaw(
+                        raw,
+                        `life-rpg-copia-${backup.createdAt.slice(0, 10)}.json`,
+                      );
+                  };
+                  const result = copyStore
+                    ? copyStore.readCopy(backup.key)
+                    : access().getItem(backup.key);
+                  if (isPromise(result))
+                    void result.then(download, () =>
+                      setMessage({
+                        text: 'Não foi possível baixar a cópia. Nenhum registro foi alterado.',
+                        error: true,
+                      }),
                     );
+                  else download(result);
                 }}
               >
                 Baixar
@@ -81,19 +126,22 @@ export function StorageBackups({
                 detail="Os registros atuais serão guardados como nova cópia antes da restauração."
                 confirmLabel="Restaurar cópia"
                 onConfirm={() => {
-                  try {
-                    onRestore(backup.key);
+                  const success = () => {
                     setMessage({ text: 'Cópia restaurada.', error: false });
-                  } catch (reason) {
+                    setRevision((n) => n + 1);
+                  };
+                  const failure = () =>
                     setMessage({
-                      text:
-                        reason instanceof Error
-                          ? reason.message
-                          : 'Não foi possível restaurar a cópia.',
+                      text: 'Não foi possível restaurar a cópia. Os registros anteriores foram preservados.',
                       error: true,
                     });
+                  try {
+                    const result = onRestore(backup.key);
+                    if (isPromise(result)) return result.then(success, failure);
+                    success();
+                  } catch {
+                    failure();
                   }
-                  setRevision((n) => n + 1);
                 }}
               />
             </div>

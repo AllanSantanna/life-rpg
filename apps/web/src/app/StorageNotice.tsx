@@ -2,6 +2,10 @@ import { useLayoutEffect, useRef, useState } from 'react';
 import { ConfirmAction } from '../shared/components/ConfirmAction';
 import { downloadRaw } from '../shared/storage/backups';
 import type { Persistence } from './usePlayerState';
+import {
+  isPromise,
+  type MaybePromise,
+} from '../shared/storage/transactionalStateStorage';
 
 const fileName = (today: string) => `life-rpg-registros-${today}.json`;
 
@@ -14,11 +18,13 @@ export function StorageNotice({
   today,
   onReload,
   onStartFresh,
+  onDownloadDraft,
 }: {
   persistence: Persistence;
   today: string;
-  onReload: () => void;
-  onStartFresh: () => string;
+  onReload: () => MaybePromise<void>;
+  onStartFresh: () => MaybePromise<void>;
+  onDownloadDraft?: () => void;
 }) {
   const [error, setError] = useState<string | null>(null);
   const returnToContent = useRef(false);
@@ -42,12 +48,27 @@ export function StorageNotice({
           alteração, se ainda for necessária.
         </p>
         <div className="record-actions">
+          {onDownloadDraft && (
+            <button
+              type="button"
+              className="filter-button"
+              onClick={onDownloadDraft}
+            >
+              Baixar alteração desta aba
+            </button>
+          )}
           <button
             type="button"
             className="record-primary"
             onClick={() => {
               returnToContent.current = true;
-              onReload();
+              const result = onReload();
+              if (isPromise(result))
+                void result.catch(() =>
+                  setError(
+                    'Não foi possível carregar os registros atuais. Sua alteração continua nesta aba.',
+                  ),
+                );
             }}
           >
             Carregar registros atuais
@@ -84,18 +105,22 @@ export function StorageNotice({
           detail="Uma cópia verificada dos registros atuais será guardada neste navegador antes de iniciar um jogador novo. Ela pode ser baixada ou restaurada depois, em Perfil."
           confirmLabel="Guardar cópia e começar do zero"
           onConfirm={() => {
-            try {
-              onStartFresh();
-              // O aviso e seu botão desaparecem após a recuperação. Devolver
-              // o foco ao conteúdo evita deixá-lo no body sem contexto.
-              returnToContent.current = true;
+            returnToContent.current = true;
+            const success = () => {
               setError(null);
-            } catch (reason) {
+            };
+            const failure = () => {
+              returnToContent.current = false;
               setError(
-                reason instanceof Error
-                  ? reason.message
-                  : 'Não foi possível guardar a cópia. Nada foi apagado.',
+                'Não foi possível confirmar a recuperação. Os registros anteriores foram preservados.',
               );
+            };
+            try {
+              const result = onStartFresh();
+              if (isPromise(result)) return result.then(success, failure);
+              success();
+            } catch {
+              failure();
             }
           }}
         />
