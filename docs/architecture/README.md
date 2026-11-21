@@ -127,8 +127,10 @@ O Vite avisa que dois chunks passam de 500 kB (minificados). Análise com
 sourcemaps em 20/11/2026: `LandscapeScene` (~556 kB) é o `three.js`, já
 carregado sob demanda só quando a paisagem 3D é exibida; o `index` (~772 kB,
 ~250 kB gzip) reúne `react-dom`, Treinos (incluindo os vetores anatômicos do
-mapa), Finanças, `fuse.js` e os demais módulos. Como o PWA pré-carrega todos os
-chunks, dividir rotas reduziria principalmente o parse inicial, não o download.
+mapa), Finanças, `fuse.js` e os demais módulos. O PWA pré-carrega os chunks
+comuns, mas exclui `LandscapeScene` do precache e o obtém sob demanda; o cache
+desse renderer é limitado a duas entradas por 30 dias. Dividir as demais rotas,
+mantendo-as no precache, reduziria principalmente o parse inicial, não o download.
 A divisão com benefício maior seria carregar Treinos Avançados sob demanda; ela
 foi adiada porque exige reescrever dezenas de testes de fluxo como assíncronos.
 O aviso permanece ativo de propósito (não se eleva `chunkSizeWarningLimit`).

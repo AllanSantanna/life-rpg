@@ -1,6 +1,6 @@
 # Persistência local e evolução real
 
-Chave `life-rpg:player-state`, envelope `{ version: 7, data: PlayerState }`.
+Chave `life-rpg:player-state`, envelope `{ version: 8, data: PlayerState }`.
 O adaptador `localStateStorage.ts` isola leitura, validação, serialização e escrita;
 `app/usePlayerState.ts` hidrata o estado e salva alterações automaticamente.
 
@@ -100,6 +100,14 @@ aba” oferece carregar os registros atuais; a alteração local não salva é
 descartada somente por essa ação explícita. O rodapé mostra a situação real
 (salvo, sessão apenas, protegido ou conflito).
 
+**Limite confirmado em navegador (21/11/2026):** a comparação e a escrita são
+duas operações de `localStorage`, sem exclusão mútua entre abas. Outra aba pode
+gravar depois de `getItem` e antes de `setItem`; nesse intervalo a comparação
+não impede a sobrescrita. O evento `storage` não transforma a operação em
+transação. A sincronização acima cobre alterações já visíveis na leitura, não
+todas as intercalações concorrentes. Este caso bloqueia a integração da auditoria;
+ver [evidências e proposta](../../../../../docs/audits/persistence-pwa-validation-2026-11-21.md).
+
 Falhas de quota são capturadas e preservam o último valor gravado. Não se usa
 `localStorage.clear()` nem se removem chaves de outros módulos. Preferências
 somente visuais de Estatísticas usam a chave própria `life-rpg:statistics-view`
@@ -121,6 +129,13 @@ versão acontece na próxima ação real, sem regravar na abertura. Versões ant
 do app veem a v8 como desconhecida e não gravam por cima. Toda ampliação futura
 de enumerações, coleções ou campos validados exige nova versão e migração;
 `app/storageContract.test.ts` falha quando o vocabulário muda sem isso.
+
+Antes dessa primeira gravação, o envelope continua v7. Uma versão v7 histórica
+que rejeita o vocabulário ampliado pode sobrescrevê-lo com o estado inicial ao
+receber uma ação. Isso foi reproduzido com o build `43ddebbe` e um snapshot de
+Trapézio. A proteção v8 não é retroativa nem protege essa janela; não considerar
+A-02/C-01 encerrados. A proposta de transição com cópia verificada e coordenação
+das gravações está no relatório de validação vinculado acima.
 
 ## Verificação manual
 
