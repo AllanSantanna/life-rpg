@@ -1,3 +1,7 @@
+import {
+  readSnapshot,
+  resetFixtureDatabase,
+} from './audit-storage-helpers.mjs';
 import fs from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -5,9 +9,7 @@ import { pathToFileURL } from 'node:url';
 /** Receives only an isolated browser fixture page; never a persistent user profile. */
 export async function auditMuscleMap({ page, width, capture, check }) {
   const map = page.getByRole('region', { name: 'Mapa muscular', exact: true });
-  const original = await page.evaluate(() =>
-    localStorage.getItem('life-rpg:player-state'),
-  );
+  const original = await readSnapshot(page);
   const surfaceCount = await map.locator('[data-surface]').count();
   check(
     surfaceCount === 58,
@@ -100,15 +102,14 @@ export async function auditMuscleMap({ page, width, capture, check }) {
     'Enter não expandiu a seção',
   );
   // Depende só do histórico da fixture: agachamento registrado → rastreio dele.
-  const hasSquat = await page.evaluate(() =>
-    JSON.parse(
-      localStorage.getItem('life-rpg:player-state'),
-    ).data.records.advancedWorkouts.sessions.some(
-      (s) =>
-        s.status === 'completed' &&
-        s.exercises.some((e) => e.exercise.id === 'squat'),
-    ),
+  const hasSquat = JSON.parse(
+    await readSnapshot(page),
+  ).data.records.advancedWorkouts.sessions.some(
+    (s) =>
+      s.status === 'completed' &&
+      s.exercises.some((e) => e.exercise.id === 'squat'),
   );
+
   check(
     (await details.getByText('Grupo: Adutores').count()) === 1 &&
       (hasSquat
@@ -167,9 +168,7 @@ export async function auditMuscleMap({ page, width, capture, check }) {
     'Home não restaurou foco',
   );
   check(
-    (await page.evaluate(() =>
-      localStorage.getItem('life-rpg:player-state'),
-    )) === original,
+    (await readSnapshot(page)) === original,
     'muscle-storage',
     width,
     'Seleção/modos alteraram o envelope',
@@ -184,9 +183,7 @@ export async function auditTracePagination({ page, width, capture, check }) {
   const touch = width < 768;
   const map = page.getByRole('region', { name: 'Mapa muscular', exact: true });
   const details = map.getByLabel('Detalhes do músculo selecionado');
-  const original = await page.evaluate(() =>
-    localStorage.getItem('life-rpg:player-state'),
-  );
+  const original = await readSnapshot(page);
   const tapOrClick = (locator) => (touch ? locator.tap() : locator.click());
   // Desktop: teclado real (foco + Enter); celular: toque.
   const activate = async (locator) => {
@@ -423,9 +420,7 @@ export async function auditTracePagination({ page, width, capture, check }) {
   );
   // 14: nada persistente mudou.
   check(
-    (await page.evaluate(() =>
-      localStorage.getItem('life-rpg:player-state'),
-    )) === original,
+    (await readSnapshot(page)) === original,
     'trace-page-storage',
     width,
     'Paginação alterou o armazenamento',
@@ -498,6 +493,7 @@ async function standalone() {
       await page.clock.setFixedTime(new Date('2026-11-20T12:00:00-03:00'));
       await page.goto(base + '/treinos');
       // Fixtures exist only in this new browser context. No real player data is read.
+      await resetFixtureDatabase(page);
       await page.evaluate(async () => {
         const {
           createInitialPlayerState,
@@ -536,13 +532,13 @@ async function standalone() {
         .click();
       await auditMuscleMap({ page, width, capture, check });
       // Reload with an empty training fixture in the isolated context.
-      await page.evaluate(() => {
-        const envelope = JSON.parse(
-          localStorage.getItem('life-rpg:player-state'),
-        );
+      const emptyRaw = await readSnapshot(page);
+      await resetFixtureDatabase(page);
+      await page.evaluate((raw) => {
+        const envelope = JSON.parse(raw);
         envelope.data.records.advancedWorkouts.sessions = [];
         localStorage.setItem('life-rpg:player-state', JSON.stringify(envelope));
-      });
+      }, emptyRaw);
       await page.reload();
       await page
         .getByRole('tab', { name: 'Mapa muscular', exact: true })
@@ -566,12 +562,12 @@ async function standalone() {
         'Estado vazio inventou recuperação',
       );
       // 18 agachamentos, um por dia até hoje, só neste contexto isolado.
-      await page.evaluate(async () => {
+      const paginationRaw = await readSnapshot(page);
+      await resetFixtureDatabase(page);
+      await page.evaluate(async (raw) => {
         const { testSession, testSet } =
           await import('/src/modules/workouts/advanced/testFixtures.ts');
-        const envelope = JSON.parse(
-          localStorage.getItem('life-rpg:player-state'),
-        );
+        const envelope = JSON.parse(raw);
         envelope.data.records.advancedWorkouts.sessions = Array.from(
           { length: 18 },
           (_, i) => {
@@ -588,7 +584,7 @@ async function standalone() {
           },
         );
         localStorage.setItem('life-rpg:player-state', JSON.stringify(envelope));
-      });
+      }, paginationRaw);
       await page.reload();
       await page
         .getByRole('tab', { name: 'Mapa muscular', exact: true })

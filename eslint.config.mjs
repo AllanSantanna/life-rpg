@@ -25,6 +25,8 @@ export default tseslint.config(
       'scripts/audit-muscle-map.mjs',
       'scripts/audit-time-picker.mjs',
       'scripts/audit-storage-pwa.mjs',
+      'scripts/audit-storage-helpers.mjs',
+      'scripts/audit-indexed-storage.mjs',
     ],
     languageOptions: { globals: { ...globals.node, ...globals.browser } },
   },
