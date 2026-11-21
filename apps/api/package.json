@@ -12,7 +12,6 @@
     "db:validate": "dotenv -e ../../.env -- prisma validate"
   },
   "dependencies": {
-    "@prisma/client": "^7.10.1",
     "cors": "^2.8.5",
     "express": "^5.0.0",
     "helmet": "^8.0.0"
