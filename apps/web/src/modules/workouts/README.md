@@ -78,7 +78,7 @@ somente à sessão; a ficha permanente e outras sessões não mudam.
 Um comando confirma a sessão inteira pelo armazenamento já existente. Repetir
 esse comando não duplica a importação; uma trava também impede cliques repetidos.
 Se a sessão mudou após interpretar, a confirmação falha e pede nova conferência.
-Não foi necessário alterar o contrato v1, envelope v7 ou chaves do armazenamento.
+A importação não alterou o contrato v1, o envelope nem as chaves do armazenamento.
 
 Séries importadas são marcadas como realizadas, mas novas sessões ficam **em
 andamento** para revisão/conclusão pelo fluxo habitual. Corrigir uma sessão já
@@ -131,7 +131,7 @@ séries concluídas volta a ficar em andamento e sai dos indicadores avançados.
 
 O campo opcional `records.advancedWorkouts` tem contrato próprio `version: 1`,
 com `enabled`, `exercises`, `plans` e `sessions`. Usa a mesma chave
-`life-rpg:player-state` e o envelope atual v7, pelo adaptador existente. Resultados
+`life-rpg:player-state` e o envelope atual v8, pelo adaptador existente. Resultados
 como recordes, volumes e gráficos são derivados das sessões, sem cópias acumuladas.
 
 Registros antigos sem esse campo continuam válidos; a ausência equivale ao modo
