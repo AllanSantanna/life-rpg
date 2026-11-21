@@ -256,8 +256,13 @@ registrado (ou o limite conservador acima). Com meia-vida `T = 48 h`:
 nos últimos 14 dias. `peso_i` é 1 para participação direta e 0,5 para secundária.
 Estímulos sobrepostos se somam, incorporando frequência e sessões consecutivas.
 `B_g` depende apenas dos registros do próprio grupo: nenhum máximo global,
-percentil ou comparação com outros músculos. A função é contínua no tempo e
-estritamente decrescente entre registros; não há degrau à meia-noite.
+percentil ou comparação com outros músculos. A carga residual `B_g` é contínua
+no tempo e estritamente decrescente entre registros; por isso `Recuperação_g`
+é não decrescente sem novos treinos (o índice sobe à medida que a carga cai) e
+não tem degrau à meia-noite. Novos estímulos aumentam `B_g` e reduzem o índice.
+Participações estabilizadoras têm peso 0 e não entram em `B_g`. O percentual é
+uma heurística do aplicativo, não uma medida fisiológica validada nem garantia
+de prontidão.
 
 O relógio (`useWorkoutClock`) recalcula a cada minuto com a tela visível e ao
 voltar ao aplicativo, sem gravar storage. Instantes são comparados em UTC a partir
