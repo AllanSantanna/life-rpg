@@ -35,7 +35,9 @@ não acrescentam esforço. Valores financeiros não aumentam a dedicação.
 e `pending` fica nulo após a reconciliação. Não há histórico de classes,
 desbloqueios ou equipamento cosmético.
 
-O envelope (v7 nesta mudança, v8 atualmente) mantém a chave `life-rpg:player-state`. A migração de v5/v6 copia apenas
+O envelope (v7 nesta mudança, v8 atualmente) é importado no IndexedDB canônico,
+preservando a chave legada `life-rpg:player-state`; veja a
+[persistência oficial](../../shared/storage/README.md). A migração de v5/v6 copia apenas
 avatar e classificação do personagem, convertendo Aventureiro para classe nula
 e removendo molduras, fundos, títulos, coleções, marcos de desbloqueio e histórico.
 A hidratação atribui imediatamente a classe a partir dos registros existentes. Todos os demais campos são preservados.

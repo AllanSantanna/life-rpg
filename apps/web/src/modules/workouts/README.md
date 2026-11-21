@@ -130,8 +130,9 @@ séries concluídas volta a ficar em andamento e sai dos indicadores avançados.
 ## Persistência e compatibilidade
 
 O campo opcional `records.advancedWorkouts` tem contrato próprio `version: 1`,
-com `enabled`, `exercises`, `plans` e `sessions`. Usa a mesma chave
-`life-rpg:player-state` e o envelope atual v8, pelo adaptador existente. Resultados
+com `enabled`, `exercises`, `plans` e `sessions`. Usa o envelope atual v8 no
+IndexedDB canônico; `life-rpg:player-state` permanece como original legado,
+conforme a [persistência oficial](../../shared/storage/README.md). Resultados
 como recordes, volumes e gráficos são derivados das sessões, sem cópias acumuladas.
 
 Registros antigos sem esse campo continuam válidos; a ausência equivale ao modo

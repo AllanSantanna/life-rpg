@@ -53,6 +53,9 @@ remoto; este projeto não altera essas permissões automaticamente. Um job separ
 executa `npm run audit:visual`, com ferramentas temporárias de navegador e
 artefatos para revisão. A [execução e os limites](../design-system/responsive.md)
 desse comando são diferentes dos testes jsdom.
+O job `persistence` verifica IndexedDB nativo, migrações, concorrência forçada e
+atualização da PWA com builds históricos, conforme a
+[persistência transacional](../architecture/transactional-persistence.md).
 
 ## Proteções visuais aplicadas pelo ESLint
 
