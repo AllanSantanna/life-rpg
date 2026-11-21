@@ -2661,7 +2661,8 @@
   .quest-page-heading h2 {
     font-size: 21px;
   }
-  .quest-page-heading > button {
+  /* O ActionButton mantém 160 × 44 px, como nas demais telas. */
+  .quest-page-heading > button:not(.action-button) {
     width: 100%;
   }
   .quest-controls {
