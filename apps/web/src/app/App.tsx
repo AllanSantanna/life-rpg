@@ -21,6 +21,9 @@ import { KnowledgePage } from '../modules/knowledge/KnowledgePage';
 import { usePlayerState, type Persistence } from './usePlayerState';
 import { StorageBackups } from './StorageBackups';
 import { StorageNotice } from './StorageNotice';
+import { LegacyStorageNotice } from './LegacyStorageNotice';
+import { downloadRaw } from '../shared/storage/backups';
+import { ActionButton } from '../shared/components/ActionButton';
 import { EvolutionPanel } from '../modules/evolution/EvolutionPanel';
 import { StatisticsPage } from '../modules/statistics/StatisticsPage';
 import { useEffect, useRef } from 'react';
@@ -46,6 +49,8 @@ const titles: Record<View, string> = {
   knowledge: 'Conhecimento',
 };
 const persistenceLabels: Record<Persistence['kind'], string> = {
+  loading: 'Carregando registros protegidos…',
+  saving: 'Gravação em andamento · aguarde a confirmação',
   saved: 'Registros salvos neste navegador · evolução real',
   session: 'Salvamento local indisponível · alterações apenas nesta sessão',
   protected:
@@ -63,6 +68,11 @@ export function App() {
     reloadStored,
     startFreshKeepingCopy,
     restoreBackup,
+    ready,
+    legacyChange,
+    acknowledgeLegacy,
+    copies,
+    draftRaw,
   } = usePlayerState(today);
   const player = state.profile;
   const {
@@ -115,7 +125,40 @@ export function App() {
   useEffect(() => {
     const frame = requestAnimationFrame(() => heading.current?.focus());
     return () => cancelAnimationFrame(frame);
-  }, [view, goalId]);
+  }, [view, goalId, ready]);
+  if (!ready)
+    return (
+      <main
+        id="main"
+        tabIndex={-1}
+        className="mx-auto max-w-[1480px] px-5 py-9"
+      >
+        <section
+          className="panel record-section"
+          role={persistence.kind === 'loading' ? 'status' : 'alert'}
+        >
+          <h1>
+            {persistence.kind === 'loading'
+              ? 'Carregando seus registros'
+              : 'Não foi possível acessar os registros protegidos'}
+          </h1>
+          <p className="record-hint">
+            {persistence.kind === 'loading'
+              ? 'Aguarde a validação do armazenamento deste navegador.'
+              : 'Os dados existentes não foram substituídos. Nenhum jogador novo foi gravado. Tente novamente para continuar.'}
+          </p>
+          {persistence.kind !== 'loading' && (
+            <ActionButton
+              onClick={() => {
+                void reloadStored();
+              }}
+            >
+              Tentar novamente
+            </ActionButton>
+          )}
+        </section>
+      </main>
+    );
   return (
     <div className={`app-shell view-${view}`}>
       <a className="skip-link" href="#main">
@@ -157,7 +200,16 @@ export function App() {
             today={today}
             onReload={reloadStored}
             onStartFresh={startFreshKeepingCopy}
+            onDownloadDraft={() =>
+              downloadRaw(draftRaw(), 'life-rpg-alteracao-nao-salva.json')
+            }
           />
+          {legacyChange && (
+            <LegacyStorageNotice
+              change={legacyChange}
+              onAcknowledge={acknowledgeLegacy}
+            />
+          )}
           <div className="page-intro mb-7 flex flex-wrap items-end justify-between gap-4">
             <div>
               <p className="eyebrow mb-2 text-muted">
@@ -297,7 +349,12 @@ export function App() {
                 onOpenEvolution={() => navigate('stats')}
               />
             )}
-            {view === 'profile' && <StorageBackups onRestore={restoreBackup} />}
+            {view === 'profile' && (
+              <StorageBackups
+                onRestore={restoreBackup}
+                {...(copies ? { copyStore: copies } : {})}
+              />
+            )}
           </div>
           <footer className="mt-9 flex flex-wrap items-center justify-between gap-3 border-t border-white/[0.06] pt-5 text-[11px] text-muted">
             <span className="flex items-center gap-2">
