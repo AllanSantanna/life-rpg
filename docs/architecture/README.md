@@ -96,6 +96,29 @@ PWA: Vite gera manifesto e cache de arquivos estáticos; não sincroniza dados.
 Decisões de infraestrutura e planos futuros estão no
 [registro arquitetural](../architecture.md).
 
+## Dependências e riscos residuais
+
+Atualizações são dirigidas, nunca `npm audit fix --force`. Situação em 20/11/2026:
+
+- `@prisma/client` foi removido da API: não havia uso. A CLI `prisma` continua
+  como dependência de desenvolvimento para `db:validate` e o schema preparado.
+- `effect` (ReDoS, GHSA-7589-6fvf-x4pw) chega pela CLI do Prisma, que fixa
+  `3.20.0`; nenhuma versão do Prisma corrige. O `overrides` da raiz usa `3.22.5`,
+  mesmo major; `npm run db:validate` foi conferido. Remover o override quando o
+  `@prisma/config` adotar uma versão corrigida.
+- `typescript-eslint` foi atualizado dentro da faixa `^8` (8.73.0), o que
+  corrigiu o `minimatch` usado por ele.
+- **Risco residual (4 moderadas):** `glob` ≤ 14.0.1 (GHSA-3g3m-2fjr-6pw4) e o
+  `minimatch` interno dele chegam por `vite-plugin-pwa` → `workbox-build`
+  (`glob ^11`). Afetam só a geração do service worker durante o build, com
+  caminhos do próprio projeto; não entram no bundle nem no servidor. A correção
+  exige glob 14+, fora da faixa do `workbox-build`; `npm audit fix` não a aplica,
+  e forçar a troca ou rebaixar o plugin não se justifica. Reavaliar quando o
+  `workbox-build` aceitar glob corrigido.
+
+As actions do CI ficam fixadas por SHA com a versão em comentário (ver
+`.github/workflows/quality.yml`).
+
 ## Testes e validação
 
 Vitest com jsdom/Testing Library no web e ambiente Node/Supertest na API.
