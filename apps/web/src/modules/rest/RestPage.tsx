@@ -132,8 +132,12 @@ export function RestPage({ records, today, onCommand }: RecordPageProps) {
                   </p>
                 </div>
                 <div className="record-actions">
-                  <button type="button" onClick={() => setEditing(day.date)}>
-                    Editar sono de {displayDate(day.date)}
+                  <button
+                    type="button"
+                    onClick={() => setEditing(day.date)}
+                    aria-label={`Editar sono de ${displayDate(day.date)}`}
+                  >
+                    Editar
                   </button>
                   <ConfirmAction
                     label="Excluir"
