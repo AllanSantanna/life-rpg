@@ -1,3 +1,4 @@
+import { Disclosure } from '../../shared/components/Disclosure';
 import { useState } from 'react';
 import type { RecordPageProps } from '../records/types';
 import { FinancialConfirmation } from './FinancialConfirmation';
@@ -16,8 +17,10 @@ export function FinancialSettings({
     setError('');
   };
   return (
-    <details className="panel record-section financial-settings">
-      <summary>Configurações financeiras</summary>
+    <Disclosure
+      title="Configurações financeiras"
+      className="panel record-section financial-settings"
+    >
       <h3>Redefinir dados financeiros</h3>
       <p>
         Apague o histórico de Finanças e recomece. Os demais pilares e o perfil
@@ -90,6 +93,6 @@ export function FinancialSettings({
           </form>
         </FinancialConfirmation>
       )}
-    </details>
+    </Disclosure>
   );
 }
