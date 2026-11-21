@@ -60,3 +60,52 @@ jobs:
           name: auditoria-visual
           path: ${{ runner.temp }}/life-rpg-audit-results
           retention-days: 7
+
+  persistence:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Preparar navegador e builds históricos isolados
+        run: |
+          npm install --prefix "$RUNNER_TEMP/life-rpg-audit-tools" --no-save --no-package-lock playwright@1.65.1
+          "$RUNNER_TEMP/life-rpg-audit-tools/node_modules/.bin/playwright" install --with-deps chromium
+          for spec in previous:6b0d981 pre-trapezius:43ddebbe; do
+            fixture_name=${spec%%:*}
+            fixture_ref=${spec#*:}
+            fixture_root="$RUNNER_TEMP/life-rpg-history/$fixture_name"
+            mkdir -p "$fixture_root"
+            git archive "$fixture_ref" | tar -x -C "$fixture_root"
+            ln -sT "$GITHUB_WORKSPACE/node_modules" "$fixture_root/node_modules"
+            (cd "$fixture_root/apps/web" && node "$GITHUB_WORKSPACE/node_modules/vite/bin/vite.js" build)
+          done
+      - name: Verificar transações, migrações, versões antigas e atualização da PWA
+        env:
+          PLAYWRIGHT_MODULE: ${{ runner.temp }}/life-rpg-audit-tools/node_modules/playwright/index.mjs
+          AUDIT_BASE_URL: http://127.0.0.1:5174
+          PWA_PREVIOUS_DIST: ${{ runner.temp }}/life-rpg-history/previous/apps/web/dist
+          PWA_LEGACY_DIST: ${{ runner.temp }}/life-rpg-history/pre-trapezius/apps/web/dist
+        run: |
+          npm run dev -w @life-rpg/web -- --port 5174 > "$RUNNER_TEMP/life-rpg-persistence-vite.log" 2>&1 &
+          audit_server_pid=$!
+          trap 'kill "$audit_server_pid" 2>/dev/null || true' EXIT
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:5174 > /dev/null; then break; fi
+            sleep 1
+          done
+          AUDIT_OUTPUT="$RUNNER_TEMP/life-rpg-persistence/native" node scripts/audit-indexed-storage.mjs
+          AUDIT_OUTPUT="$RUNNER_TEMP/life-rpg-persistence/pwa" node scripts/audit-storage-pwa.mjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: auditoria-persistencia-pwa
+          path: ${{ runner.temp }}/life-rpg-persistence
+          retention-days: 7
