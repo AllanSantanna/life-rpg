@@ -140,6 +140,12 @@ só é criado após uma ação. Quatro pilares, perfil, quests e progressão per
 intactos. A validação também protege IDs, referências a exercícios e snapshots.
 Falhas de armazenamento mantêm a sessão em memória e exibem o aviso existente.
 
+**IDs de catálogo são contrato salvo.** Fichas, sessões e a revisão de papéis do
+mapa referenciam `starterExercises` e `library:*` pelo ID. Não renomeie nem
+remova um ID sem migração versionada: os validadores rejeitariam o estado salvo.
+Desde a proteção de persistência, isso não apaga dados (o app entra em modo
+protegido e preserva o conteúdo), mas impediria o uso normal até a correção.
+
 ## Verificação
 
 Os testes de cálculo/comandos e integração cobrem preferência e recarga; fichas e
