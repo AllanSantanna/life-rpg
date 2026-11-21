@@ -12,6 +12,7 @@ export interface StorageBackup {
   /** Instante ISO em que a cópia foi criada. */
   createdAt: string;
   size: number;
+  label?: string;
 }
 
 export const backupPrefix = (key: string) => `${key}:backup:`;
@@ -34,7 +35,7 @@ export function createBackup(
 }
 
 export function listBackups(
-  access: BackupAccess,
+  access: Pick<BackupAccess, 'getItem' | 'key' | 'length'>,
   key: string,
 ): StorageBackup[] {
   const prefix = backupPrefix(key);

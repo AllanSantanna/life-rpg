@@ -24,6 +24,7 @@ implementação atual; propostas futuras devem ser identificadas como propostas.
 - [Painel de Estatísticas, paisagem 3D e calendário](../apps/web/src/modules/statistics/README.md).
 - [Personagem e classes](../apps/web/src/modules/profile/README.md).
 - [Persistência e migrações](../apps/web/src/shared/storage/README.md).
+- [Persistência transacional e proteção contra versões antigas](architecture/transactional-persistence.md).
 - [Detalhes dos seletores e calendários](../apps/web/src/shared/components/README.md).
 
 [architecture.md](architecture.md) conserva decisões e descrições históricas de
