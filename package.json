@@ -23,6 +23,7 @@
     "format:check": "prettier --check .",
     "standards:check": "node scripts/check-standards.mjs",
     "audit:visual": "node scripts/audit-visual.mjs",
+    "audit:persistence": "node scripts/audit-indexed-storage.mjs && node scripts/audit-storage-pwa.mjs",
     "test:standards": "node scripts/standards.test.mjs",
     "test": "npm run test:standards && npm run test --workspaces --if-present",
     "build": "npm run build --workspaces --if-present",
@@ -39,5 +40,8 @@
     "prettier": "^3.0.0",
     "concurrently": "^9.0.0",
     "dotenv-cli": "^8.0.0"
+  },
+  "overrides": {
+    "effect": "3.22.5"
   }
 }

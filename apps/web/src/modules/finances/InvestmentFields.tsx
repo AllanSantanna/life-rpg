@@ -192,8 +192,17 @@ export function InvestmentFields({
               </Field>
               <p className="record-hint">
                 Informe a quantidade vendida para manter o valor de mercado e o
-                preço médio. O custo da parcela vendida sai pelo preço médio.
+                preço médio. Com quantidade, o custo da parcela vendida sai pelo
+                preço médio e o custo de aquisição resgatado fica em branco.
               </p>
+              {entry?.costBasisCents !== undefined &&
+                entry.quantity !== undefined && (
+                  <p className="record-hint">
+                    Este registro antigo informava um custo resgatado. Para
+                    salvar a edição, apague esse custo: a venda passará a sair
+                    pelo preço médio.
+                  </p>
+                )}
             </>
           ) : (
             (!box ||

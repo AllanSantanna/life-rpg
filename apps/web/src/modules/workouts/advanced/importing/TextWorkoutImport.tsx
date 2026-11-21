@@ -321,13 +321,13 @@ export function TextWorkoutImport({
             }}
           />
           {repeated && (
-            <p className="record-error">
+            <p className="record-error" id="import-repeated-error">
               Há exercícios repetidos. Reúna as séries em um único exercício e
               remova a repetição.
             </p>
           )}
           {!rows.length && (
-            <p className="record-error">
+            <p className="record-error" id="import-empty-error">
               Nenhum exercício identificado. Confira o texto e interprete
               novamente.
             </p>
@@ -338,7 +338,7 @@ export function TextWorkoutImport({
             o registro diário nem concede XP.
           </p>
           {invalid && rows.length > 0 && (
-            <p className="record-error">
+            <p className="record-error" id="import-pending-error">
               Resolva os exercícios, séries e conflitos indicados para
               confirmar.
             </p>
@@ -348,6 +348,15 @@ export function TextWorkoutImport({
               type="button"
               className="record-primary"
               disabled={invalid}
+              aria-describedby={
+                [
+                  repeated && 'import-repeated-error',
+                  !rows.length && 'import-empty-error',
+                  invalid && rows.length > 0 && 'import-pending-error',
+                ]
+                  .filter(Boolean)
+                  .join(' ') || undefined
+              }
               onClick={confirm}
             >
               Confirmar importação

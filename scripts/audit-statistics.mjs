@@ -1,8 +1,7 @@
+import { readSnapshot } from './audit-storage-helpers.mjs';
 /** Cenários de Estatísticas; usa somente fixtures do navegador isolado de auditoria. */
 export async function auditStatistics({ page, width, capture, check }) {
-  const storage = await page.evaluate(() =>
-    localStorage.getItem('life-rpg:player-state'),
-  );
+  const storage = await readSnapshot(page);
   const radar = await page.locator('.evolution-panel').innerHTML();
   // O dia atual deve aparecer na rolagem local do calendário, à direita da coluna fixa.
   const todayVisible = () =>
@@ -274,9 +273,7 @@ export async function auditStatistics({ page, width, capture, check }) {
   await auditCalendarGestures({ page, width, capture, check });
   await auditCustomization({ page, width, capture, check });
   check(
-    (await page.evaluate(() =>
-      localStorage.getItem('life-rpg:player-state'),
-    )) === storage,
+    (await readSnapshot(page)) === storage,
     'statistics-storage',
     width,
     'Explorar Estatísticas modificou o estado persistido',
@@ -494,6 +491,8 @@ async function auditCustomization({ page, width, capture, check }) {
   ])
     await page.getByRole('switch', { name, exact: true }).click();
   await page.reload();
+  // Records hydrate asynchronously from IndexedDB; assert only after the shell.
+  await page.locator('.app-shell').waitFor();
   check(
     (await page
       .getByRole('region', { name: 'Radar de Evolução', exact: true })

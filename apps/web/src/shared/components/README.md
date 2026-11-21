@@ -12,7 +12,8 @@ Os detalhes de interação de seleção e calendário permanecem abaixo.
 Aceita modo controlado (`value`/`onChange`) ou não controlado (`defaultValue`);
 `label` e `options` definem a apresentação. Opções podem ter ícone, cor de área e
 estado desabilitado. `compact` é usado na ordenação; `name` inclui um input oculto
-com o valor real para `FormData`. Não há `<select>` nativo nem escrita em storage.
+com o valor real para `FormData`. Não grava em storage. `describedBy` e `invalid`
+associam dicas e erros ao campo.
 O botão continua rotulado dentro de `Field` e mostra o texto da opção escolhida.
 No modo não controlado, alterações de `defaultValue` não sobrescrevem a escolha;
 opções removidas usam a primeira disponível, sem disparar `onChange`. Seleções
@@ -39,7 +40,8 @@ Os testes de Quests verificam integração com edição, filtros, recarga e conc
 
 É usado em Quests, Finanças (contas, transferências, receitas/despesas, categorias,
 aportes/vendas, posição inicial, avaliações e BTC/sats) e Conhecimento (livro da
-leitura). Não há elementos `<select>` nativos no código da interface. Os testes
+leitura). O único `<select>` nativo é a exceção documentada do tipo de série em
+`SessionPanel` ([catálogo](../../../../../docs/design-system/components.md)). Os testes
 `app/SelectControls.test.tsx` verificam contas/transferências/avaliações e leitura
 em livros diferentes, com correção, recarga e preservação dos outros pilares.
 As suítes financeiras também cobrem Bitcoin, USD e caixinhas com esses controles.

@@ -1,5 +1,5 @@
 import { createLocalStateStorage } from '../../../shared/storage/localStateStorage';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   assertStartNotFuture,
   createSessionStart,
@@ -25,6 +25,10 @@ import {
 import { emptyAdvancedWorkouts } from './types';
 const today = '2026-11-20';
 describe('data, início e compatibilidade de sessões', () => {
+  // Relógio fixo no fim do dia de referência: os comandos conferem que o início
+  // não está no futuro, então o teste não pode depender da hora da execução.
+  beforeEach(() => vi.setSystemTime(new Date('2026-11-20T23:00:00')));
+  afterEach(() => vi.useRealTimers());
   it('aceita HH:mm de 24 horas e rejeita horários/datas/offsets inválidos', () => {
     for (const time of ['00:00', '15:30', '23:59'])
       expect(isWorkoutTime(time)).toBe(true);
@@ -115,8 +119,16 @@ describe('data, início e compatibilidade de sessões', () => {
       () => ({ getItem: () => raw, setItem: write }),
       migratePlayerState,
     );
-    expect(storage.load()).toEqual({ status: 'loaded', data: player });
-    expect(storage.load()).toEqual({ status: 'loaded', data: player });
+    expect(storage.load()).toEqual({
+      status: 'loaded',
+      data: player,
+      raw: expect.any(String),
+    });
+    expect(storage.load()).toEqual({
+      status: 'loaded',
+      data: player,
+      raw: expect.any(String),
+    });
     expect(write).not.toHaveBeenCalled();
     expect(JSON.stringify(player)).toBe(snapshot);
     expect(

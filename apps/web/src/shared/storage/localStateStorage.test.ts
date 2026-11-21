@@ -46,7 +46,11 @@ describe('Armazenamento local versionado', () => {
     ];
     state.preferences = { missionFilter: 'done', radarPeriod: 90 };
     expect(store.save(state)).toBe(true);
-    expect(store.load()).toEqual({ status: 'loaded', data: state });
+    expect(store.load()).toEqual({
+      status: 'loaded',
+      data: state,
+      raw: content(),
+    });
     const envelope = JSON.parse(content()!);
     expect(envelope.version).toBe(PLAYER_STORAGE_VERSION);
     expect(envelope.data).not.toHaveProperty('dedication');
@@ -60,12 +64,13 @@ describe('Armazenamento local versionado', () => {
     '42',
     JSON.stringify({ version: PLAYER_STORAGE_VERSION }),
     JSON.stringify({ version: PLAYER_STORAGE_VERSION, data: {} }),
-  ])('recupera com segurança o conteúdo inválido %s', (raw) => {
+  ])('preserva o conteúdo inválido %s sem sobrescrevê-lo', (raw) => {
     const { store, content } = fixture(raw);
-    expect(store.load().status).toBe('invalid');
+    expect(store.load()).toEqual({ status: 'invalid', raw });
     expect(content()).toBe(raw);
-    expect(store.save(createDemoPlayerState())).toBe(true);
-    expect(store.load().status).toBe('loaded');
+    // C-01: dados ilegíveis podem ser recuperáveis; a gravação comum é recusada.
+    expect(store.save(createDemoPlayerState())).toBe(false);
+    expect(content()).toBe(raw);
   });
   it('preserva versões desconhecidas inclusive após tentativa de gravação', () => {
     const raw = JSON.stringify({ version: 999, data: createDemoPlayerState() });
@@ -106,7 +111,11 @@ describe('Armazenamento local versionado', () => {
       store.save({ ...state, profile: { ...state.profile, name: 'Novo' } }),
     ).toBe(false);
     expect(content()).toBe(previous);
-    expect(store.load()).toEqual({ status: 'loaded', data: state });
+    expect(store.load()).toEqual({
+      status: 'loaded',
+      data: state,
+      raw: previous,
+    });
   });
 });
 

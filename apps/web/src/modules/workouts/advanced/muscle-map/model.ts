@@ -1,4 +1,5 @@
 import {
+  compareSessionsDesc,
   timingAt,
   referenceInstant,
   type StimulusTiming,
@@ -61,6 +62,8 @@ export interface MuscleContribution {
   burden: number;
   /** Carga residual no instante de referência; 0 fora da janela. */
   residual: number;
+  /** Volume (carga × repetições) das séries do exercício. */
+  volume: number;
   inPeriod: boolean;
   inRecoveryWindow: boolean;
 }
@@ -95,6 +98,10 @@ export type RecoveryConfig = {
 };
 const clamp = (n: number, min: number, max: number) =>
   Math.min(max, Math.max(min, n));
+const asTiming = (item: { date: string; startedAt: string | null }) =>
+  item.startedAt
+    ? { date: item.date, startedAt: item.startedAt }
+    : { date: item.date };
 const roleWeight = (role: ParticipationRole, config: RecoveryConfig) =>
   role === 'primary' ? 1 : role === 'secondary' ? config.secondaryWeight : 0;
 
@@ -233,6 +240,7 @@ export function projectMuscles(
           reason,
           source,
           units: sets.length * weight,
+          volume,
           burden: burden * weight,
           residual:
             inRecoveryWindow && weight > 0
@@ -333,10 +341,9 @@ export function projectMuscles(
         lastTiming,
         recoveryTiming,
         residualBurden: burden,
-        contributions: [...traces[m]].sort(
-          (a, b) =>
-            b.date.localeCompare(a.date) ||
-            (b.startedAt ?? '').localeCompare(a.startedAt ?? ''),
+        // B-09: instante real (deslocamento UTC considerado), não texto.
+        contributions: [...traces[m]].sort((a, b) =>
+          compareSessionsDesc(asTiming(a), asTiming(b)),
         ),
       };
       return [m, result];
@@ -349,6 +356,41 @@ export function projectMuscles(
         ? Math.max(1, Math.round((100 * summary.units) / max))
         : null;
   return { summaries, unmappedSets };
+}
+/** Contagens exibidas no painel, na mesma janela temporal do índice do modo. */
+export interface WindowMetrics {
+  sets: number;
+  direct: number;
+  secondary: number;
+  volume: number;
+  sessions: number;
+}
+/**
+ * Esforço usa o período escolhido; Recuperação usa a janela fixa de 14 dias.
+ * Assim nenhuma contagem do painel mistura as duas janelas (M-02).
+ */
+export function windowMetrics(
+  summary: MuscleSummary | undefined,
+  mode: MapMode,
+): WindowMetrics {
+  if (!summary)
+    return { sets: 0, direct: 0, secondary: 0, volume: 0, sessions: 0 };
+  if (mode === 'effort') {
+    const { sets, direct, secondary, volume, sessions } = summary;
+    return { sets, direct, secondary, volume, sessions };
+  }
+  const counted = summary.contributions.filter(
+    (item) => item.inRecoveryWindow && item.units > 0,
+  );
+  const sum = (pick: (item: MuscleContribution) => number) =>
+    counted.reduce((total, item) => total + pick(item), 0);
+  return {
+    sets: sum((item) => item.sets),
+    direct: sum((item) => (item.role === 'primary' ? item.sets : 0)),
+    secondary: sum((item) => (item.role === 'secondary' ? item.sets : 0)),
+    volume: Math.round(sum((item) => item.volume) * 1e6) / 1e6,
+    sessions: new Set(counted.map((item) => item.sessionId)).size,
+  };
 }
 export function metricTone(value: number | null, mode: MapMode): Tone {
   if (value === null || !Number.isFinite(value)) return 'unknown';

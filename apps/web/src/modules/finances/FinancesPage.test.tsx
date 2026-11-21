@@ -68,6 +68,12 @@ describe('Finanças pela interface', () => {
       observedAt: Date.now(),
     });
     let app = open();
+    // Contas ficam numa seção recolhível: o usuário a abre antes de cadastrar.
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: 'Contas, transferências e avaliações manuais',
+      }),
+    );
     let form = screen.getByRole('form', { name: 'Cadastrar saldo inicial' });
     input(form, 'Saldo inicial (R$)', '1000');
     input(form, 'Data', '2026-01-01');

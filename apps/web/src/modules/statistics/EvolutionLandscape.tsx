@@ -65,7 +65,7 @@ export function EvolutionLandscape({
       aria-label="Paisagem da Evolução 3D"
     >
       <div>
-        <p className="eyebrow text-primary">Uma nova perspectiva</p>
+        <p className="eyebrow text-focus">Uma nova perspectiva</p>
         <h2 className="mt-1 text-xl font-semibold">Paisagem da Evolução 3D</h2>
         <p className="statistics-copy">
           Últimos {period} dias · dedicação móvel de 7 dias · 0 a 100.

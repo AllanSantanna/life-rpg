@@ -37,7 +37,8 @@ de variante legítima, evolua o componente e documente-a antes de copiar o CSS.
   e input oculto para o valor decimal. Reutilize no domínio financeiro.
 - [CustomSelect](../../apps/web/src/shared/components/CustomSelect.tsx): `label`,
   `options`, `value/onChange` ou `defaultValue`; `name` participa de `FormData`.
-  Reutilize em novas escolhas; não introduza `<select>` nativo.
+  `describedBy` e `invalid` associam dicas e erros ao campo. Reutilize em novas
+  escolhas; não introduza `<select>` nativo.
 - [CustomDatePicker](../../apps/web/src/shared/components/CustomDatePicker.tsx):
   `mode` de data/mês, limites ISO, obrigatório, leitura e desabilitado. Reutilize
   no lugar de `input type="date"` / `type="month"`.
@@ -53,6 +54,23 @@ de variante legítima, evolua o componente e documente-a antes de copiar o CSS.
   leitor de tela) e `animated` (entrada discreta). Classes `.disclosure*`; seta e
   animação respeitam movimento reduzido. Troque a `key` para reiniciar o estado.
   Não crie outra seção recolhível.
+- `<details>` nativo continua legítimo, e não deve ser trocado automaticamente,
+  em quatro casos revisados em 20/11/2026: (1) ajuda e explicação de método
+  (“Como funciona”, “Como ler…”, “Sobre os indicadores”), que permanece no DOM
+  e na busca da página; (2) alternativa textual de gráfico (“Consultar valores
+  do histórico”); (3) trechos de formulário com campos não salvos (“Detalhes do
+  exercício”, “Data, horário, observações…”, observações da ficha, avisos da
+  importação, apelidos), porque o `Disclosure` desmonta o conteúdo fechado e
+  perderia o que foi digitado; (4) detalhes compactos dentro de cartões ou listas
+  (sessões, recordes, ciclos de Quests, grupos do mapa). Áreas de seção de página
+  usam `Disclosure`: em Finanças, “Contas, transferências e avaliações manuais” e
+  “Configurações financeiras” foram convertidas para seguir as seções de histórico
+  do mesmo módulo.
+- [ConfirmAction](../../apps/web/src/shared/components/ConfirmAction.tsx): ação
+  com confirmação explícita (exclusões, substituição ou restauração de registros).
+  Mostra a consequência, “Confirmar …” e “Cancelar”; o foco vai para Cancelar ao
+  abrir, Escape cancela e o foco volta ao gatilho. Usa `.strength-confirm`,
+  `.record-primary` e `.filter-button`. Reutilize em vez de excluir no clique.
 - Os três compartilham [useAnchoredPopover](../../apps/web/src/shared/components/useAnchoredPopover.ts)
   para portal, geometria, fechamento e movimento reduzido.
 

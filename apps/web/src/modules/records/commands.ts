@@ -5,6 +5,8 @@ import { removeAccount, resetFinances } from '../finances/management';
 import { localQuoteDate, valuationBasis } from '../finances/ledger';
 import type { LifeRecords, RecordCommand } from './types';
 import { position, positionMode } from '../finances/position';
+import { isShareSaleWithCostBasis } from '../finances/costDiagnostics';
+import { quantityTimesPriceCents } from '../finances/monetary';
 import {
   emptyLedger,
   isMarketCategory,
@@ -18,6 +20,53 @@ import { isDate } from './dates';
 
 function assert(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message);
+}
+/** Cotações BTC/USD só são guardadas enquanto houver posição da categoria. */
+function withoutOrphanQuotes(
+  records: LifeRecords & { finance: NonNullable<LifeRecords['finance']> },
+): NonNullable<LifeRecords['finance']> {
+  const ledger = records.finance;
+  const has = (category: InvestmentCategory) =>
+    records.investments.some((item) => item.category === category);
+  return {
+    ...ledger,
+    quotes: has('Bitcoin') ? ledger.quotes : [],
+    ...(ledger.usdQuotes
+      ? { usdQuotes: has('Dólar (USD)') ? ledger.usdQuotes : [] }
+      : {}),
+  };
+}
+/** Motivo específico de uma recusa financeira, quando identificável. */
+function rejectionReason(records: LifeRecords): string | null {
+  const ledger = records.finance;
+  if (ledger) {
+    if (ledger.transfers.some((item) => item.fromId === item.toId))
+      return 'A transferência precisa usar duas contas diferentes.';
+    const opening = new Map(
+      ledger.accounts.map((item) => [item.id, item.date]),
+    );
+    if (
+      ledger.transfers.some(
+        (item) =>
+          (opening.get(item.fromId) ?? '') > item.date ||
+          (opening.get(item.toId) ?? '') > item.date,
+      )
+    )
+      return 'A transferência não pode ser anterior à abertura das contas envolvidas.';
+  }
+  for (const investment of records.investments) {
+    try {
+      position(
+        records.investmentEntries.filter(
+          (item) => item.investmentId === investment.id,
+        ),
+        positionMode(investment.category),
+      );
+    } catch (error) {
+      if (error instanceof Error) return `${investment.name}: ${error.message}`;
+    }
+  }
+  return null;
 }
 export function record(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -174,8 +223,13 @@ export function isLifeRecords(value: unknown): value is LifeRecords {
         (item.kind === 'contribution' &&
           positive(item.quantity) &&
           cents(item.purchasePriceCents) &&
-          Math.round(item.quantity * item.purchasePriceCents) ===
-            item.amountCents)
+          // B-05: cálculo exato em inteiros; o arredondamento em ponto
+          // flutuante de versões anteriores continua aceito para registros
+          // já gravados (compatibilidade, sem reinterpretar valores).
+          (quantityTimesPriceCents(item.quantity, item.purchasePriceCents) ===
+            item.amountCents ||
+            Math.round(item.quantity * item.purchasePriceCents) ===
+              item.amountCents))
       );
     })
   )
@@ -652,6 +706,11 @@ export function applyRecordCommand(
           (item) => item.investmentId !== command.id,
         ),
       };
+      if (next.finance)
+        next = {
+          ...next,
+          finance: withoutOrphanQuotes({ ...next, finance: next.finance }),
+        };
       break;
     case 'convertToInitialPosition': {
       const entry = records.investmentEntries.find(
@@ -673,7 +732,18 @@ export function applyRecordCommand(
       };
       break;
     }
-    case 'saveInvestmentEntry':
+    case 'saveInvestmentEntry': {
+      const target = records.investments.find(
+        (item) => item.id === command.value.investmentId,
+      );
+      assert(
+        !(
+          target &&
+          positionMode(target.category as InvestmentCategory) === 'shares' &&
+          isShareSaleWithCostBasis(command.value)
+        ),
+        'Em vendas de ações e FIIs com quantidade, o custo vendido sai pelo preço médio. Deixe o custo de aquisição resgatado em branco.',
+      );
       assert(
         !(
           records.investmentEntries.some(
@@ -691,6 +761,7 @@ export function applyRecordCommand(
         ),
       };
       break;
+    }
     case 'deleteInvestmentEntry':
       next = {
         ...records,
@@ -813,9 +884,10 @@ export function applyRecordCommand(
         },
       };
   }
-  assert(
-    isLifeRecords(next),
-    'Verifique os campos. Valores devem ser válidos e uma retirada não pode exceder o saldo aplicado na data.',
-  );
+  if (!isLifeRecords(next))
+    throw new Error(
+      rejectionReason(next) ??
+        'Verifique os campos. Valores devem ser válidos e uma retirada não pode exceder o saldo aplicado na data.',
+    );
   return next;
 }

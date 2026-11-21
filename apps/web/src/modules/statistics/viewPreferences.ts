@@ -60,6 +60,9 @@ export function createStatisticsViewStorage(
     STATISTICS_VIEW_VERSION,
     isStatisticsView,
     access,
+    undefined,
+    // Preferências apenas visuais: um valor inválido pode ser substituído.
+    { overwriteInvalid: true },
   );
 }
 

@@ -311,7 +311,11 @@ describe('Livro financeiro e compatibilidade', () => {
       migratePlayerState,
     );
     expect(storage.save(old)).toBe(true);
-    expect(storage.load()).toEqual({ status: 'loaded', data: old });
+    expect(storage.load()).toEqual({
+      status: 'loaded',
+      data: old,
+      raw: expect.any(String),
+    });
     const s = btc();
     const beforeReward = recordReward(s, [], today);
     const radar = scorePeriod(projectEffortActivities([], [], s, today), 7);

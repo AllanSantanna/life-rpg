@@ -1,6 +1,8 @@
 import { useWorkoutClock } from './useWorkoutClock';
 import { SessionTimingEditor } from './SessionTimingEditor';
+import { StartOccurrenceSelect } from './StartOccurrenceSelect';
 import {
+  AmbiguousTimeError,
   assertStartNotFuture,
   createSessionStart,
   currentSessionStart,
@@ -49,6 +51,12 @@ export function SessionPanel({
   const [date, setDate] = useState(today);
   const [time, setTime] = useState<string | undefined>(undefined);
   const [timingError, setTimingError] = useState<string | null>(null);
+  const [offsets, setOffsets] = useState<string[]>([]);
+  const [offset, setOffset] = useState('');
+  const resetOccurrence = () => {
+    setOffsets([]);
+    setOffset('');
+  };
   const [markDay, setMarkDay] = useState(true);
   const [active, setActive] = useState(0);
   const [picking, setPicking] = useState(false);
@@ -85,11 +93,12 @@ export function SessionPanel({
         time === undefined
           ? currentSessionStart(date)
           : time
-            ? createSessionStart(date, time)
+            ? createSessionStart(date, time, offset || undefined)
             : undefined;
       assertStartNotFuture(startedAt);
       setTimingError(null);
     } catch (error) {
+      if (error instanceof AmbiguousTimeError) setOffsets(error.offsets);
       setTimingError(
         error instanceof Error ? error.message : 'Confira o horário.',
       );
@@ -194,7 +203,10 @@ export function SessionPanel({
                 label="Data da nova sessão"
                 value={date}
                 max={today}
-                onChange={setDate}
+                onChange={(value) => {
+                  setDate(value);
+                  resetOccurrence();
+                }}
               />
             </Field>
             <Field label="Horário do treino">
@@ -207,10 +219,19 @@ export function SessionPanel({
                 onChange={(value) => {
                   setTime(value);
                   setTimingError(null);
+                  resetOccurrence();
                 }}
                 describedBy="new-session-time-hint"
               />
             </Field>
+            <StartOccurrenceSelect
+              offsets={offsets}
+              value={offset}
+              onChange={(value) => {
+                setOffset(value);
+                setTimingError(null);
+              }}
+            />
           </div>
           <p id="new-session-time-hint" className="record-hint">
             Início do treino · 24 horas (HH:mm). Sem edição, o horário local é

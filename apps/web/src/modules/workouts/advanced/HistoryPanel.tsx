@@ -1,4 +1,4 @@
-import { displaySessionDate, sessionTime } from './sessionTiming';
+import { compareSessionsDesc, displaySessionDate } from './sessionTiming';
 import { consideredSets, number, sessionVolume } from './calculations';
 import { DeleteAction } from './Controls';
 import type { AdvancedCommandHandler, AdvancedWorkoutState } from './types';
@@ -20,11 +20,7 @@ export function HistoryPanel({
       )}
       {[...state.sessions]
         .reverse()
-        .sort(
-          (a, b) =>
-            b.date.localeCompare(a.date) ||
-            sessionTime(b).localeCompare(sessionTime(a)),
-        )
+        .sort(compareSessionsDesc)
         .map((session) => (
           <article className="strength-exercise" key={session.id}>
             <div className="strength-heading">

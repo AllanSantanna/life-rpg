@@ -26,8 +26,12 @@ export interface TickerMatch {
   name: string;
   type: string;
 }
+/**
+ * `invalid`: a fonte respondeu, mas com conteúdo inesperado (JSON inválido ou
+ * outro ativo). Diferente de `unavailable` (sem resposta) e de erro interno.
+ */
 export type MarketErrorCode =
-  'not_found' | 'unauthorized' | 'rate_limited' | 'unavailable';
+  'not_found' | 'unauthorized' | 'rate_limited' | 'unavailable' | 'invalid';
 export class MarketError extends Error {
   constructor(
     readonly code: MarketErrorCode,
@@ -59,9 +63,10 @@ function failure(status: number) {
   if (status === 404)
     return new MarketError('not_found', 'Ticker não encontrado na fonte.');
   if (status === 401 || status === 403)
+    // O detalhe de configuração fica no log do servidor, não na resposta.
     return new MarketError(
       'unauthorized',
-      'A fonte exige um token para este ticker. Configure BRAPI_TOKEN no servidor.',
+      'A fonte de cotações recusou o acesso a este ticker.',
     );
   if (status === 429)
     return new MarketError(
@@ -89,7 +94,7 @@ export function parseQuote(body: unknown, ticker: string): MarketSnapshot {
     !Number.isFinite(time) ||
     time <= 0
   )
-    throw new MarketError('unavailable', 'Resposta de cotação inválida.');
+    throw new MarketError('invalid', 'Resposta de cotação inválida.');
   const byDate = new Map<string, number>();
   for (const point of Array.isArray(result.historicalDataPrice)
     ? (result.historicalDataPrice as Record<string, unknown>[])
@@ -138,7 +143,14 @@ export function createBrapiClient({
       throw new MarketError('unavailable', 'Fonte de cotações indisponível.');
     }
     if (!response.ok) throw failure(response.status);
-    return response.json() as Promise<unknown>;
+    try {
+      return (await response.json()) as unknown;
+    } catch {
+      throw new MarketError(
+        'invalid',
+        'Resposta inválida da fonte de cotações.',
+      );
+    }
   }
   return {
     async quote(ticker: string) {

@@ -438,7 +438,11 @@ describe('persistência e isolamento do sistema RPG', () => {
       () => localStorage,
       migratePlayerState,
     );
-    expect(storage.load()).toEqual({ status: 'loaded', data: old });
+    expect(storage.load()).toEqual({
+      status: 'loaded',
+      data: old,
+      raw: expect.any(String),
+    });
     expect(localStorage.getItem(PLAYER_STORAGE_KEY)).toBe(raw);
     const state = {
       ...old,
@@ -452,7 +456,11 @@ describe('persistência e isolamento do sistema RPG', () => {
       },
     };
     expect(storage.save(state)).toBe(true);
-    expect(storage.load()).toEqual({ status: 'loaded', data: state });
+    expect(storage.load()).toEqual({
+      status: 'loaded',
+      data: state,
+      raw: expect.any(String),
+    });
     expect(state.records.workouts).toBe(old.records.workouts);
     expect(
       isLifeRecords({

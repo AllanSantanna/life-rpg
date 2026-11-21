@@ -1,3 +1,7 @@
+import {
+  readSnapshot,
+  resetFixtureDatabase,
+} from './audit-storage-helpers.mjs';
 import fs from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
@@ -48,6 +52,7 @@ function check(condition, name, width, message) {
   if (!condition) failures.push({ name, width, message });
 }
 async function seed(page, populated) {
+  await resetFixtureDatabase(page);
   await page.evaluate(async (populated) => {
     const {
       createInitialPlayerState,
@@ -224,6 +229,7 @@ async function seed(page, populated) {
   }, populated);
 }
 async function capture(page, name, width) {
+  await page.locator('.app-shell').waitFor();
   if (
     !(await page
       .locator(
@@ -537,9 +543,7 @@ try {
         .getByRole('button', { name: 'Importar treino', exact: true })
         .click();
       await capture(page, 'importacao', width);
-      const beforePreview = await page.evaluate(() =>
-        localStorage.getItem('life-rpg:player-state'),
-      );
+      const beforePreview = await readSnapshot(page);
       await page
         .getByLabel('Texto do treino', { exact: true })
         .fill(
@@ -548,9 +552,7 @@ try {
       await page.getByRole('button', { name: 'Interpretar treino' }).click();
       await capture(page, 'importacao-previa', width);
       check(
-        (await page.evaluate(() =>
-          localStorage.getItem('life-rpg:player-state'),
-        )) === beforePreview,
+        (await readSnapshot(page)) === beforePreview,
         'importacao-previa',
         width,
         'A prévia não deve alterar dados persistidos.',
@@ -775,10 +777,10 @@ try {
     } else {
       await seed(page, true);
     }
-    await page.evaluate(() => {
-      const envelope = JSON.parse(
-        localStorage.getItem('life-rpg:player-state'),
-      );
+    const stressRaw = await readSnapshot(page);
+    await resetFixtureDatabase(page);
+    await page.evaluate((raw) => {
+      const envelope = JSON.parse(raw);
       const state = envelope.data;
       state.profile.name = 'A'.repeat(40);
       state.records.books[0].title = 'Leitura'.repeat(25);
@@ -787,7 +789,7 @@ try {
       state.records.advancedWorkouts.plans[0].name = 'Treino'.repeat(30);
       state.goals.items[0].title = 'Projeto'.repeat(24);
       localStorage.setItem('life-rpg:player-state', JSON.stringify(envelope));
-    });
+    }, stressRaw);
     for (const [name, route] of Object.entries({
       dashboard: '/',
       perfil: '/perfil',

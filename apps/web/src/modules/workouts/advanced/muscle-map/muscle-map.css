@@ -558,7 +558,7 @@
   }
   .muscle-v2-bar-column small {
     writing-mode: horizontal-tb;
-    font-size: 9px;
+    font-size: 10px;
   }
 }
 @container (max-width: 479px) {
