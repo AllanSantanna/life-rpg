@@ -1,3 +1,4 @@
+import { ConfirmAction } from '../../shared/components/ConfirmAction';
 import { CustomSelect } from '../../shared/components/CustomSelect';
 import { useCommand } from '../records/useCommand';
 import { formText, formNumber, newId } from '../records/form';
@@ -243,15 +244,15 @@ export function KnowledgePage({ records, today, onCommand }: RecordPageProps) {
                     >
                       Editar leitura
                     </button>
-                    <button
-                      type="button"
-                      onClick={() =>
+                    <ConfirmAction
+                      label="Excluir leitura"
+                      ariaLabel={`Excluir leitura de ${title}, ${displayDate(item.date)}, ${item.pages} páginas`}
+                      className=""
+                      detail={`A leitura de ${item.pages} páginas em ${displayDate(item.date)} será excluída; o progresso do livro e o XP são recalculados.`}
+                      onConfirm={() =>
                         run({ type: 'deleteReading', id: item.id })
                       }
-                      aria-label={`Excluir leitura de ${title}, ${displayDate(item.date)}, ${item.pages} páginas`}
-                    >
-                      Excluir leitura
-                    </button>
+                    />
                   </div>
                 </li>
               );

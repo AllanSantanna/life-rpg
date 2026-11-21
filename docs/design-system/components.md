@@ -37,7 +37,8 @@ de variante legítima, evolua o componente e documente-a antes de copiar o CSS.
   e input oculto para o valor decimal. Reutilize no domínio financeiro.
 - [CustomSelect](../../apps/web/src/shared/components/CustomSelect.tsx): `label`,
   `options`, `value/onChange` ou `defaultValue`; `name` participa de `FormData`.
-  Reutilize em novas escolhas; não introduza `<select>` nativo.
+  `describedBy` e `invalid` associam dicas e erros ao campo. Reutilize em novas
+  escolhas; não introduza `<select>` nativo.
 - [CustomDatePicker](../../apps/web/src/shared/components/CustomDatePicker.tsx):
   `mode` de data/mês, limites ISO, obrigatório, leitura e desabilitado. Reutilize
   no lugar de `input type="date"` / `type="month"`.

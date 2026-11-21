@@ -17,13 +17,28 @@ Reutilize os comportamentos de
   dias úteis no celular. Compensações: arraste/deslize distinguidos do toque,
   navegação por setas/Home/End, nome acessível por célula e detalhes do dia.
   Não use esse tamanho como precedente para outros controles.
+- Exceção revisada: a grade de dias do `CustomDatePicker` usa células de 32 px
+  (36 px até 640 px), acima dos 24 px da WCAG 2.2, porque sete colunas de 44 px
+  não cabem no painel do celular. Compensações: “Digitar data”, setas,
+  Home/End e PageUp/PageDown. As opções do `CustomTimePicker` têm 44 px em telas
+  de toque (`pointer: coarse`) e até 640 px. Controles de período, chips e
+  resumos recolhíveis usam `var(--control-height)`.
 - Não remova outline sem foco equivalente. O tema possui `:focus-visible`
   global; seletores, calendário e treino têm tratamentos próprios.
 - Use `Field` ou associação explícita `htmlFor/id`; placeholders não são rótulos.
   Botões só com ícone precisam de `aria-label`. `Icon` é decorativo.
 - Use `role="alert"` para erros e `role="status"` / `aria-live="polite"` para
-  feedback. Associe erro ao campo com `aria-describedby` quando pertinente.
-- Mantenha `disabled` funcional; opacidade sozinha não impede ações.
+  feedback. Associe erro ao campo com `aria-describedby` e `aria-invalid`:
+  `RecordForm` faz isso quando o leitor do campo lança `FieldError` (ex.:
+  `formCents`, `formNumber`), focando o campo; `CustomSelect` e
+  `CustomTimePicker` aceitam `describedBy` (e `invalid`, no select). Pendências
+  persistentes (ex.: prévia de importação) são associadas aos controles, sem
+  `role="alert"` em massa.
+- Mantenha `disabled` funcional e perceptível: `.filter-button:disabled` usa
+  opacidade 0.45 e cursor `not-allowed`, como o `ActionButton`; opacidade
+  sozinha não impede ações.
+- Exclusões de registros usam `ConfirmAction` (Finanças, Treinos, Descanso,
+  Conhecimento): consequência visível, foco em Cancelar e retorno do foco.
 - Não use apenas cor para distinguir concluído, selecionado, erro ou lucro.
   Mantenha texto, símbolos ou estados ARIA equivalentes.
 - Seletores: setas/Home/End, busca por letras, Enter/Espaço, Escape e Tab;

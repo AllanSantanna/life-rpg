@@ -28,7 +28,7 @@ export function Navigation({
           </span>
           <span className="text-lg font-bold tracking-tight">
             Life <span>RPG</span>
-            <span className="mt-0.5 block font-mono text-[8px] font-normal tracking-[.3em] text-muted">
+            <span className="mt-0.5 block font-mono text-[10px] font-normal tracking-[.3em] text-muted">
               SUA VIDA. SUA JORNADA.
             </span>
           </span>

@@ -1,3 +1,4 @@
+import { ConfirmAction } from '../../shared/components/ConfirmAction';
 import { AdvancedWorkouts } from './advanced/AdvancedWorkouts';
 import { emptyAdvancedWorkouts } from './advanced/types';
 import { CustomDatePicker } from '../../shared/components/CustomDatePicker';
@@ -115,13 +116,12 @@ export function WorkoutsPage({ records, today, onCommand }: RecordPageProps) {
             Não
           </button>
           {selected && (
-            <button
-              type="button"
-              className="text-action"
-              onClick={() => run({ type: 'deleteWorkout', date })}
-            >
-              Remover registro do dia
-            </button>
+            <ConfirmAction
+              label="Remover registro do dia"
+              detail="O registro de treino deste dia será removido; o XP correspondente é recalculado."
+              confirmLabel="Confirmar remoção"
+              onConfirm={() => run({ type: 'deleteWorkout', date })}
+            />
           )}
         </div>
         <p className="record-hint">
