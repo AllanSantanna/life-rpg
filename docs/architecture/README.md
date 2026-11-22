@@ -72,7 +72,10 @@ comparação de revisão, gravação e recuperação usam transações. A chave 
 continua nas preferências descartáveis e na classificação dos formatos históricos.
 Veja [persistência transacional](transactional-persistence.md).
 
-Não há backend de dados do jogador nem sincronização entre dispositivos.
+Não há backend de dados do jogador nem sincronização entre dispositivos. A
+transferência é manual, por arquivo: o Perfil exporta o canônico confirmado e
+importa por restauração completa, transacional e com cópia do estado anterior
+([backup manual](data-backup.md)).
 Ausente, inválido, incompatível e indisponível são estados diferentes. Conteúdo
 inválido/futuro fica protegido, e indisponibilidade não monta um jogador vazio
 no lugar dos registros. StrictMode e duas abas não duplicam a importação.
@@ -165,5 +168,6 @@ Os testes de componentes injetam um adaptador síncrono no limite da persistênc
 sem mockar o hook ou as regras de domínio. A suíte assíncrona do hook testa filas,
 confirmação, conflitos e leituras atrasadas. `npm run audit:persistence` exercita o
 repositório nativo no Chromium, migrações, concorrência forçada entre abas,
-recuperação, código legado e atualizações reais do service worker. O CI possui
+recuperação, código legado, atualizações reais do service worker e o backup
+manual (`npm run audit:backup`, também isolado). O CI possui
 um job `persistence` separado, com builds históricos e contextos descartáveis.
