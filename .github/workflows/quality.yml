@@ -104,6 +104,9 @@ jobs:
           AUDIT_OUTPUT="$RUNNER_TEMP/life-rpg-persistence/native" node scripts/audit-indexed-storage.mjs
           AUDIT_OUTPUT="$RUNNER_TEMP/life-rpg-persistence/pwa" node scripts/audit-storage-pwa.mjs
           AUDIT_OUTPUT="$RUNNER_TEMP/life-rpg-persistence/backup" node scripts/audit-backup.mjs
+          npm run build:pages
+          node scripts/check-pages-build.mjs
+          AUDIT_OUTPUT="$RUNNER_TEMP/life-rpg-persistence/pages" node scripts/audit-pages.mjs
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
         with:

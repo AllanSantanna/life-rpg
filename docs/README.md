@@ -26,6 +26,7 @@ implementação atual; propostas futuras devem ser identificadas como propostas.
 - [Persistência e migrações](../apps/web/src/shared/storage/README.md).
 - [Persistência transacional e proteção contra versões antigas](architecture/transactional-persistence.md).
 - [Backup manual: exportação, importação e transferência entre dispositivos](architecture/data-backup.md).
+- [Publicação no GitHub Pages, PWA e dependências de backend](architecture/github-pages.md).
 - [Detalhes dos seletores e calendários](../apps/web/src/shared/components/README.md).
 
 [architecture.md](architecture.md) conserva decisões e descrições históricas de

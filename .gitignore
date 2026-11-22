@@ -1,6 +1,7 @@
 # Dependências e saídas geradas
 node_modules/
 dist/
+dist-pages/
 coverage/
 .vite/
 .vitest/

@@ -6,7 +6,14 @@ import reactRefresh from 'eslint-plugin-react-refresh';
 import designSystem from './scripts/eslint/design-system.mjs';
 
 export default tseslint.config(
-  { ignores: ['**/dist/**', '**/node_modules/**', '**/coverage/**'] },
+  {
+    ignores: [
+      '**/dist/**',
+      '**/dist-pages/**',
+      '**/node_modules/**',
+      '**/coverage/**',
+    ],
+  },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
@@ -28,6 +35,7 @@ export default tseslint.config(
       'scripts/audit-storage-helpers.mjs',
       'scripts/audit-indexed-storage.mjs',
       'scripts/audit-backup.mjs',
+      'scripts/audit-pages.mjs',
     ],
     languageOptions: { globals: { ...globals.node, ...globals.browser } },
   },

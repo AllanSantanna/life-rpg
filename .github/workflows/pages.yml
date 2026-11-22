@@ -1,0 +1,58 @@
+name: GitHub Pages
+
+# Publica o frontend estático em https://allansantanna.github.io/life-rpg/.
+# Pull requests apenas compilam e verificam o build; somente a main publica.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# Permissões mínimas por padrão; o job de deploy recebe só o necessário.
+# Actions fixadas por SHA (versão no comentário), como em quality.yml.
+permissions:
+  contents: read
+
+# Um deploy por vez; um deploy em andamento não é cancelado no meio.
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - run: npm run format:check
+      # Sem .env no runner e sem secrets: o build não recebe credenciais, e o
+      # modo pages zera VITE_API_URL (cotações da B3 ficam indisponíveis).
+      - run: npm run build:pages
+      - name: Verificar build publicado
+        run: node scripts/check-pages-build.mjs apps/web/dist-pages
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        if: github.event_name != 'pull_request'
+        with:
+          path: apps/web/dist-pages
+
+  deploy:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+      - id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

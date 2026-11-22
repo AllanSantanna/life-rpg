@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import http from 'node:http';
 import { resolve, extname, sep } from 'node:path';
+import { readCanonical, waitForCommit } from './audit-storage-helpers.mjs';
 
 // Production builds are served only on a temporary loopback origin. Every
 // scenario uses a disposable context; no user profile or remote site is used.
@@ -352,7 +353,9 @@ try {
         );
         assert.ok((await copiesAt(page)).some((copy) => copy.raw === raw));
         await capture(page, 'v7-before-first-write');
+        const previous = await readCanonical(page).catch(() => null);
         await train(page);
+        await waitForCommit(page, previous);
         await page
           .getByText('Registros salvos neste navegador · evolução real', {
             exact: true,
@@ -955,7 +958,9 @@ try {
             JSON.parse(before).data,
           );
           assert.equal(await legacyAt(page), before);
+          const previous = await readCanonical(page).catch(() => null);
           await train(page, 'Não');
+          await waitForCommit(page, previous);
           await page
             .getByText('Registros salvos neste navegador · evolução real', {
               exact: true,

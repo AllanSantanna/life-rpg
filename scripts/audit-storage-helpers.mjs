@@ -13,11 +13,9 @@ export async function resetFixtureDatabase(page) {
       }),
   );
 }
-export async function readSnapshot(page) {
-  await page.locator('.app-shell').waitFor();
-  await page
-    .getByText('Gravação em andamento · aguarde a confirmação', { exact: true })
-    .waitFor({ state: 'hidden' });
+/** Texto bruto do snapshot canônico confirmado (`state/current`), sem
+ * consultar a interface. `null` quando ainda não existe. */
+export function readCanonical(page) {
   return page.evaluate(
     () =>
       new Promise((resolve, reject) => {
@@ -47,4 +45,47 @@ export async function readSnapshot(page) {
         };
       }),
   );
+}
+/**
+ * Aguarda o COMMIT de uma ação: o snapshot canônico difere de `previous`.
+ * O rótulo "Registros salvos…" não serve de sinal: ele já aparece antes da
+ * ação e só muda para "Gravação em andamento" num efeito posterior ao clique.
+ * Navegar antes do commit descarta a transação pendente (via CDP não há
+ * aviso de beforeunload). Não usa espera fixa: lê o IndexedDB até mudar.
+ */
+export async function waitForCommit(page, previous) {
+  await page.waitForFunction(
+    (previous) =>
+      new Promise((resolve) => {
+        const request = indexedDB.open('life-rpg:records', 1);
+        request.onupgradeneeded = () => {
+          request.transaction.abort();
+          resolve(false);
+        };
+        request.onerror = () => resolve(false);
+        request.onsuccess = () => {
+          const db = request.result;
+          const tx = db.transaction('state', 'readonly');
+          const get = tx.objectStore('state').get('current');
+          get.onsuccess = () => {
+            const raw = get.result?.raw ?? null;
+            db.close();
+            resolve(raw !== null && raw !== previous);
+          };
+          get.onerror = () => {
+            db.close();
+            resolve(false);
+          };
+        };
+      }),
+    previous,
+  );
+  return readCanonical(page);
+}
+export async function readSnapshot(page) {
+  await page.locator('.app-shell').waitFor();
+  await page
+    .getByText('Gravação em andamento · aguarde a confirmação', { exact: true })
+    .waitFor({ state: 'hidden' });
+  return readCanonical(page);
 }
