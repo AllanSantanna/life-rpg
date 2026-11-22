@@ -12,6 +12,7 @@ import fs from 'node:fs/promises';
 import http from 'node:http';
 import { tmpdir } from 'node:os';
 import { extname, join, resolve, sep } from 'node:path';
+import { readCanonical, waitForCommit } from './audit-storage-helpers.mjs';
 
 const { chromium, devices } = await import(
   process.env.PLAYWRIGHT_MODULE ?? 'playwright'
@@ -269,7 +270,41 @@ try {
       await nav(page, 'Perfil');
       const name = page.getByRole('textbox', { name: 'Nome do jogador' });
       await name.fill('Jogador offline');
+      const previous = await readCanonical(page).catch(() => null);
+      // Commit lento e determinístico (como num disco de CI): outra aba
+      // segura uma transação readwrite e a gravação do nome fica na fila.
+      const blocker = await context.newPage();
+      await blocker.goto(`${site}licenses/`);
+      await blocker.evaluate(
+        () =>
+          new Promise((ready) => {
+            const request = indexedDB.open('life-rpg:records', 1);
+            request.onsuccess = () => {
+              const store = request.result
+                .transaction(['state', 'copies'], 'readwrite')
+                .objectStore('state');
+              window.hold = true;
+              ready();
+              const spin = () => {
+                if (window.hold) store.get('current').onsuccess = spin;
+              };
+              spin();
+            };
+          }),
+      );
       await page.getByRole('button', { name: 'Salvar nome' }).click();
+      await page
+        .getByText('Gravação em andamento · aguarde a confirmação', {
+          exact: true,
+        })
+        .waitFor();
+      await blocker.evaluate(() => {
+        window.hold = false;
+      });
+      // Commit confirmado no IndexedDB antes de navegar (sinal inequívoco).
+      const committed = JSON.parse(await waitForCommit(page, previous));
+      await blocker.close();
+      assert.equal(committed.data.profile.name, 'Jogador offline');
       await page
         .getByText('Registros salvos neste navegador · evolução real')
         .waitFor();

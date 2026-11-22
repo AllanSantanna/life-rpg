@@ -13,8 +13,10 @@ import fs from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import {
+  readCanonical,
   readSnapshot,
   resetFixtureDatabase,
+  waitForCommit,
 } from './audit-storage-helpers.mjs';
 
 const { chromium, devices } = await import(
@@ -469,7 +471,11 @@ try {
       await openProfile(b);
       const name = b.getByRole('textbox', { name: 'Nome do jogador' });
       await name.fill('Gravado na aba B');
+      const previous = await readCanonical(b);
       await b.getByRole('button', { name: 'Salvar nome' }).click();
+      // A aba B precisa ter confirmado o commit antes da confirmação na aba A.
+      const committed = JSON.parse(await waitForCommit(b, previous));
+      assert.equal(committed.data.profile.name, 'Gravado na aba B');
       await b
         .getByText('Registros salvos neste navegador · evolução real')
         .waitFor();
