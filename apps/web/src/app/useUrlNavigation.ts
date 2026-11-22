@@ -13,10 +13,24 @@ export const viewPaths: Record<View, string> = {
   knowledge: '/conhecimento',
 };
 const navigationEvent = 'life-rpg:navigate';
-
-function normalizePath(pathname: string) {
-  return pathname.replace(/\/+$/, '') || '/';
+/**
+ * Prefixo de publicação do Vite (`/` localmente, `/life-rpg/` no GitHub
+ * Pages). As rotas do app são sempre relativas a ele; nunca presumem a raiz.
+ */
+const basePrefix = import.meta.env.BASE_URL.replace(/\/+$/, '');
+/** Caminho do app (`/perfil`) a partir do caminho da URL publicada. */
+export function appPath(pathname: string, base = basePrefix) {
+  const inside =
+    base && (pathname === base || pathname.startsWith(`${base}/`))
+      ? pathname.slice(base.length)
+      : pathname;
+  return inside.replace(/\/+$/, '') || '/';
 }
+/** Caminho da URL publicada a partir do caminho do app. */
+export function publicPath(path: string, base = basePrefix) {
+  return base + (path === '/' ? '/' : path);
+}
+const normalizePath = (pathname: string) => appPath(pathname);
 export function viewFromPath(pathname: string): View {
   const path = normalizePath(pathname);
   if (path === '/missoes' || path === '/metas') return 'goals';
@@ -40,7 +54,11 @@ function navigate(view: View, goalId?: string) {
     (view === 'goals' && goalId ? `?quest=${encodeURIComponent(goalId)}` : '');
   if (normalizePath(window.location.pathname) + window.location.search === path)
     return;
-  window.history.pushState(null, '', path);
+  window.history.pushState(
+    null,
+    '',
+    publicPath(viewPaths[view]) + path.slice(viewPaths[view].length),
+  );
   // pushState não dispara popstate. Notificamos apenas a navegação do app.
   window.dispatchEvent(new Event(navigationEvent));
 }
@@ -62,7 +80,9 @@ export function useUrlNavigation() {
     window.history.replaceState(
       null,
       '',
-      viewPaths.goals + (query ? `?${query}` : '') + window.location.hash,
+      publicPath(viewPaths.goals) +
+        (query ? `?${query}` : '') +
+        window.location.hash,
     );
     window.dispatchEvent(new Event(navigationEvent));
   }, [url.pathname, url.search]);

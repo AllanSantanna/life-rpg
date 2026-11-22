@@ -21,12 +21,26 @@ export interface TickerMatch {
   type: string;
 }
 
-/** Endereço do apps/api, que guarda o token da brapi fora do navegador. */
+/**
+ * Mensagem quando a versão publicada não tem o apps/api (GitHub Pages é
+ * apenas estático). Os investimentos e as últimas cotações salvas continuam.
+ */
+export const MARKET_API_UNAVAILABLE =
+  'Cotações da B3 indisponíveis nesta versão: o servidor de cotações não está configurado. Os investimentos e as últimas cotações salvas continuam disponíveis.';
+/**
+ * Endereço do apps/api, que guarda o token da brapi fora do navegador.
+ * `null` quando não configurado num build de produção: nenhuma requisição é
+ * feita. Em desenvolvimento mantém o servidor local padrão.
+ */
+export function resolveMarketApiUrl(
+  configured: string | undefined,
+  dev: boolean,
+): string | null {
+  const url = configured?.trim() || (dev ? 'http://localhost:3001' : '');
+  return url ? url.replace(/\/$/, '') : null;
+}
 export function marketApiUrl() {
-  return (import.meta.env.VITE_API_URL ?? 'http://localhost:3001').replace(
-    /\/$/,
-    '',
-  );
+  return resolveMarketApiUrl(import.meta.env.VITE_API_URL, import.meta.env.DEV);
 }
 const cents = (value: unknown): value is number =>
   typeof value === 'number' &&
@@ -105,11 +119,16 @@ export function createMarketClient() {
             'Cotação indisponível. Nova tentativa automática em alguns minutos.',
           ),
         );
+      const api = marketApiUrl();
+      // Sem servidor configurado: falha imediata, sem rede e sem marcar a
+      // espera de nova tentativa; os dados salvos seguem acessíveis.
+      if (api === null)
+        return Promise.reject(new Error(MARKET_API_UNAVAILABLE));
       const request = (async () => {
-        const response = await fetcher(
-          `${marketApiUrl()}/market/quotes/${ticker}`,
-          { signal: AbortSignal.timeout(15000), credentials: 'omit' },
-        );
+        const response = await fetcher(`${api}/market/quotes/${ticker}`, {
+          signal: AbortSignal.timeout(15000),
+          credentials: 'omit',
+        });
         const body: unknown = await response.json().catch(() => null);
         if (!response.ok)
           throw new Error(
@@ -133,8 +152,13 @@ export function createMarketClient() {
       return request;
     },
     async search(term: string, fetcher: typeof fetch = fetch) {
+      const api = marketApiUrl();
+      if (api === null)
+        throw new Error(
+          'Pesquisa de tickers indisponível nesta versão: o servidor de cotações não está configurado. Digite o ticker manualmente.',
+        );
       const response = await fetcher(
-        `${marketApiUrl()}/market/tickers?search=${encodeURIComponent(term)}`,
+        `${api}/market/tickers?search=${encodeURIComponent(term)}`,
         { signal: AbortSignal.timeout(15000), credentials: 'omit' },
       );
       const body = (await response.json().catch(() => null)) as {
