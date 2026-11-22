@@ -53,6 +53,21 @@ vi.mock('../app/playerRepository', async () => {
         localStorage.setItem(PLAYER_STORAGE_KEY, raw);
         return { status: 'saved' as const, raw };
       },
+      importBackup: (
+        data: Parameters<typeof base.write>[0],
+        expected: string | null,
+      ) => {
+        const current = localStorage.getItem(PLAYER_STORAGE_KEY);
+        if (current !== expected) return { status: 'conflict' as const };
+        if (!isPlayerState(data)) return { status: 'failed' as const };
+        try {
+          if (current !== null)
+            createBackup(localStorage, PLAYER_STORAGE_KEY, current);
+          return base.write(data, expected, { replaceProtected: true });
+        } catch {
+          return { status: 'failed' as const };
+        }
+      },
     },
   };
 });
