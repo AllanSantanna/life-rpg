@@ -106,6 +106,9 @@ Prisma/PostgreSQL estão preparados, sem modelos de negócio ou migrações.
 Não implemente camadas futuras apenas para aproximar o projeto de um diagrama ideal.
 
 PWA: Vite gera manifesto e cache de arquivos estáticos; não sincroniza dados.
+O build estático é publicado no GitHub Pages em `/life-rpg/` (`npm run build:pages`),
+sem `apps/api`: cotações da B3 ficam indisponíveis lá. Veja
+[publicação no GitHub Pages](github-pages.md).
 Decisões de infraestrutura e planos futuros estão no
 [registro arquitetural](../architecture.md).
 

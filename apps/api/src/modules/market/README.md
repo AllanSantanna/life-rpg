@@ -2,6 +2,10 @@
 
 Proxy somente leitura de cotações da B3 via [brapi.dev](https://brapi.dev/docs).
 
+Não roda no GitHub Pages (somente estático). O build publicado não conhece
+endereço de API e mostra as cotações como indisponíveis; ver
+[publicação no GitHub Pages](../../../../../docs/architecture/github-pages.md#dependências-de-backend).
+
 | Rota                          | Resposta                                                                                                                 |
 | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
 | `GET /market/quotes/:ticker`  | `ticker`, `name`, `priceCents`, `previousCloseCents?`, `marketTime`, `history[{date, closeCents}]`, `fetchedAt`, `stale` |
