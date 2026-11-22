@@ -20,13 +20,14 @@ import { RestPage } from '../modules/rest/RestPage';
 import { KnowledgePage } from '../modules/knowledge/KnowledgePage';
 import { usePlayerState, type Persistence } from './usePlayerState';
 import { StorageBackups } from './StorageBackups';
+import { DataBackup } from './DataBackup';
 import { StorageNotice } from './StorageNotice';
 import { LegacyStorageNotice } from './LegacyStorageNotice';
 import { downloadRaw } from '../shared/storage/backups';
 import { ActionButton } from '../shared/components/ActionButton';
 import { EvolutionPanel } from '../modules/evolution/EvolutionPanel';
 import { StatisticsPage } from '../modules/statistics/StatisticsPage';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useUrlNavigation } from './useUrlNavigation';
 import { Navigation, type View } from './Navigation';
 import { pillarViews } from './views';
@@ -73,7 +74,13 @@ export function App() {
     acknowledgeLegacy,
     copies,
     draftRaw,
+    readBackupSource,
+    beginBackupImport,
+    importBackup,
   } = usePlayerState(today);
+  // Remonta formulários locais do Perfil e a lista de cópias após restaurar
+  // um backup, para não exibirem valores do estado substituído.
+  const [dataEpoch, setDataEpoch] = useState(0);
   const player = state.profile;
   const {
     rewards: goalReward,
@@ -343,6 +350,7 @@ export function App() {
             {view === 'knowledge' && <KnowledgePage {...recordProps} />}
             {view === 'profile' && (
               <ProfilePage
+                key={`profile-${dataEpoch}`}
                 state={state}
                 facts={facts}
                 onChange={setState}
@@ -350,7 +358,16 @@ export function App() {
               />
             )}
             {view === 'profile' && (
+              <DataBackup
+                readSource={readBackupSource}
+                beginImport={beginBackupImport}
+                onImport={importBackup}
+                onImported={() => setDataEpoch((n) => n + 1)}
+              />
+            )}
+            {view === 'profile' && (
               <StorageBackups
+                key={`copies-${dataEpoch}`}
                 onRestore={restoreBackup}
                 {...(copies ? { copyStore: copies } : {})}
               />
