@@ -31,6 +31,15 @@ export interface PlayerRepository<T> {
   ): MaybePromise<RepositoryWrite>;
   copies?: CopyRepository;
   restore?(key: string, expected: string | null): MaybePromise<RepositoryWrite>;
+  /**
+   * Full replacement from a validated backup file. The prior canonical state is
+   * kept as a recoverable copy in the same transaction; a stale `expected`
+   * revision is a conflict and changes nothing.
+   */
+  importBackup?(
+    data: T,
+    expected: string | null,
+  ): MaybePromise<RepositoryWrite>;
   observeLegacy?(raw: string | null): Promise<void>;
   acknowledgeLegacy?(): Promise<void>;
   subscribe?(listener: () => void): () => void;
@@ -58,6 +67,7 @@ const copyLabels: Record<string, string> = {
   'legacy-change': 'Alteração de uma versão antiga',
   'conflict-draft': 'Alteração não salva de outra aba',
   'before-recovery': 'Antes de uma recuperação',
+  'before-import': 'Antes de importar um backup',
 };
 const snapshot = (value: unknown): value is Snapshot => {
   if (!value || typeof value !== 'object') return false;
@@ -326,6 +336,10 @@ export function createTransactionalStateStorage<T>({
     expected: string | null,
     replaceProtected: boolean,
     restore = false,
+    {
+      before = 'before-recovery',
+      keepConflictDraft = true,
+    }: { before?: string; keepConflictDraft?: boolean } = {},
   ): Promise<RepositoryWrite> {
     try {
       const legacyRaw = legacy().getItem(key);
@@ -341,7 +355,8 @@ export function createTransactionalStateStorage<T>({
             if (currentToken !== expected) {
               // The unsaved proposal is recoverable even after closing/reloading
               // the losing tab. Never merge finance or resurrect deleted rows.
-              copy(tx, raw, 'conflict-draft');
+              // A backup import needs no draft: its source file still exists.
+              if (keepConflictDraft) copy(tx, raw, 'conflict-draft');
               done({ status: 'conflict' });
               return;
             }
@@ -396,7 +411,7 @@ export function createTransactionalStateStorage<T>({
               done({ status: 'saved', raw, token: token(next)! });
             };
             if ((restore || replaceProtected) && previous !== null)
-              copy(tx, previous, 'before-recovery', commit);
+              copy(tx, previous, before, commit);
             else commit();
           };
         },
@@ -462,6 +477,16 @@ export function createTransactionalStateStorage<T>({
         true,
         true,
       );
+    },
+    importBackup(data, expected) {
+      // Same transactional path as restore: revision check, prior canonical
+      // copied first, then the validated payload. No merge, no partial write.
+      return validate(data)
+        ? replace(pack(data), expected, true, true, {
+            before: 'before-import',
+            keepConflictDraft: false,
+          })
+        : Promise.resolve({ status: 'failed' });
     },
     async observeLegacy(raw) {
       await transaction<void>('readwrite', (tx, done) => {
