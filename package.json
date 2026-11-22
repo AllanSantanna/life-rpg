@@ -25,9 +25,11 @@
     "audit:visual": "node scripts/audit-visual.mjs",
     "audit:persistence": "node scripts/audit-indexed-storage.mjs && node scripts/audit-storage-pwa.mjs && node scripts/audit-backup.mjs",
     "audit:backup": "node scripts/audit-backup.mjs",
+    "audit:pages": "node scripts/audit-pages.mjs",
     "test:standards": "node scripts/standards.test.mjs",
     "test": "npm run test:standards && npm run test --workspaces --if-present",
     "build": "npm run build --workspaces --if-present",
+    "build:pages": "npm run build:pages -w @life-rpg/web",
     "check": "npm run standards:check && npm run typecheck && npm run lint && npm run test && npm run build"
   },
   "devDependencies": {
