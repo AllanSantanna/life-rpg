@@ -29,16 +29,17 @@ informar branch, commits com hashes, estado do Git e pendências.
 
 ## Verificações disponíveis
 
-| Comando                   | Garantia automática                                                                                                  |
-| ------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `npm run standards:check` | Estrutura da documentação, links locais dos guias oficiais e tokens `--color-*` referenciados em arquivos CSS do web |
-| `npm run typecheck`       | TypeScript estrito de todos os workspaces                                                                            |
-| `npm run lint`            | ESLint, hooks, React Refresh e proteções visuais de JSX                                                              |
-| `npm test`                | Testes das validações e suítes dos workspaces                                                                        |
-| `npm run build`           | Compilação das aplicações e geração da PWA                                                                           |
-| `npm run check`           | Todos os passos acima, interrompendo no primeiro erro                                                                |
-| `npm run format:check`    | Formatação Prettier do repositório; não reescreve arquivos                                                           |
-| `npm run audit:visual`    | Auditoria responsiva em Chromium, medidas de geometria e capturas para revisão                                       |
+| Comando                   | Garantia automática                                                                                                      |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `npm run standards:check` | Estrutura da documentação, links locais dos guias oficiais e tokens `--color-*` referenciados em arquivos CSS do web     |
+| `npm run typecheck`       | TypeScript estrito de todos os workspaces                                                                                |
+| `npm run lint`            | ESLint, hooks, React Refresh e proteções visuais de JSX                                                                  |
+| `npm test`                | Testes das validações e suítes dos workspaces                                                                            |
+| `npm run build`           | Compilação das aplicações e geração da PWA                                                                               |
+| `npm run check`           | Todos os passos acima, interrompendo no primeiro erro                                                                    |
+| `npm run format:check`    | Formatação Prettier do repositório; não reescreve arquivos                                                               |
+| `npm run audit:visual`    | Auditoria responsiva em Chromium, medidas de geometria e capturas para revisão                                           |
+| `npm run build:pages`     | Build estático do GitHub Pages em `/life-rpg/`; validar com `node scripts/check-pages-build.mjs` e `npm run audit:pages` |
 
 Priorize `npm run check`, `npm run format:check` e `npm run standards:check`.
 Para alterações visuais relevantes, execute também `npm run audit:visual`.
