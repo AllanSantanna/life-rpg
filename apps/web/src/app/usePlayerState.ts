@@ -32,6 +32,27 @@ import {
   type PlayerState,
 } from './playerState';
 
+/** Resultado de uma importação de backup confirmada pelo usuário. */
+export type BackupImportOutcome =
+  /** Commit confirmado e registros relidos do IndexedDB. */
+  | 'saved'
+  /** Outra aba gravou depois da prévia; nada foi alterado. */
+  | 'conflict'
+  /** Transação abortada ou recusada; o estado anterior permanece. */
+  | 'failed'
+  /** Commit confirmado, mas a releitura falhou; recarregar a página. */
+  | 'reload';
+const backupBlocked: Record<Exclude<Persistence['kind'], 'saved'>, string> = {
+  loading: 'Aguarde o carregamento dos registros.',
+  saving: 'Aguarde a confirmação da gravação atual.',
+  session:
+    'O armazenamento local está indisponível. Nenhum backup pode ser lido ou restaurado agora.',
+  protected:
+    'Os registros salvos estão protegidos. Baixe-os em “Cópias de segurança dos registros”.',
+  conflict:
+    'Há uma alteração em conflito com outra aba. Carregue os registros atuais antes de continuar.',
+};
+
 export type Persistence =
   | { kind: 'loading' | 'saving' | 'saved' | 'session' }
   | { kind: 'protected'; reason: 'invalid' | 'incompatible'; raw: string }
@@ -383,6 +404,65 @@ export function usePlayerState(
     )
       applyLoad(loaded);
   }, [storage, applyLoad]);
+  const assertSettled = useCallback(() => {
+    if (!readyRef.current) throw new Error(backupBlocked.loading);
+    if (writing.current || stateRef.current !== lastSaved.current)
+      throw new Error(backupBlocked.saving);
+  }, []);
+  /** Texto canônico CONFIRMADO no armazenamento, nunca o estado em memória. */
+  const readBackupSource = useCallback(async (): Promise<string> => {
+    const kind = persistenceRef.current.kind;
+    if (kind !== 'saved') throw new Error(backupBlocked[kind]);
+    assertSettled();
+    const raw = await storage.readRaw();
+    if (raw === null)
+      throw new Error(
+        'Ainda não há registros confirmados neste dispositivo para exportar.',
+      );
+    return raw;
+  }, [storage, assertSettled]);
+  /**
+   * Revisão conhecida no momento da prévia. A importação só é confirmada se o
+   * armazenamento ainda estiver nela: gravações de outra aba durante a
+   * confirmação viram conflito, nunca sobrescrita silenciosa.
+   */
+  const beginBackupImport = useCallback((): { expected: string | null } => {
+    const kind = persistenceRef.current.kind;
+    // Registros protegidos podem ser substituídos explicitamente: o original
+    // continua nas cópias e o canônico anterior é guardado na transação.
+    if (kind !== 'saved' && kind !== 'protected')
+      throw new Error(backupBlocked[kind]);
+    if (!storage.importBackup)
+      throw new Error('Este armazenamento não oferece importação protegida.');
+    assertSettled();
+    return { expected: knownToken.current };
+  }, [storage, assertSettled]);
+  const importBackup = useCallback(
+    async (
+      data: PlayerState,
+      expected: string | null,
+    ): Promise<BackupImportOutcome> => {
+      assertSettled();
+      if (!storage.importBackup)
+        throw new Error('Este armazenamento não oferece importação protegida.');
+      let result: RepositoryWrite;
+      try {
+        result = await storage.importBackup(data, expected);
+      } catch {
+        return 'failed';
+      }
+      if (result.status === 'conflict') return 'conflict';
+      if (result.status !== 'saved') return 'failed';
+      try {
+        await adopt();
+        return 'saved';
+      } catch {
+        failed();
+        return 'reload';
+      }
+    },
+    [storage, assertSettled, adopt, failed],
+  );
   const draftRaw = () =>
     JSON.stringify({ version: PLAYER_STORAGE_VERSION, data: stateRef.current });
   const facts = useMemo(() => projectCharacter(state, today), [state, today]);
@@ -400,5 +480,8 @@ export function usePlayerState(
     reloadStored,
     startFreshKeepingCopy,
     restoreBackup,
+    readBackupSource,
+    beginBackupImport,
+    importBackup,
   };
 }

@@ -3437,6 +3437,106 @@ input.custom-date-picker__validation {
   }
 }
 
+/* Backup manual de dados (Perfil). Reutiliza .record-section, .record-hint,
+   ActionButton e a confirmação inline .strength-confirm. */
+.data-backup {
+  max-width: 880px;
+}
+.data-backup h3 {
+  font-size: 14px;
+  font-weight: 650;
+  margin-bottom: var(--space-2);
+}
+.data-backup__options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+.data-backup__option {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--color-primary-dark);
+  border-radius: var(--control-radius);
+  background: var(--color-background);
+}
+.data-backup__option .record-hint {
+  flex: 1;
+}
+/* Visualmente oculto, mas ainda acionável por .click() em navegadores móveis. */
+.data-backup__file {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  pointer-events: none;
+}
+.data-backup__confirm {
+  margin-top: var(--space-4);
+  border-color: var(--color-primary);
+}
+.data-backup__confirm h3,
+.data-backup__confirm .record-hint {
+  flex-basis: 100%;
+  margin-bottom: 0;
+  overflow-wrap: anywhere;
+}
+.data-backup__preview {
+  flex-basis: 100%;
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+}
+.data-backup__preview > div {
+  display: grid;
+  grid-template-columns: minmax(0, 160px) minmax(0, 1fr);
+  gap: var(--space-3);
+}
+.data-backup__preview dt {
+  color: var(--color-muted);
+}
+.data-backup__preview dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+/* Mesmas dimensões de controle dos tokens; sem isso .record-primary fica sem
+   padding fora de .strength-workspace. */
+.data-backup__confirm button {
+  min-height: var(--control-height);
+  padding: var(--control-padding-y) var(--control-padding-x);
+  border: 1px solid transparent;
+  border-radius: var(--control-radius);
+  font-size: var(--text-control);
+}
+.data-backup__confirm .record-primary {
+  border-color: var(--color-action-border);
+}
+.data-backup__warning {
+  color: var(--color-foreground);
+  font-weight: 600;
+  line-height: 1.7;
+}
+.data-backup button:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 3px;
+}
+@media (max-width: 640px) {
+  .data-backup__options,
+  .data-backup__preview > div {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .data-backup__preview > div {
+    gap: 2px;
+  }
+}
+
 /* Musculação opcional: mantém o formulário diário independente. */
 .strength-mode {
   padding: 18px 22px;

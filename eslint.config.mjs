@@ -27,6 +27,7 @@ export default tseslint.config(
       'scripts/audit-storage-pwa.mjs',
       'scripts/audit-storage-helpers.mjs',
       'scripts/audit-indexed-storage.mjs',
+      'scripts/audit-backup.mjs',
     ],
     languageOptions: { globals: { ...globals.node, ...globals.browser } },
   },

@@ -42,6 +42,8 @@ const paths = {
   chevron: 'm9 5 7 7-7 7',
   sparkle: 'm12 2 3 7 7 3-7 3-3 7-3-7-7-3 7-3Z',
   lock: 'M6 10h12v11H6Zm3 0V6a3 3 0 0 1 6 0v4',
+  download: 'M12 3v12m-5-5 5 5 5-5M4 17v4h16v-4',
+  upload: 'M12 15V3M7 8l5-5 5 5M4 17v4h16v-4',
 } as const;
 export type IconName = keyof typeof paths;
 export function Icon({

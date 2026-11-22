@@ -20,13 +20,13 @@ Notificações não são usadas como transações.
 
 ## Fontes de dados
 
-| Local                                                   | Função                                                                                                                     |
-| ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| IndexedDB `life-rpg:records`, schema 1, `state/current` | Snapshot canônico, envelope v8, revisão e metadados da origem legada                                                       |
-| Store `copies`                                          | Cópias brutas de importação, conteúdo protegido, alterações legadas, propostas em conflito e estado anterior à recuperação |
-| `state/protected-source`                                | Guarda de conteúdo inválido/futuro que ainda não foi ativado como jogador                                                  |
-| `life-rpg:player-state` e `:backup:*` no localStorage   | Originais legados, sempre preservados pela versão atual                                                                    |
-| `life-rpg:statistics-view` no localStorage              | Preferências visuais descartáveis; mecanismo anterior preservado                                                           |
+| Local                                                   | Função                                                                                                                                               |
+| ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| IndexedDB `life-rpg:records`, schema 1, `state/current` | Snapshot canônico, envelope v8, revisão e metadados da origem legada                                                                                 |
+| Store `copies`                                          | Cópias brutas de importação, conteúdo protegido, alterações legadas, propostas em conflito e estado anterior à recuperação ou à importação de backup |
+| `state/protected-source`                                | Guarda de conteúdo inválido/futuro que ainda não foi ativado como jogador                                                                            |
+| `life-rpg:player-state` e `:backup:*` no localStorage   | Originais legados, sempre preservados pela versão atual                                                                                              |
+| `life-rpg:statistics-view` no localStorage              | Preferências visuais descartáveis; mecanismo anterior preservado                                                                                     |
 
 O banco tem versão própria, diferente da versão 8 do payload e da revisão de
 concorrência. O vocabulário do payload continua protegido por `storageContract.test.ts`.
@@ -61,9 +61,12 @@ cópia recuperável e o resultado é conflito, não sucesso. Reabrir a aba não 
 essa cópia. A aba também oferece download da alteração e carregamento explícito
 dos registros atuais.
 
-Todas as mutações (primeiro jogador, escrita normal, recuperação e restauração)
-passam pelo mesmo mecanismo. Restaurar uma cópia confere a revisão e guarda o
-canônico anterior na mesma transação; a operação é explícita e reversível.
+Todas as mutações (primeiro jogador, escrita normal, recuperação, restauração e
+importação de backup) passam pelo mesmo mecanismo. Restaurar uma cópia ou
+importar um [backup manual](data-backup.md) confere a revisão e guarda o
+canônico anterior na mesma transação (`before-recovery` ou `before-import`); a
+operação é explícita e reversível. Um conflito de importação não guarda o
+arquivo como rascunho, pois o original continua com o usuário.
 
 O hook mantém no máximo uma escrita local em andamento e enfileira o estado
 resultante dos comandos seguintes. Só confirma a gravação no commit. Leituras
@@ -143,7 +146,10 @@ abas. Agora verificam preservação do canônico, cópias recuperáveis e confli
 - `scripts/audit-storage-pwa.mjs`: interface real, builds históricos `6b0d981` e
   `43ddebbe`, proteção antes da primeira ação, download exato, cinco larguras,
   corrida pausada após ler a revisão, fechamento de aba e oito cenários de PWA.
-- `npm run audit:persistence` reúne as duas auditorias. Usa as variáveis e builds
+- `scripts/audit-backup.mjs`: importação de backup nativa, abortos, corrida de
+  20 importações, computador ↔ celular emulado, conflito entre abas e offline
+  ([backup manual](data-backup.md#testes)).
+- `npm run audit:persistence` reúne as três auditorias. Usa as variáveis e builds
   históricos descritos no [relatório complementar](../audits/persistence-pwa-validation-2026-11-21.md#reproduzir).
 - O CI executa os testes nativos e PWA no job `persistence`, além de `check` e
   `visual`, com perfis descartáveis, portas temporárias e artefatos de evidência.
