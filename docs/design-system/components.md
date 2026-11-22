@@ -73,6 +73,11 @@ de variante legítima, evolua o componente e documente-a antes de copiar o CSS.
   `.record-primary` e `.filter-button`. Reutilize em vez de excluir no clique.
 - Os três compartilham [useAnchoredPopover](../../apps/web/src/shared/components/useAnchoredPopover.ts)
   para portal, geometria, fechamento e movimento reduzido.
+- Confirmação com prévia (backup de dados no Perfil): o `DataBackup` reutiliza
+  `.strength-confirm`, `.record-primary` e `.filter-button` e o comportamento de
+  foco de `ConfirmAction` (Cancelar focado, Escape cancela, foco volta ao gatilho).
+  Não usa `ConfirmAction` porque a confirmação nasce da seleção de um arquivo e
+  precisa exibir a prévia validada antes dos botões, sem um gatilho adicional.
 
 Exceção atual: o `<select>` de tipo de série em
 [SessionPanel](../../apps/web/src/modules/workouts/advanced/SessionPanel.tsx)

@@ -1,7 +1,9 @@
 # Perfil e classes automáticas
 
 O Perfil contém nome editável, avatar atual, classe, nível, XP/barra e Radar com
-atalho para Estatísticas. O mesmo `PlayerHeader` aparece no dashboard. Conquistas
+atalho para Estatísticas. Também reúne _Backup de dados_ (exportar e importar
+arquivo; ver [backup manual](../../../../../docs/architecture/data-backup.md)) e
+as cópias de segurança dos registros. O mesmo `PlayerHeader` aparece no dashboard. Conquistas
 continuam disponíveis no dashboard e em Estatísticas.
 
 `projectCharacter` usa os mesmos registros reais, confirmações históricas e

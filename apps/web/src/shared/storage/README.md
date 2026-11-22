@@ -11,6 +11,9 @@ nova nunca as regrava nem apaga. `localStateStorage.ts` continua como adaptador
 síncrono para classificação dos formatos históricos e preferências descartáveis.
 Detalhes, garantias e limites: [persistência transacional](../../../../../docs/architecture/transactional-persistence.md).
 
+Exportação e importação manual entre dispositivos: [backup manual](../../../../../docs/architecture/data-backup.md).
+Importar usa o mesmo caminho transacional de restaurar uma cópia.
+
 ## Fontes de verdade
 
 - Perfil pessoal e preferências de navegação/filtros.
