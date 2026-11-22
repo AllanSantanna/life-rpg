@@ -152,6 +152,15 @@ refactor(finances): reuse shared components
 test(workouts): cover exercise matching
 ```
 
+A mensagem de commit não leva `Co-Authored-By` do Claude nem outro crédito
+automático de ferramenta de IA. O autor é o responsável pela alteração, com o
+nome e o e-mail do `git config`; não altere `user.name`/`user.email` nem use
+`--author` para atribuir commits a outra pessoa. Antes de publicar, confirme:
+
+```bash
+git log --format='%an <%ae>%n%(trailers:key=Co-authored-by)' origin/main..HEAD
+```
+
 Não crie commits vazios ou artificiais. Depois de conferir todo o staging, faça o
 commit local correspondente à tarefa, sem incluir mudanças preexistentes alheias.
 Exemplo para esta atualização das regras:

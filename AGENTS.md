@@ -83,6 +83,10 @@ local pendente e preparação da integração.
   diferentes no mesmo arquivo. Revise o conteúdo staged antes de cada commit.
 - Não crie commits vazios ou artificiais nem inclua automaticamente alterações
   preexistentes que não pertençam à tarefa.
+- Autoria: o autor do commit é o nome e e-mail configurados no Git do
+  responsável pela alteração. Não adicione `Co-Authored-By` do Claude nem
+  créditos automáticos de ferramentas de IA (trailers, assinaturas ou
+  rodapés "Generated with") em mensagens de commit.
 
 ### Publicação, integração e encerramento
 
