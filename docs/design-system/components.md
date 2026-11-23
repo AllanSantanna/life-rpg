@@ -201,6 +201,15 @@ Na importação, `.strength-stack` combinado com `.strength-confirm` mantém a p
 vertical. A criação de fichas mostra somente a barra de ações do seletor enquanto
 ele está aberto; a barra da etapa fica oculta nesse estado.
 
+## Retrato do jogador
+
+[PlayerPortrait](../../apps/web/src/modules/profile/PlayerPortrait.tsx) é local ao
+módulo Perfil e reutilizável em cartões que recebam classe e nível atuais. A
+Visão geral o injeta no slot opcional `PlayerHeader.portrait`; o Perfil preserva
+o avatar anterior. Imagem sem corte, moldura discreta com tokens existentes e
+espaço estável para evitar deslocamentos. Consulte o
+[contrato e estágios visuais](../../apps/web/src/modules/profile/README.md#retratos-da-visão-geral).
+
 ## Marca
 
 [BrandLogo](../../apps/web/src/shared/components/BrandLogo.tsx) usa o SVG local LR;

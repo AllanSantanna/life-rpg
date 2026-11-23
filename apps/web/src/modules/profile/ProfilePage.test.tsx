@@ -131,7 +131,8 @@ describe('perfil simples integrado', () => {
     render(<App />);
     expect(
       screen.getByRole('img', { name: 'Avatar de Lia da Lua' }),
-    ).toHaveAttribute('data-avatar', 'mage');
+    ).toHaveAttribute('src', expect.stringContaining('aventureiro-nivel-1'));
+    expect(saved().character.avatar).toBe('mage');
     nav('Perfil');
     expect(
       screen.getByRole('textbox', { name: 'Nome do jogador' }),
@@ -297,7 +298,8 @@ describe('perfil simples integrado', () => {
     expect(writes).toHaveBeenCalledTimes(1);
     expect(
       screen.getByRole('img', { name: 'Avatar de Jogador' }),
-    ).toHaveAttribute('data-avatar', 'ranger');
+    ).toHaveAttribute('src', expect.stringContaining('guerreiro-nivel-1'));
+    expect(saved().character.avatar).toBe('ranger');
     expect(screen.getByText(`Nível ${progress.level}`)).toBeInTheDocument();
     expect(xp()).toHaveAttribute('aria-valuenow', String(progress.xp));
     expect(saved().records).toEqual(state.records);

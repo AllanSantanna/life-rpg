@@ -1,3 +1,4 @@
+import { PlayerPortrait } from '../modules/profile/PlayerPortrait';
 import { BrandLogo } from '../shared/components/BrandLogo';
 import { ProfilePage } from '../modules/profile/ProfilePage';
 import { realAttributes } from '../modules/gamification/realProgress';
@@ -234,6 +235,13 @@ export function App() {
           <div className="view-content" key={view}>
             {view === 'home' && (
               <PlayerHeader
+                portrait={
+                  <PlayerPortrait
+                    classId={state.character.classification.current}
+                    level={progress.level}
+                    name={player.name}
+                  />
+                }
                 player={player}
                 character={state.character}
                 progress={progress}
