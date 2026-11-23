@@ -12,21 +12,22 @@
 .muscle-tone-unknown {
   --muscle-color: var(--color-muted);
 }
+/* Effort goes from the grey of "unknown" to dark red: lighter = lower. */
 .muscle-tone-low {
   --muscle-color: color-mix(
     in srgb,
-    var(--color-primary-dark) 65%,
-    var(--color-surface)
+    var(--color-focus) 55%,
+    var(--color-muted)
   );
 }
 .muscle-tone-moderate {
-  --muscle-color: var(--color-primary-dark);
+  --muscle-color: var(--color-workouts);
 }
 .muscle-tone-high {
   --muscle-color: var(--color-primary);
 }
 .muscle-tone-very-high {
-  --muscle-color: var(--color-action-hover-start);
+  --muscle-color: var(--color-action-end);
 }
 .muscle-tone-ready {
   --muscle-color: var(--color-muscle-ready);

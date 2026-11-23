@@ -105,11 +105,17 @@ export async function auditPalette({ map, width, check, mode }) {
     const order = ['low', 'moderate', 'high', 'very-high'].map((tone) =>
       luminance(state.legend[tone].border),
     );
+    const legendOrder = await map
+      .locator('.muscle-v2-legend .muscle-v2-swatch')
+      .evaluateAll((els) =>
+        els.map((el) => /muscle-tone-([\w-]+)/.exec(el.className)[1]),
+      );
     check(
-      order.every((value, i) => i === 0 || value > order[i - 1]),
+      order.every((value, i) => i === 0 || value < order[i - 1]) &&
+        legendOrder.join() === 'unknown,low,moderate,high,very-high',
       'muscle-palette-order',
       width,
-      'Esforço não progride do vinho ao vermelho claro',
+      `Esforço não vai do cinza ao claro e ao escuro: ${legendOrder}`,
     );
   }
   check(

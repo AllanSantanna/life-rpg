@@ -73,6 +73,8 @@ cores nomeadas, CSS externo e expressões indiretas ainda exigem revisão.
 
 Os tokens `--color-muscle-ready` (verde), `--color-muscle-recovering` (amarelo)
 e `--color-muscle-tired` (laranja) são exclusivos da recuperação estimada no mapa.
-O vermelho reutiliza `--color-primary`; esforço usa somente a família vermelha
-existente. Ausência usa `--color-muted`, com texto “Indeterminado”. Nenhuma dessas
+O vermelho reutiliza `--color-primary`. O esforço parte do cinza e escurece com a
+intensidade, só com tokens existentes: mistura de `--color-focus` com
+`--color-muted` (Baixo), `--color-workouts`, `--color-primary` e
+`--color-action-end` (Muito alto). Ausência usa `--color-muted`, com texto “Indeterminado”. Nenhuma dessas
 cores representa diagnóstico. São tokens temáticos, sem overrides de outros módulos.

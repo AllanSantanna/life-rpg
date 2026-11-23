@@ -295,14 +295,17 @@ participações, janela de 14 dias e peso secundário 0,5. São escolhas de prod
 que exigem atualização da ajuda (`MethodHelp.tsx`), deste documento e dos testes.
 Não há configuração persistida nova nem gravação na montagem.
 
-Cores (inalteradas): esforço vinho/vermelho (1–24, 25–49, 50–74, 75–100);
-recuperação verde (≥90), amarelo (70–89), laranja (50–69), vermelho (<50). Sem
+Cores: esforço parte do cinza indeterminado e vai do mais claro ao mais escuro,
+com tokens existentes: Baixo 1–24 (`--color-focus` 55% com `--color-muted`, rosa
+acinzentado), Moderado 25–49 (`--color-workouts`), Alto 50–74 (`--color-primary`)
+e Muito alto 75–100 (`--color-action-end`). A legenda de esforço lista o cinza
+primeiro. Recuperação: verde (≥90), amarelo (70–89), laranja (50–69), vermelho (<50). Sem
 contribuição recente ou grupo não mapeado: cinza/indeterminado. Cada região usa
 gradiente horizontal com sombra lateral (`muscle-v2-shade`, 36% da cor sobre o
 fundo) e textura anatômica em `soft-light`; a legenda usa a mesma classe
 `muscle-tone-*`. A escala quase branca → vermelho forte testada em 23/11/2026 foi
 revertida por saturar o mapa; `effortScale.test.tsx` e `auditPalette` protegem a
-paleta original, a legenda, as duas vistas e o contorno de seleção.
+paleta, a ordem da legenda, as duas vistas e o contorno de seleção.
 
 ## Evidência publicada versus parâmetros do aplicativo
 

@@ -23,13 +23,13 @@ const read = (path: string) =>
 const theme = read('../../../../shared/styles/index.css');
 const mapCss = read('./muscle-map.css');
 const effortTones = ['low', 'moderate', 'high', 'very-high'] as const;
-// Paleta original do mapa (commit e7b7b83, mantida até 7247927).
+// Paleta do mapa: recuperação original (e7b7b83); esforço do cinza ao vermelho escuro.
 const palette: Record<string, string> = {
   unknown: 'var(--color-muted)',
-  low: 'color-mix(in srgb, var(--color-primary-dark) 65%, var(--color-surface))',
-  moderate: 'var(--color-primary-dark)',
+  low: 'color-mix(in srgb, var(--color-focus) 55%, var(--color-muted))',
+  moderate: 'var(--color-workouts)',
   high: 'var(--color-primary)',
-  'very-high': 'var(--color-action-hover-start)',
+  'very-high': 'var(--color-action-end)',
   ready: 'var(--color-muscle-ready)',
   recovering: 'var(--color-muscle-recovering)',
   tired: 'var(--color-muscle-tired)',
@@ -87,12 +87,13 @@ function surfaces(view: 'frontal' | 'traseira') {
 }
 
 describe('escala de cores do esforço relativo', () => {
-  it('usa a paleta original nos dois modos, com classes separadas por modo', () => {
+  it('usa tokens existentes nos dois modos, com classes separadas por modo', () => {
     for (const [tone, color] of Object.entries(palette))
       expect(rule(`.muscle-tone-${tone}`)).toBe(` --muscle-color: ${color}; `);
-    expect(token('--color-primary-dark')).toBe('#7f1d1d');
+    expect(token('--color-focus')).toBe('#fca5a5');
+    expect(token('--color-workouts')).toBe('#ed8989');
     expect(token('--color-primary')).toBe('#dc2626');
-    expect(token('--color-action-hover-start')).toBe('#ed4449');
+    expect(token('--color-action-end')).toBe('#a61920');
     expect(token('--color-muted')).toBe('#a3a3a3');
     expect(token('--color-muscle-ready')).toBe('#22c55e');
     expect(token('--color-muscle-recovering')).toBe('#eab308');
@@ -100,12 +101,16 @@ describe('escala de cores do esforço relativo', () => {
     expect(theme).not.toMatch(/--color-muscle-effort-|--color-muscle-unknown/);
   });
 
-  it('progride do vinho discreto ao vermelho mais claro no esforço', () => {
-    const [dark, surface] = [hex('#7f1d1d'), hex('#171717')];
-    const low = dark.map((c, i) => c * 0.65 + surface[i]! * 0.35);
-    const values = [low, dark, hex('#dc2626'), hex('#ed4449')].map(luminance);
+  it('parte do cinza e vai do mais claro ao mais escuro no esforço', () => {
+    const [focus, muted] = [hex('#fca5a5'), hex('#a3a3a3')];
+    const low = focus.map((c, i) => c * 0.55 + muted[i]! * 0.45);
+    const values = [low, hex('#ed8989'), hex('#dc2626'), hex('#a61920')].map(
+      luminance,
+    );
     for (let i = 1; i < values.length; i++)
-      expect(values[i]).toBeGreaterThan(values[i - 1]!);
+      expect(values[i]).toBeLessThan(values[i - 1]!);
+    // Baixo é um rosa acinzentado mais claro que o cinza indeterminado.
+    expect(values[0]).toBeGreaterThan(luminance(muted));
   });
 
   it('restaura gradientes, sombras e textura anatômica das regiões e da legenda', () => {
@@ -172,11 +177,11 @@ describe('escala de cores do esforço relativo', () => {
     const legend = screen.getByLabelText('Legenda de esforço');
     const items = within(legend).getAllByRole('listitem');
     expect(items.map((li) => li.textContent)).toEqual([
+      'IndeterminadoSem dados suficientes',
       'Baixo1–24%',
       'Moderado25–49%',
       'Alto50–74%',
       'Muito alto75–100%',
-      'IndeterminadoSem dados suficientes',
     ]);
     const swatchTones = items.map(
       (li) =>
@@ -184,7 +189,7 @@ describe('escala de cores do esforço relativo', () => {
           li.querySelector('.muscle-v2-swatch')!.getAttribute('class')!,
         )![1],
     );
-    expect(swatchTones).toEqual([...effortTones, 'unknown']);
+    expect(swatchTones).toEqual(['unknown', ...effortTones]);
     const mapTones = new Set(surfaces('frontal').map((p) => p.dataset.tone));
     for (const tone of mapTones) expect(swatchTones).toContain(tone);
   });
