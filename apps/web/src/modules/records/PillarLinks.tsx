@@ -3,22 +3,18 @@ const pillarLinks = [
   {
     view: 'finances',
     title: 'Finanças',
-    description: 'Organize receitas, despesas e investimentos.',
   },
   {
     view: 'workouts',
     title: 'Treinos',
-    description: 'Marque seus treinos e construa constância.',
   },
   {
     view: 'rest',
     title: 'Descanso',
-    description: 'Acompanhe seu sono com uma meta pessoal.',
   },
   {
     view: 'knowledge',
     title: 'Conhecimento',
-    description: 'Sua biblioteca e cada página da jornada.',
   },
 ] as const;
 export function PillarLinks({
@@ -43,7 +39,6 @@ export function PillarLinks({
           onClick={() => navigate(pillar.view)}
         >
           <strong>{pillar.title}</strong>
-          {current === 'pillars' && <span>{pillar.description}</span>}
         </button>
       ))}
     </nav>

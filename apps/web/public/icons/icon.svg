@@ -1,1 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#090909"/><path d="M256 112 384 256 256 400 128 256Z" fill="#7F1D1D"/><path d="M256 160 340 256 256 352 172 256Z" fill="#DC2626"/><path d="M244 212h24v88h-24zM212 244h88v24h-88z" fill="#F5F5F5"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <title>Life RPG — monograma LR</title>
+  <!-- Fixed export palette mirrors background, surface, muted and primary tokens. -->
+  <path d="M10 2h44l8 8v44l-8 8H10l-8-8V10Z" fill="#090909"/>
+  <path d="m11 4-7 7v42l7 7h42l7-7V11l-7-7Z" fill="#171717" stroke="#a3a3a3" stroke-opacity=".35"/>
+  <!-- Interlocking angular L and R; counters remain open at favicon sizes. -->
+  <path d="M12 12h10v30h9l9 10H12Z" fill="#dc2626"/>
+  <path fill-rule="evenodd" d="M28 12h17l9 9v12l-9 7 11 12H43L38 46V52H28Zm10 10v10h5l3-3v-4l-3-3Z" fill="#dc2626"/>
+  <path d="M12 12h10M28 12h17l9 9M12 52h28m3 0h13" stroke="#fca5a5" stroke-opacity=".55"/>
+</svg>

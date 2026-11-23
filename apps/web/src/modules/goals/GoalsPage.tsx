@@ -83,9 +83,7 @@ export function GoalsPage({
       {!selectedGoalId && (
         <header className="goal-toolbar quest-page-heading">
           <div>
-            <p className="eyebrow">Sua jornada, suas escolhas</p>
             <h2>{filters.archived ? 'Quests excluídas' : 'Minhas Quests'}</h2>
-            <p>Transforme seus próximos passos em conquistas reais.</p>
           </div>
           {(liveCount > 0 || filters.archived) && (
             <ActionButton icon="plus" onClick={create}>
@@ -228,9 +226,7 @@ export function GoalsPage({
         <details className="panel quest-suggestions">
           <summary>
             <Icon name="sparkle" size={20} />
-            <span>
-              Quests sugeridas<small>Inspiração para o seu próximo passo</small>
-            </span>
+            <span>Quests sugeridas</span>
             <Icon name="chevron" size={17} />
           </summary>
           <p className="record-hint">

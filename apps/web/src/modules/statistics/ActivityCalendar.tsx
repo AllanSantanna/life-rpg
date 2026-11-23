@@ -140,7 +140,7 @@ export function ActivityCalendar({
       className="panel statistics-calendar"
       aria-label="Calendário de Atividades"
     >
-      <SectionHeading title="Calendário de Atividades" eyebrow="Cada dia conta">
+      <SectionHeading title="Calendário de Atividades">
         <div className="statistics-month-controls">
           <button
             type="button"

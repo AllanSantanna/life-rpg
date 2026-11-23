@@ -49,7 +49,8 @@ export default defineConfig(({ mode }) => {
           id: base,
           name: 'Life RPG',
           short_name: 'Life RPG',
-          description: 'Evolua sua vida, um objetivo por vez.',
+          description:
+            'Registros, objetivos e acompanhamento dos quatro pilares.',
           lang: 'pt-BR',
           theme_color: '#090909',
           background_color: '#090909',

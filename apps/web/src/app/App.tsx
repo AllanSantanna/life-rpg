@@ -1,3 +1,4 @@
+import { BrandLogo } from '../shared/components/BrandLogo';
 import { ProfilePage } from '../modules/profile/ProfilePage';
 import { realAttributes } from '../modules/gamification/realProgress';
 import { GoalsPage } from '../modules/goals/GoalsPage';
@@ -175,9 +176,8 @@ export function App() {
       <div className="min-w-0 lg:ml-60">
         <header className="topbar flex items-center justify-between gap-4 border-b border-white/[0.06] px-5 py-4 sm:px-8 lg:px-10">
           <div className="flex items-center gap-2 text-xs text-muted">
-            <span className="font-semibold tracking-wide text-foreground lg:hidden">
-              <Icon name="mountain" size={28} className="inline text-red-500" />{' '}
-              Life RPG
+            <span className="lg:hidden">
+              <BrandLogo compact />
             </span>
             <span className="hidden sm:inline">Área do jogador</span>
             <Icon name="chevron" size={12} />
@@ -219,11 +219,6 @@ export function App() {
           )}
           <div className="page-intro mb-7 flex flex-wrap items-end justify-between gap-4">
             <div>
-              <p className="eyebrow mb-2 text-muted">
-                {view === 'home'
-                  ? `BEM-VINDO DE VOLTA, ${player.name.toUpperCase()}`
-                  : 'SUA JORNADA CONTINUA'}
-              </p>
               <h1
                 ref={heading}
                 tabIndex={-1}
@@ -234,20 +229,7 @@ export function App() {
                   .
                 </span>
               </h1>
-              <p className="mt-2 text-sm leading-relaxed text-muted">
-                {view === 'home'
-                  ? 'Pequenos passos hoje. Uma nova versão de você amanhã.'
-                  : view === 'stats'
-                    ? 'A evolução acontece quando você continua.'
-                    : 'O protagonista dessa história é você.'}
-              </p>
             </div>
-            <span className="flex items-center gap-2 text-xs text-muted">
-              <Icon name="flame" size={16} className="text-red-400" />
-              <strong className="font-medium text-foreground">
-                Um dia de cada vez
-              </strong>
-            </span>
           </div>
           <div className="view-content" key={view}>
             {view === 'home' && (
@@ -287,10 +269,7 @@ export function App() {
                   aria-label="Pilares da jornada"
                   className="pillars mb-6"
                 >
-                  <SectionHeading
-                    title="Uma vida em equilíbrio"
-                    eyebrow="Seus quatro pilares"
-                  >
+                  <SectionHeading title="Seus quatro pilares">
                     <span className="flex items-center gap-1.5 text-xs text-muted">
                       <span className="size-1 rounded-full bg-primary" />
                       Seus registros · dedicação recente
@@ -374,10 +353,6 @@ export function App() {
             )}
           </div>
           <footer className="mt-9 flex flex-wrap items-center justify-between gap-3 border-t border-white/[0.06] pt-5 text-[11px] text-muted">
-            <span className="flex items-center gap-2">
-              <Icon name="sparkle" size={14} />A sua melhor versão é construída
-              todos os dias.
-            </span>
             <span>{persistenceLabels[persistence.kind]}</span>
           </footer>
         </main>

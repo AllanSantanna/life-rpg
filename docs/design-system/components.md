@@ -201,6 +201,12 @@ Na importação, `.strength-stack` combinado com `.strength-confirm` mantém a p
 vertical. A criação de fichas mostra somente a barra de ações do seletor enquanto
 ele está aberto; a barra da etapa fica oculta nesse estado.
 
+## Marca
+
+[BrandLogo](../../apps/web/src/shared/components/BrandLogo.tsx) usa o SVG local LR;
+`compact` mostra somente o monograma. Consulte [a identidade visual](brand.md).
+`SectionHeading` aceita `eyebrow` opcional, sem espaço reservado quando ausente.
+
 ## Ícones
 
 [Icon](../../apps/web/src/shared/components/Icon.tsx) é o catálogo SVG tipado por
