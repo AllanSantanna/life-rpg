@@ -5,6 +5,7 @@ import {
   type FormEvent,
 } from 'react';
 import type { PlayerState } from '../../app/playerState';
+import { ActionButton } from '../../shared/components/ActionButton';
 import { PlayerHeader } from './PlayerHeader';
 import { renameCharacter, type CharacterProjection } from './character';
 
@@ -13,11 +14,13 @@ export function ProfilePage({
   facts,
   onChange,
   onOpenEvolution,
+  onExploreClasses,
 }: {
   state: PlayerState;
   facts: CharacterProjection;
   onChange: Dispatch<SetStateAction<PlayerState>>;
   onOpenEvolution: () => void;
+  onExploreClasses: () => void;
 }) {
   const [name, setName] = useState(state.profile.name);
   const [message, setMessage] = useState('');
@@ -44,6 +47,11 @@ export function ProfilePage({
         dedication={facts.dedication}
         onOpenEvolution={onOpenEvolution}
         variant="profile"
+        actions={
+          <ActionButton icon="grid" onClick={onExploreClasses}>
+            Explorar classes
+          </ActionButton>
+        }
       />
       <section aria-label="Nome do jogador" className="panel profile-settings">
         <form onSubmit={saveName} className="profile-name-form">

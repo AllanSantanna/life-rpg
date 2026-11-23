@@ -1,4 +1,5 @@
 import { BrandLogo } from '../shared/components/BrandLogo';
+import { ClassGallery } from '../modules/profile/ClassGallery';
 import { ProfilePage } from '../modules/profile/ProfilePage';
 import { realAttributes } from '../modules/gamification/realProgress';
 import { GoalsPage } from '../modules/goals/GoalsPage';
@@ -44,6 +45,7 @@ const titles: Record<View, string> = {
   goals: 'Quests',
   stats: 'Sua evolução',
   profile: 'Seu personagem',
+  classes: 'Classes do Life RPG',
   pillars: 'Quatro pilares da vida',
   finances: 'Finanças',
   workouts: 'Treinos',
@@ -61,7 +63,7 @@ const persistenceLabels: Record<Persistence['kind'], string> = {
 };
 export function App() {
   const today = useToday();
-  const { view, navigate, goalId } = useUrlNavigation();
+  const { view, navigate, goalId, classSlug } = useUrlNavigation();
   const {
     state,
     setState,
@@ -133,7 +135,7 @@ export function App() {
   useEffect(() => {
     const frame = requestAnimationFrame(() => heading.current?.focus());
     return () => cancelAnimationFrame(frame);
-  }, [view, goalId, ready]);
+  }, [view, goalId, classSlug, ready]);
   if (!ready)
     return (
       <main
@@ -334,6 +336,17 @@ export function App() {
                 facts={facts}
                 onChange={setState}
                 onOpenEvolution={() => navigate('stats')}
+                onExploreClasses={() => navigate('classes')}
+              />
+            )}
+            {view === 'classes' && (
+              <ClassGallery
+                classId={state.character.classification.current}
+                level={progress.level}
+                selected={classSlug}
+                onOpen={(character) => navigate('classes', character)}
+                onShowAll={() => navigate('classes')}
+                onBack={() => navigate('profile')}
               />
             )}
             {view === 'profile' && (

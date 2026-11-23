@@ -9,6 +9,14 @@ const links: { id: View; label: string; icon: IconName; number: string }[] = [
   { id: 'pillars', label: 'Pilares', icon: 'grid', number: '04' },
   { id: 'profile', label: 'Perfil', icon: 'user', number: '05' },
 ];
+/** Pilares agrupa as páginas dos pilares; Perfil agrupa a galeria de classes. */
+function isActive(link: View, current: View) {
+  return (
+    current === link ||
+    (link === 'pillars' && pillarViews.includes(current)) ||
+    (link === 'profile' && current === 'classes')
+  );
+}
 export function Navigation({
   current,
   onNavigate,
@@ -36,14 +44,9 @@ export function Navigation({
           <button
             type="button"
             key={link.id}
-            className={`nav-item ${current === link.id || (link.id === 'pillars' && pillarViews.includes(current)) ? 'active' : ''}`}
+            className={`nav-item ${isActive(link.id, current) ? 'active' : ''}`}
             onClick={() => onNavigate(link.id)}
-            aria-current={
-              current === link.id ||
-              (link.id === 'pillars' && pillarViews.includes(current))
-                ? 'page'
-                : undefined
-            }
+            aria-current={isActive(link.id, current) ? 'page' : undefined}
           >
             <Icon name={link.icon} size={20} />
             <span>{link.label}</span>

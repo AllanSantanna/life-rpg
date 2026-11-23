@@ -6,6 +6,7 @@ export const viewPaths: Record<View, string> = {
   goals: '/quests',
   stats: '/estatisticas',
   profile: '/perfil',
+  classes: '/perfil/classes',
   pillars: '/pilares',
   finances: '/financas',
   workouts: '/treinos',
@@ -31,9 +32,18 @@ export function publicPath(path: string, base = basePrefix) {
   return base + (path === '/' ? '/' : path);
 }
 const normalizePath = (pathname: string) => appPath(pathname);
+/** Detalhe de uma classe: `/perfil/classes/<classe>`. */
+export function classFromPath(pathname: string) {
+  const path = normalizePath(pathname);
+  const prefix = `${viewPaths.classes}/`;
+  if (!path.startsWith(prefix)) return null;
+  const slug = path.slice(prefix.length);
+  return slug && !slug.includes('/') ? decodeURIComponent(slug) : null;
+}
 export function viewFromPath(pathname: string): View {
   const path = normalizePath(pathname);
   if (path === '/missoes' || path === '/metas') return 'goals';
+  if (classFromPath(pathname) !== null) return 'classes';
   return (
     (Object.keys(viewPaths) as View[]).find(
       (view) => viewPaths[view] === path,
@@ -48,10 +58,16 @@ function subscribe(onChange: () => void) {
     window.removeEventListener(navigationEvent, onChange);
   };
 }
-function navigate(view: View, goalId?: string) {
-  const path =
-    viewPaths[view] +
-    (view === 'goals' && goalId ? `?quest=${encodeURIComponent(goalId)}` : '');
+/** `detail` identifica a quest (`?quest=`) ou a classe (`/perfil/classes/<classe>`). */
+function navigate(view: View, detail?: string) {
+  const suffix = !detail
+    ? ''
+    : view === 'goals'
+      ? `?quest=${encodeURIComponent(detail)}`
+      : view === 'classes'
+        ? `/${encodeURIComponent(detail)}`
+        : '';
+  const path = viewPaths[view] + suffix;
   if (normalizePath(window.location.pathname) + window.location.search === path)
     return;
   window.history.pushState(
@@ -88,6 +104,7 @@ export function useUrlNavigation() {
   }, [url.pathname, url.search]);
   return {
     view: viewFromPath(url.pathname),
+    classSlug: classFromPath(url.pathname),
     goalId: url.searchParams.get('quest') ?? url.searchParams.get('meta'),
     navigate,
   };
