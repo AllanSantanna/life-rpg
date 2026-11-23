@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { CharacterAvatar } from './CharacterAvatar';
 import type { CharacterState } from './character';
 import { classCatalog } from './classes';
@@ -16,12 +17,14 @@ export function PlayerHeader({
   progress,
   dedication,
   onOpenEvolution,
+  portrait,
 }: {
   player: PlayerProfile;
   character: CharacterState;
   progress: PlayerProgress;
   dedication: Scores;
   onOpenEvolution: () => void;
+  portrait?: ReactNode;
 }) {
   const currentClass = character.classification.current
     ? classCatalog[character.classification.current]
@@ -48,11 +51,13 @@ export function PlayerHeader({
       <div className="player-content relative">
         <div className="player-identity flex items-center gap-4">
           <div className="relative shrink-0">
-            <CharacterAvatar
-              avatar={character.avatar}
-              name={player.name}
-              className="player-avatar"
-            />
+            {portrait ?? (
+              <CharacterAvatar
+                avatar={character.avatar}
+                name={player.name}
+                className="player-avatar"
+              />
+            )}
             <span
               aria-label={`Nível do personagem: ${progress.level}`}
               className="character-level-badge"

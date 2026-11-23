@@ -12,7 +12,11 @@ import fs from 'node:fs/promises';
 import http from 'node:http';
 import { tmpdir } from 'node:os';
 import { extname, join, resolve, sep } from 'node:path';
-import { readCanonical, waitForCommit } from './audit-storage-helpers.mjs';
+import {
+  readCanonical,
+  untilWaiting,
+  waitForCommit,
+} from './audit-storage-helpers.mjs';
 
 const { chromium, devices } = await import(
   process.env.PLAYWRIGHT_MODULE ?? 'playwright'
@@ -247,6 +251,58 @@ try {
     },
   );
   await scenario(
+    '24 retratos locais: bytes originais, prefixo Pages e cache offline',
+    async (context) => {
+      const page = await open(context);
+      const portrait = page.locator('.player-portrait img');
+      await portrait.waitFor();
+      assert.ok(
+        (await portrait.getAttribute('src')).startsWith(`${BASE}assets/`),
+      );
+      await controlled(page);
+      const files = (await fs.readdir(join(root, 'assets'))).filter((file) =>
+        /^(aventureiro|guerreiro|estrategista|guardiao|sabio|mestre)-nivel-[1-4]-.*\.webp$/.test(
+          file,
+        ),
+      );
+      assert.equal(files.length, 24);
+      const variants = new Set();
+      await context.setOffline(true);
+      for (const file of files) {
+        const [, character, stage] = file.match(/^(.+)-nivel-([1-4])-/);
+        variants.add(`${character}-${stage}`);
+        const src = `${BASE}assets/${file}`;
+        const bytes = await page.evaluate(async (src) => {
+          const response = await fetch(src);
+          if (
+            !response.ok ||
+            !response.headers.get('content-type')?.includes('image/webp')
+          )
+            throw new Error(`Retrato offline indisponível: ${src}`);
+          const img = new Image();
+          img.src = src;
+          await img.decode();
+          if (!img.naturalWidth || !img.naturalHeight)
+            throw new Error(`Retrato inválido: ${src}`);
+          return Array.from(new Uint8Array(await response.arrayBuffer()));
+        }, src);
+        const original = await fs.readFile(
+          resolve(
+            'apps/web/src/modules/profile/assets/portraits',
+            character,
+            `${character}-nivel-${stage}.webp`,
+          ),
+        );
+        assert.deepEqual(Buffer.from(bytes), original);
+      }
+      assert.equal(variants.size, 24);
+      await page.reload();
+      await page
+        .locator('.player-portrait img')
+        .evaluate((img) => img.decode());
+    },
+  );
+  await scenario(
     'links diretos e recarga sem fallback do servidor permanecem em /life-rpg/',
     async (context) => {
       const page = await open(context, 'perfil');
@@ -340,10 +396,7 @@ try {
       });
       // updatefound may fire before update() resolves. Observe current state
       // instead of attaching a late listener that can wait indefinitely.
-      await page.waitForFunction(
-        async () =>
-          !!(await navigator.serviceWorker.getRegistration())?.waiting,
-      );
+      await untilWaiting(page, true);
       // Sem skipWaiting: a aba aberta continua na versão anterior.
       assert.ok(
         await page.evaluate(
@@ -353,9 +406,7 @@ try {
       await page.goto('about:blank');
       await page.close();
       const next = await open(context, 'perfil');
-      await next.waitForFunction(
-        async () => !(await navigator.serviceWorker.getRegistration())?.waiting,
-      );
+      await untilWaiting(next, false);
       assert.equal(
         await next
           .getByRole('textbox', { name: 'Nome do jogador' })

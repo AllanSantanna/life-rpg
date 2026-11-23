@@ -51,3 +51,39 @@ e na mudança de data com a página aberta. Reconciliar a classe não altera reg
 quests, conquistas, XP ou nível e não concede recompensas. Não há mudanças nas
 fórmulas do Radar ou da progressão. A migração só substitui o envelope após uma
 gravação bem-sucedida; falhas conservam o original e permitem continuar na sessão.
+
+## Retratos da Visão geral
+
+[PlayerPortrait](PlayerPortrait.tsx) consome a classe atual (`ClassId | null`) e o
+nível já projetado. Não calcula nem persiste classe, XP, nível ou estágio. O
+mapeamento visual em [portraits.ts](portraits.ts) seleciona um dos
+[24 WebP originais](assets/portraits/README.md):
+
+| Nível atual | Estágio visual |
+| ----------- | -------------- |
+| 1–4         | 1 · Inicial    |
+| 5–9         | 2 · Experiente |
+| 10–19       | 3 · Avançado   |
+| 20+         | 4 · Elite      |
+
+Guerreiro, Estrategista, Guardião, Sábio e Mestre seguem seus IDs existentes.
+Classe nula usa **somente a arte** de Aventureiro; o domínio e o rótulo visível
+continuam “Sem classe definida”. Isso não reintroduz Aventureiro no catálogo.
+`character.avatar` é preservado e continua sendo usado na tela Perfil.
+
+`PlayerHeader.portrait` é um slot opcional: apenas a Visão geral injeta o novo
+retrato. A tela Perfil preserva o `CharacterAvatar` anterior. Nome, classe,
+nível, XP e Radar mantêm os mesmos dados e controles. As mudanças de props
+atualizam o retrato no mesmo render, sem estado duplicado ou efeitos de gravação.
+
+O contêiner reserva proporção 1:1 (96–128 px), com `object-fit: contain` e
+`image-rendering: pixelated`; as dimensões intrínsecas são declaradas no `img`.
+O texto alternativo conserva “Avatar de {nome}”, acompanhado de descrição
+acessível da arte/estágio. O retrato visível usa carregamento imediato e
+decodificação assíncrona, sem animação ou requisição de imagem externa.
+
+Vite importa URLs dos arquivos WebP, não seus bytes para o JavaScript. Os 24
+arquivos somam 476,52 KiB e entram no precache existente da PWA; a troca de classe
+ou estágio funciona offline após a instalação desse cache. O prefixo
+`/life-rpg/` é aplicado automaticamente pelo build Pages. Não há nova dependência,
+migração ou alteração do ciclo de atualização do service worker.
