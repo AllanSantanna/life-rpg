@@ -860,6 +860,7 @@ try {
           const entry = () =>
             page.locator('script[type="module"][src]').getAttribute('src');
           const oldEntry = await entry();
+          const oldWorker = ctx.serviceWorkers().at(-1);
           if (version === 7) {
             await train(page);
             assert.equal(JSON.parse(await rawAt(page)).version, 7);
@@ -930,6 +931,26 @@ try {
           );
           assert.equal(await rawAt(page), before);
           await capture(page, `pwa-waiting-${mode}-v${version}`);
+          const nextWorker = ctx.serviceWorkers().at(-1);
+          assert.ok(nextWorker && nextWorker !== oldWorker);
+          // Observe the waiting worker itself, before releasing old clients.
+          // A new same-origin observer page could itself retain the old worker.
+          await nextWorker.evaluate(() => {
+            globalThis.auditActivation = new Promise((resolve) => {
+              self.addEventListener(
+                'activate',
+                () => {
+                  const active = self.registration.active;
+                  const complete = () => {
+                    if (active.state === 'activated') resolve();
+                  };
+                  active.addEventListener('statechange', complete);
+                  complete();
+                },
+                { once: true },
+              );
+            });
+          });
           await page.close();
           if (second) {
             assert.equal(
@@ -940,14 +961,20 @@ try {
             );
             await second.close();
           }
-          // No client remains. Use a blank page, which is not controlled by the old
-          // worker, to observe activation before navigating into the updated app.
+          // No page remains. Wait for this exact worker to activate, without
+          // creating an observer client that could prevent or race activation.
+          await nextWorker.evaluate(() =>
+            Promise.race([
+              globalThis.auditActivation,
+              new Promise((_, reject) =>
+                setTimeout(
+                  () => reject(new Error('O novo service worker não ativou.')),
+                  10000,
+                ),
+              ),
+            ]),
+          );
           page = await pageIn(ctx);
-          await page.goto(`${base}/blank.html`);
-          await page.waitForFunction(async () => {
-            const reg = await navigator.serviceWorker.getRegistration();
-            return reg?.active?.state === 'activated' && !reg.waiting;
-          });
           await page.goto(`${base}/treinos`);
           assert.notEqual(await entry(), oldEntry);
           await page
