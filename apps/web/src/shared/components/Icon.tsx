@@ -1,6 +1,8 @@
 import type { CSSProperties } from 'react';
 
 const paths = {
+  clipboard: 'M9 4H5v17h14V4h-4M9 2h6v4H9ZM8 13l3 3 5-6',
+  grid: 'M3 3h7v7H3ZM14 3h7v7h-7ZM3 14h7v7H3ZM14 14h7v7h-7Z',
   history: 'M3 11a9 9 0 1 1 2 7M3 4v7h7M12 7v5l3 2',
   layers: 'm3 7 9-4 9 4-9 4ZM3 12l9 4 9-4M3 17l9 4 9-4',
   body: 'M12 3v1M8 7h8l3 7M8 7l-3 7M10 8v7l-2 6M14 8v7l2 6M10 15h4',

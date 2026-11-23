@@ -337,18 +337,13 @@ try {
       await page.evaluate(async () => {
         const registration = await navigator.serviceWorker.ready;
         await registration.update();
-        const waitFor = () =>
-          registration.waiting ??
-          new Promise((done) => {
-            registration.addEventListener('updatefound', () => {
-              const worker = registration.installing;
-              worker.addEventListener('statechange', () => {
-                if (worker.state === 'installed') done(worker);
-              });
-            });
-          });
-        await waitFor();
       });
+      // updatefound may fire before update() resolves. Observe current state
+      // instead of attaching a late listener that can wait indefinitely.
+      await page.waitForFunction(
+        async () =>
+          !!(await navigator.serviceWorker.getRegistration())?.waiting,
+      );
       // Sem skipWaiting: a aba aberta continua na versão anterior.
       assert.ok(
         await page.evaluate(

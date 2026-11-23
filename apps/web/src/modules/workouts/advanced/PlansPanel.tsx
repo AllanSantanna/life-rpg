@@ -183,7 +183,6 @@ export function PlansPanel({
     <div className="strength-stack">
       <div className="strength-heading">
         <div>
-          <p className="workout-eyebrow">SEU TREINO, SEU RITMO</p>
           <h3>Minhas fichas</h3>
         </div>
         <ActionButton icon="plus" onClick={() => setCreating(true)}>

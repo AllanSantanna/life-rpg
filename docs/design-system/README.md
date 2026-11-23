@@ -14,6 +14,8 @@ principais e cores por pilar. Não há biblioteca externa de componentes.
 | Breakpoints e comportamento móvel           | [Responsividade](responsive.md)    |
 | Teclado, semântica, foco e anúncios         | [Acessibilidade](accessibility.md) |
 
+Identidade vetorial, variantes e recursos instaláveis: [Marca Life RPG](brand.md).
+
 ## Como escolher um padrão
 
 1. Procure um componente no catálogo e uma tela do mesmo contexto.
