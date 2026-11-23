@@ -542,9 +542,18 @@ try {
             await auditStatistics({ page, width, capture, check });
           if (name === 'dashboard' || name === 'perfil') {
             // O castelo do cenário só aparece com o cartão em duas colunas.
+            // checkVisibility() devolve true para este <g> SVG mesmo com
+            // display: none no Chromium; o estilo e a área são confiáveis.
             const castle = await page
               .locator('.player-banner .journey-castle')
-              .evaluate((element) => element.checkVisibility());
+              .evaluate((element) => {
+                const box = element.getBoundingClientRect();
+                return (
+                  getComputedStyle(element).display !== 'none' &&
+                  box.width > 0 &&
+                  box.height > 0
+                );
+              });
             check(
               castle === width >= 640,
               `${name}-cenario`,
