@@ -3,6 +3,7 @@ export type View =
   | 'home'
   | 'stats'
   | 'profile'
+  | 'classes'
   | 'pillars'
   | 'finances'
   | 'workouts'

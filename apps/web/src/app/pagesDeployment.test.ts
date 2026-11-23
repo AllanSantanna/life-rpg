@@ -1,5 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { appPath, publicPath, viewFromPath } from './useUrlNavigation';
+import {
+  appPath,
+  classFromPath,
+  publicPath,
+  viewFromPath,
+} from './useUrlNavigation';
 import {
   createMarketClient,
   MARKET_API_UNAVAILABLE,
@@ -27,6 +32,21 @@ describe('rotas sob a base de publicação', () => {
     expect(publicPath('/', '')).toBe('/');
     expect(publicPath('/treinos', '')).toBe('/treinos');
     expect(viewFromPath('/perfil')).toBe('profile');
+  });
+
+  it('resolve a galeria e o detalhe das classes, também sob /life-rpg/', () => {
+    expect(appPath('/life-rpg/perfil/classes/guerreiro', '/life-rpg')).toBe(
+      '/perfil/classes/guerreiro',
+    );
+    expect(publicPath('/perfil/classes', '/life-rpg')).toBe(
+      '/life-rpg/perfil/classes',
+    );
+    expect(viewFromPath('/perfil/classes')).toBe('classes');
+    expect(classFromPath('/perfil/classes')).toBeNull();
+    expect(viewFromPath('/perfil/classes/guardiao')).toBe('classes');
+    expect(classFromPath('/perfil/classes/guardiao/')).toBe('guardiao');
+    // Caminhos mais profundos não são rotas do app.
+    expect(viewFromPath('/perfil/classes/guardiao/extra')).toBe('home');
   });
 });
 

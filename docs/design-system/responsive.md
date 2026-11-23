@@ -23,6 +23,7 @@ O body tem largura mínima de 320 px. O conteúdo usa `min-width: 0`, grades
 | Radar com menos de 400 px de largura  | Container query `radar`: rótulos e escala maiores no viewBox                                                |
 | Visão geral de Estatísticas           | Radar original em largura total e paisagem abaixo, em todas as larguras                                     |
 | Cartões de Estatísticas               | Uma coluna no celular, duas a partir de 768 px e quatro a partir de 1280 px                                 |
+| Cenário do cartão do jogador < 640 px | `JourneyLandscape` vira faixa de 220 px no topo (opacidade 0,55), sem castelo; XP e Radar sobre fundo limpo |
 | Calendário de atividades              | Quadrados de 24 a 30 px com vão de 6 px; colunas fluidas, pilares fixos e rolagem/arraste no próprio painel |
 
 Tailwind usa `sm`, `md`, `lg`, `xl` padrão (640/768/1024/1280 px). O CSS também

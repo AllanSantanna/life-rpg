@@ -9,6 +9,7 @@
  */
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 import http from 'node:http';
 import { tmpdir } from 'node:os';
 import { extname, join, resolve, sep } from 'node:path';
@@ -31,6 +32,14 @@ const out = resolve(process.env.AUDIT_OUTPUT ?? `${tmpdir()}/life-rpg-pages`);
 await fs.mkdir(out, { recursive: true });
 await fs.access(join(root, '404.html'));
 const BASE = '/life-rpg/';
+const CHARACTERS = [
+  'aventureiro',
+  'guerreiro',
+  'estrategista',
+  'guardiao',
+  'sabio',
+  'mestre',
+];
 const types = {
   '.js': 'text/javascript',
   '.css': 'text/css',
@@ -251,7 +260,7 @@ try {
     },
   );
   await scenario(
-    '24 retratos locais: bytes originais, prefixo Pages e cache offline',
+    '24 retratos e 24 cartas locais: bytes originais, prefixo Pages e cache offline',
     async (context) => {
       const page = await open(context);
       const portrait = page.locator('.player-portrait img');
@@ -260,17 +269,34 @@ try {
         (await portrait.getAttribute('src')).startsWith(`${BASE}assets/`),
       );
       await controlled(page);
+      // Retratos e cartas têm o mesmo nome original; o conteúdo identifica cada um.
+      const digest = (bytes) =>
+        createHash('sha256').update(bytes).digest('hex');
+      const originals = new Map();
+      for (const kind of ['portraits', 'cards'])
+        for (const character of CHARACTERS)
+          for (const stage of [1, 2, 3, 4]) {
+            const bytes = await fs.readFile(
+              resolve(
+                'apps/web/src/modules/profile/assets',
+                kind,
+                character,
+                `${character}-nivel-${stage}.webp`,
+              ),
+            );
+            originals.set(digest(bytes), `${kind}/${character}-${stage}`);
+          }
+      assert.equal(originals.size, 48, 'As 48 artes originais são distintas');
       const files = (await fs.readdir(join(root, 'assets'))).filter((file) =>
         /^(aventureiro|guerreiro|estrategista|guardiao|sabio|mestre)-nivel-[1-4]-.*\.webp$/.test(
           file,
         ),
       );
-      assert.equal(files.length, 24);
-      const variants = new Set();
+      assert.equal(files.length, 48, 'Sem cópias duplicadas no build');
+      const found = new Set();
       await context.setOffline(true);
       for (const file of files) {
         const [, character, stage] = file.match(/^(.+)-nivel-([1-4])-/);
-        variants.add(`${character}-${stage}`);
         const src = `${BASE}assets/${file}`;
         const bytes = await page.evaluate(async (src) => {
           const response = await fetch(src);
@@ -278,28 +304,67 @@ try {
             !response.ok ||
             !response.headers.get('content-type')?.includes('image/webp')
           )
-            throw new Error(`Retrato offline indisponível: ${src}`);
+            throw new Error(`Arte offline indisponível: ${src}`);
           const img = new Image();
           img.src = src;
           await img.decode();
           if (!img.naturalWidth || !img.naturalHeight)
-            throw new Error(`Retrato inválido: ${src}`);
+            throw new Error(`Arte inválida: ${src}`);
           return Array.from(new Uint8Array(await response.arrayBuffer()));
         }, src);
-        const original = await fs.readFile(
-          resolve(
-            'apps/web/src/modules/profile/assets/portraits',
-            character,
-            `${character}-nivel-${stage}.webp`,
-          ),
-        );
-        assert.deepEqual(Buffer.from(bytes), original);
+        const original = originals.get(digest(Buffer.from(bytes)));
+        assert.ok(original, `Bytes alterados: ${file}`);
+        assert.ok(original.endsWith(`/${character}-${stage}`), file);
+        found.add(original);
       }
-      assert.equal(variants.size, 24);
+      assert.equal(found.size, 48);
+      // A galeria abre offline pelo fallback do service worker e decodifica
+      // as quatro cartas do detalhe.
+      await page.goto(`${site}perfil/classes/guardiao`);
+      await page.getByRole('heading', { level: 2, name: 'Guardião' }).waitFor();
+      const cards = page.locator('.class-evolution img');
+      assert.equal(await cards.count(), 4);
+      for (const img of await cards.all()) {
+        await img.scrollIntoViewIfNeeded();
+        await img.evaluate((element) => element.decode());
+      }
       await page.reload();
       await page
-        .locator('.player-portrait img')
+        .locator('.player-portrait img, .class-card-frame img')
+        .first()
         .evaluate((img) => img.decode());
+    },
+  );
+  await scenario(
+    'galeria de classes: link direto, voltar e histórico sob /life-rpg/',
+    async (context) => {
+      const page = await open(context, 'perfil/classes/estrategista');
+      await page
+        .getByRole('heading', { level: 2, name: 'Estrategista' })
+        .waitFor();
+      const before = await readCanonical(page).catch(() => null);
+      await page.getByRole('button', { name: 'Voltar às classes' }).click();
+      assert.equal(new URL(page.url()).pathname, `${BASE}perfil/classes`);
+      await page
+        .getByRole('button', { name: 'Ver detalhes de Mestre' })
+        .click();
+      assert.equal(
+        new URL(page.url()).pathname,
+        `${BASE}perfil/classes/mestre`,
+      );
+      await page.reload();
+      await page.getByRole('heading', { level: 2, name: 'Mestre' }).waitFor();
+      await page.goBack();
+      assert.equal(new URL(page.url()).pathname, `${BASE}perfil/classes`);
+      await page.getByRole('button', { name: 'Voltar ao Perfil' }).click();
+      assert.equal(new URL(page.url()).pathname, `${BASE}perfil`);
+      await page
+        .getByRole('region', { name: 'Resumo do jogador' })
+        .getByRole('button', { name: 'Explorar classes' })
+        .waitFor();
+      assert.equal(await page.locator('[data-avatar]').count(), 0);
+      assert.equal(await readCanonical(page).catch(() => null), before);
+      await noOverflow(page);
     },
   );
   await scenario(

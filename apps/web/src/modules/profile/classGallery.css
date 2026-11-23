@@ -1,0 +1,346 @@
+/* Galeria de classes (Perfil › Classes). Cores por classe reutilizam os tokens
+   dos pilares; Aventureiro e Mestre têm tokens próprios no tema. */
+[data-class='aventureiro'] {
+  --class-color: var(--color-class-adventurer);
+}
+[data-class='guerreiro'] {
+  --class-color: var(--color-workouts);
+}
+[data-class='estrategista'] {
+  --class-color: var(--color-finances);
+}
+[data-class='guardiao'] {
+  --class-color: var(--color-rest);
+}
+[data-class='sabio'] {
+  --class-color: var(--color-knowledge);
+}
+[data-class='mestre'] {
+  --class-color: var(--color-class-master);
+}
+
+.class-gallery-page {
+  display: grid;
+  gap: var(--space-5);
+  min-width: 0;
+}
+.class-gallery-back {
+  justify-self: start;
+}
+.class-gallery-intro {
+  max-width: 720px;
+  margin-bottom: var(--space-5);
+}
+.class-gallery-intro h2,
+.class-detail-summary h2 {
+  font-size: clamp(22px, 2.4vw, 30px);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+.class-gallery-intro p,
+.class-description,
+.class-evolutions-hint {
+  margin-top: var(--space-2);
+  color: var(--color-muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* Grade: uma coluna no celular, duas a partir de 480 px, três a partir de 1024 px. */
+.class-gallery {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-5);
+}
+@media (min-width: 480px) {
+  .class-gallery {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1024px) {
+  .class-gallery {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* Subgrid: cartas com alturas originais diferentes (238–252 px) mantêm títulos
+   e ações alinhados na mesma linha, sem redimensionar a arte. */
+.class-tile {
+  display: grid;
+  grid-row: span 2;
+  grid-template-rows: subgrid;
+  row-gap: 0;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--class-color) 22%, transparent);
+  border-radius: var(--radius-panel);
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--class-color) 7%, var(--color-surface)),
+    var(--color-background) 80%
+  );
+  transition:
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+.class-tile:hover,
+.class-tile:focus-within {
+  border-color: color-mix(in srgb, var(--class-color) 55%, transparent);
+  transform: translateY(-2px);
+}
+.class-tile[data-current] {
+  border-color: color-mix(in srgb, var(--class-color) 70%, transparent);
+  box-shadow: 0 0 var(--space-6)
+    color-mix(in srgb, var(--class-color) 16%, transparent);
+}
+
+/* Moldura estável: a proporção vem de width/height do <img>, sem corte. */
+.class-card-frame {
+  display: grid;
+  place-items: end center;
+  padding: var(--space-4);
+  background: radial-gradient(
+    ellipse at 50% 35%,
+    color-mix(in srgb, var(--class-color) 14%, transparent),
+    transparent 70%
+  );
+}
+.class-card-frame > img {
+  display: block;
+  width: 100%;
+  max-width: 220px;
+  height: auto;
+  image-rendering: pixelated;
+}
+.class-tile-body {
+  display: grid;
+  align-content: start;
+  gap: var(--space-2);
+  padding: 0 var(--space-5) var(--space-4);
+}
+.class-tile-body h3 {
+  color: var(--class-color);
+  font-size: 20px;
+  font-weight: 600;
+}
+.class-tile-body .text-action {
+  justify-self: start;
+}
+.class-pillar {
+  color: var(--color-foreground);
+  font-size: 13px;
+}
+.class-pillar > span {
+  margin-right: var(--space-1);
+  color: var(--color-muted);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.class-current-badge {
+  display: inline-flex;
+  justify-self: start;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid color-mix(in srgb, var(--class-color) 55%, transparent);
+  border-radius: var(--control-radius);
+  color: var(--class-color);
+  background: color-mix(in srgb, var(--class-color) 10%, transparent);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Detalhes */
+.class-detail {
+  display: grid;
+  gap: var(--space-5);
+  min-width: 0;
+}
+.class-switcher {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.class-switcher .filter-button.active {
+  border-color: color-mix(in srgb, var(--class-color) 60%, transparent);
+  background: color-mix(in srgb, var(--class-color) 12%, transparent);
+  color: var(--class-color);
+}
+.class-detail-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-5);
+  padding: var(--space-5);
+  border-color: color-mix(in srgb, var(--class-color) 35%, transparent);
+}
+.class-detail-header > .class-card-frame {
+  align-self: start;
+  border-radius: var(--control-radius);
+}
+.class-detail-summary {
+  display: grid;
+  align-content: start;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.class-detail-summary h2 {
+  color: var(--class-color);
+}
+.class-detail-summary h3,
+.class-evolutions h3 {
+  margin-top: var(--space-2);
+  font-size: 16px;
+  font-weight: 600;
+}
+.class-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+  gap: var(--space-3);
+}
+.class-facts > div {
+  min-width: 0;
+  padding: var(--space-3);
+  border: 1px solid rgb(255 255 255 / 0.07);
+  border-radius: var(--control-radius);
+  background: var(--color-background);
+}
+.class-facts dt {
+  color: var(--color-muted);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.class-facts dd {
+  margin-top: var(--space-1);
+  font-size: 14px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.class-rules {
+  display: grid;
+  gap: var(--space-2);
+  padding-left: var(--space-5);
+  color: var(--color-foreground);
+  font-size: 14px;
+  line-height: 1.55;
+  list-style: disc;
+}
+.class-rules li::marker {
+  color: var(--class-color);
+}
+@media (min-width: 768px) {
+  .class-detail-header {
+    grid-template-columns: minmax(200px, 260px) minmax(0, 1fr);
+    padding: var(--space-6);
+  }
+}
+
+/* Evoluções: quatro colunas a partir de 640 px; carrossel local abaixo disso,
+   sem alargar a página. */
+.class-evolutions {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.class-evolution-list {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(170px, 64%);
+  gap: var(--space-3);
+  min-width: 0;
+  padding-bottom: var(--space-2);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+}
+.class-evolution-list > li {
+  display: grid;
+  scroll-snap-align: start;
+  min-width: 0;
+}
+@media (min-width: 640px) {
+  .class-evolution-list {
+    grid-auto-flow: row;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    overflow: visible;
+  }
+}
+.class-evolution {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  gap: var(--space-2);
+  width: 100%;
+  min-height: var(--control-height);
+  padding-bottom: var(--space-3);
+  border: 1px solid rgb(255 255 255 / 0.08);
+  border-radius: var(--radius-panel);
+  background: var(--color-surface);
+  color: var(--color-foreground);
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+.class-evolution > .class-card-frame {
+  padding: var(--space-3);
+}
+.class-evolution[data-status='locked'] img {
+  filter: grayscale(0.75) brightness(0.55);
+  transition: filter 160ms ease;
+}
+.class-evolution[data-status='current'] {
+  border-color: color-mix(in srgb, var(--class-color) 70%, transparent);
+  box-shadow: 0 0 var(--space-5)
+    color-mix(in srgb, var(--class-color) 18%, transparent);
+}
+.class-evolution[aria-pressed='true'] {
+  border-color: var(--class-color);
+}
+/* A arte de um estágio futuro pode ser vista ao selecioná-la. */
+.class-evolution[aria-pressed='true'][data-status='locked'] img,
+.class-evolution[data-status='locked']:hover img {
+  filter: none;
+}
+.class-evolution:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 3px;
+}
+.class-evolution-status {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-muted);
+  font-size: 12px;
+}
+.class-evolution[data-status='current'] .class-evolution-status {
+  color: var(--class-color);
+  font-weight: 600;
+}
+.class-evolution-info {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-5);
+}
+.class-evolution-info .eyebrow {
+  color: var(--color-muted);
+}
+.class-evolution-name {
+  color: var(--class-color);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .class-tile,
+  .class-evolution,
+  .class-evolution[data-status='locked'] img {
+    transition: none;
+  }
+  .class-tile:hover,
+  .class-tile:focus-within {
+    transform: none;
+  }
+}

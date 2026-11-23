@@ -52,7 +52,7 @@ it.each([
 ])('aplica o limite visual no nível %i', (level, stage) => {
   expect(portraitStage(level)).toBe(stage);
 });
-it('atualiza nível e classe no cartão, sem redefinir XP ou mudar o personagem recebido', () => {
+it('deriva o retrato da classe e do nível recebidos, sem redefinir XP ou mudar o personagem', () => {
   const character = initialCharacter();
   const original = structuredClone(character);
   const props = {
@@ -62,12 +62,7 @@ it('atualiza nível e classe no cartão, sem redefinir XP ou mudar o personagem 
     dedication: { Finanças: 0, Treinos: 0, Descanso: 0, Conhecimento: 0 },
     onOpenEvolution: vi.fn(),
   };
-  const app = render(
-    <PlayerHeader
-      {...props}
-      portrait={<PlayerPortrait classId={null} level={4} name="Lia" />}
-    />,
-  );
+  const app = render(<PlayerHeader {...props} />);
   expect(screen.getByText('Sem classe definida')).toBeInTheDocument();
   expect(screen.getByRole('img', { name: 'Avatar de Lia' })).toHaveAttribute(
     'src',
@@ -84,12 +79,7 @@ it('atualiza nível e classe no cartão, sem redefinir XP ou mudar o personagem 
     },
     progress: { ...props.progress, level: 5, xp: 0 },
   };
-  app.rerender(
-    <PlayerHeader
-      {...next}
-      portrait={<PlayerPortrait classId="warrior" level={5} name="Lia" />}
-    />,
-  );
+  app.rerender(<PlayerHeader {...next} />);
   expect(screen.getByRole('img', { name: 'Avatar de Lia' })).toHaveAttribute(
     'src',
     expect.stringContaining('guerreiro-nivel-2'),
@@ -104,7 +94,6 @@ it('atualiza nível e classe no cartão, sem redefinir XP ou mudar o personagem 
         ...next.character,
         classification: { ...next.character.classification, current: 'sage' },
       }}
-      portrait={<PlayerPortrait classId="sage" level={5} name="Lia" />}
     />,
   );
   expect(screen.getByRole('img', { name: 'Avatar de Lia' })).toHaveAttribute(

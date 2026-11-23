@@ -118,9 +118,12 @@ describe('perfil simples integrado', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: 'Salvar nome' }));
     expect(screen.getByRole('status')).toHaveTextContent('Nome salvo');
+    // O Perfil usa o retrato por classe/estágio; o avatar legado só fica nos dados.
     expect(
       screen.getByRole('img', { name: 'Avatar de Lia da Lua' }),
-    ).toHaveAttribute('data-avatar', 'mage');
+    ).toHaveAttribute('src', expect.stringContaining('aventureiro-nivel-1'));
+    expect(document.querySelector('[data-avatar]')).toBeNull();
+    expect(saved().character.avatar).toBe('mage');
     expect(saved().profile.name).toBe('Lia da Lua');
     expect(currentClass()).toHaveTextContent('Sem classe definida');
     expect(xp()).toHaveAttribute('aria-valuenow', '0');

@@ -2,14 +2,14 @@
 
 24 arquivos WebP fornecidos pelo usuário em
 `assets/personagens/life-rpg-personagens-recortados/retratos/`, movidos para este
-módulo sem recorte, redimensionamento ou recompressão. As cartas completas e os
-metadados do pacote permanecem na pasta de entrada, fora do build do frontend.
-Não há cópia adicional dos retratos no diretório de entrada.
+módulo sem recorte, redimensionamento ou recompressão. As cartas completas
+estão em [assets/cards](../cards/README.md), usadas pela galeria de classes; os
+metadados do pacote permanecem fora do repositório.
 
 São **487.952 bytes (476,52 KiB)** no total; entre 18.400 e 24.204 bytes por retrato.
 Vite emite cada arquivo uma única vez, com hash e base de publicação; o
 service worker inclui os 24 WebP no precache existente. O navegador decodifica
-somente o retrato selecionado para a Visão geral.
+somente o retrato selecionado para a Visão geral e o Perfil.
 
 Os tamanhos abaixo são os intrínsecos dos arquivos recebidos. A renderização
 usa `object-fit: contain`, `image-rendering: pixelated` e moldura quadrada estável.

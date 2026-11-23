@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { CharacterAvatar } from './CharacterAvatar';
+import { PlayerPortrait } from './PlayerPortrait';
 import type { CharacterState } from './character';
 import { classCatalog } from './classes';
 import { EvolutionRadar } from '../evolution/EvolutionRadar';
@@ -17,14 +17,18 @@ export function PlayerHeader({
   progress,
   dedication,
   onOpenEvolution,
-  portrait,
+  variant = 'overview',
+  actions,
 }: {
   player: PlayerProfile;
   character: CharacterState;
   progress: PlayerProgress;
   dedication: Scores;
   onOpenEvolution: () => void;
-  portrait?: ReactNode;
+  /** `profile`: ficha ampliada do Perfil; `overview`: cartão da Visão geral. */
+  variant?: 'overview' | 'profile';
+  /** Ações ao lado das informações do personagem (ex.: Explorar classes). */
+  actions?: ReactNode;
 }) {
   const currentClass = character.classification.current
     ? classCatalog[character.classification.current]
@@ -37,6 +41,7 @@ export function PlayerHeader({
     <section
       aria-label="Resumo do jogador"
       className="player-banner panel relative mb-8 overflow-hidden p-5 sm:p-7"
+      data-variant={variant}
     >
       <JourneyLandscape />
       {levelFeedback.delta > 0 && (
@@ -51,13 +56,12 @@ export function PlayerHeader({
       <div className="player-content relative">
         <div className="player-identity flex items-center gap-4">
           <div className="relative shrink-0">
-            {portrait ?? (
-              <CharacterAvatar
-                avatar={character.avatar}
-                name={player.name}
-                className="player-avatar"
-              />
-            )}
+            <PlayerPortrait
+              classId={character.classification.current}
+              level={progress.level}
+              name={player.name}
+              size={variant === 'profile' ? 'large' : 'default'}
+            />
             <span
               aria-label={`Nível do personagem: ${progress.level}`}
               className="character-level-badge"
@@ -83,6 +87,7 @@ export function PlayerHeader({
             <p className="player-journey">
               Classe automática · últimos 30 dias
             </p>
+            {actions && <div className="player-actions">{actions}</div>}
           </div>
         </div>
         <div className="player-experience">

@@ -1,5 +1,5 @@
-import { PlayerPortrait } from '../modules/profile/PlayerPortrait';
 import { BrandLogo } from '../shared/components/BrandLogo';
+import { ClassGallery } from '../modules/profile/ClassGallery';
 import { ProfilePage } from '../modules/profile/ProfilePage';
 import { realAttributes } from '../modules/gamification/realProgress';
 import { GoalsPage } from '../modules/goals/GoalsPage';
@@ -45,6 +45,7 @@ const titles: Record<View, string> = {
   goals: 'Quests',
   stats: 'Sua evolução',
   profile: 'Seu personagem',
+  classes: 'Classes do Life RPG',
   pillars: 'Quatro pilares da vida',
   finances: 'Finanças',
   workouts: 'Treinos',
@@ -62,7 +63,7 @@ const persistenceLabels: Record<Persistence['kind'], string> = {
 };
 export function App() {
   const today = useToday();
-  const { view, navigate, goalId } = useUrlNavigation();
+  const { view, navigate, goalId, classSlug } = useUrlNavigation();
   const {
     state,
     setState,
@@ -134,7 +135,7 @@ export function App() {
   useEffect(() => {
     const frame = requestAnimationFrame(() => heading.current?.focus());
     return () => cancelAnimationFrame(frame);
-  }, [view, goalId, ready]);
+  }, [view, goalId, classSlug, ready]);
   if (!ready)
     return (
       <main
@@ -235,13 +236,6 @@ export function App() {
           <div className="view-content" key={view}>
             {view === 'home' && (
               <PlayerHeader
-                portrait={
-                  <PlayerPortrait
-                    classId={state.character.classification.current}
-                    level={progress.level}
-                    name={player.name}
-                  />
-                }
                 player={player}
                 character={state.character}
                 progress={progress}
@@ -335,29 +329,39 @@ export function App() {
             {view === 'workouts' && <WorkoutsPage {...recordProps} />}
             {view === 'rest' && <RestPage {...recordProps} />}
             {view === 'knowledge' && <KnowledgePage {...recordProps} />}
-            {view === 'profile' && (
-              <ProfilePage
-                key={`profile-${dataEpoch}`}
-                state={state}
-                facts={facts}
-                onChange={setState}
-                onOpenEvolution={() => navigate('stats')}
+            {view === 'classes' && (
+              <ClassGallery
+                classId={state.character.classification.current}
+                level={progress.level}
+                selected={classSlug}
+                onOpen={(character) => navigate('classes', character)}
+                onShowAll={() => navigate('classes')}
+                onBack={() => navigate('profile')}
               />
             )}
             {view === 'profile' && (
-              <DataBackup
-                readSource={readBackupSource}
-                beginImport={beginBackupImport}
-                onImport={importBackup}
-                onImported={() => setDataEpoch((n) => n + 1)}
-              />
-            )}
-            {view === 'profile' && (
-              <StorageBackups
-                key={`copies-${dataEpoch}`}
-                onRestore={restoreBackup}
-                {...(copies ? { copyStore: copies } : {})}
-              />
+              // Mesmo espaçamento entre seções das páginas dos pilares.
+              <div className="profile-page">
+                <ProfilePage
+                  key={`profile-${dataEpoch}`}
+                  state={state}
+                  facts={facts}
+                  onChange={setState}
+                  onOpenEvolution={() => navigate('stats')}
+                  onExploreClasses={() => navigate('classes')}
+                />
+                <DataBackup
+                  readSource={readBackupSource}
+                  beginImport={beginBackupImport}
+                  onImport={importBackup}
+                  onImported={() => setDataEpoch((n) => n + 1)}
+                />
+                <StorageBackups
+                  key={`copies-${dataEpoch}`}
+                  onRestore={restoreBackup}
+                  {...(copies ? { copyStore: copies } : {})}
+                />
+              </div>
             )}
           </div>
           <footer className="mt-9 flex flex-wrap items-center justify-between gap-3 border-t border-white/[0.06] pt-5 text-[11px] text-muted">
