@@ -6,6 +6,10 @@ arquivo; ver [backup manual](../../../../../docs/architecture/data-backup.md)) e
 as cópias de segurança dos registros. O mesmo `PlayerHeader` aparece no dashboard. Conquistas
 continuam disponíveis no dashboard e em Estatísticas.
 
+As seções do Perfil (ficha, nome, backup e cópias) ficam em `.profile-page`,
+uma grade com o mesmo vão de 20 px (`--space-5`) das páginas dos pilares; a
+auditoria visual falha se duas seções encostarem.
+
 `projectCharacter` usa os mesmos registros reais, confirmações históricas e
 `scorePeriod` do Radar. A classificação usa sempre os últimos **30 dias**, incluindo
 hoje e os 29 anteriores, sem depender de `preferences.radarPeriod`. Histórico

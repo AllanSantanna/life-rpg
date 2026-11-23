@@ -109,6 +109,31 @@ exigir o retrato, a ausência de `[data-avatar]` e o avatar legado salvo. O test
 do `PlayerHeader` deixou de injetar o retrato pelo slot removido e verifica que
 o cabeçalho deriva o retrato da classe e do nível recebidos.
 
+## Correção de espaçamento no Perfil
+
+Na revisão do PR, as seções do Perfil (“Nome do jogador”, “Backup de dados” e
+“Cópias de segurança dos registros”) apareciam encostadas. O problema já
+existia na `main`: as três eram irmãs em `.view-content`, sem vão definido. Elas
+passaram a ficar em `.profile-page`, uma grade com `--space-5` (20 px), o mesmo
+padrão de `.pillar-page`. A ficha (`.character-sheet`) usa o mesmo vão entre o
+cartão e o nome. Nenhuma regra global foi alterada. `audit:visual` agora mede
+os três vãos do Perfil nas cinco larguras e falha abaixo de 16 px.
+
+- [Perfil desktop com as seções espaçadas](assets/class-gallery/perfil-secoes-desktop.jpg)
+
+## Cenário do cartão no celular
+
+Também na revisão, o castelo do cenário (`JourneyLandscape`) atrapalhava a
+leitura no celular, no Perfil e na tela Início: ampliado para a altura do cartão
+em uma coluna, ficava atrás do XP e do Radar. Abaixo de 640 px, o cenário passa a
+ser uma faixa de 220 px no topo do cartão, esmaecida para baixo (opacidade 0,55),
+e o castelo fica oculto. A partir de 640 px, com o cartão em duas colunas, o
+cenário não muda. `audit:visual` verifica nas duas telas que o castelo está
+oculto abaixo de 640 px e visível acima.
+
+- [Perfil no celular, 390 px](assets/class-gallery/perfil-mobile-390.jpg)
+- [Início no celular, 390 px](assets/class-gallery/inicio-mobile-390.jpg)
+
 ## Limites e preservação
 
 Não foram alterados XP, níveis, classificação, Radar, pilares, Quests,
