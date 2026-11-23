@@ -519,6 +519,10 @@ try {
         for (const [name, route] of Object.entries({
           dashboard: '/',
           perfil: '/perfil',
+          classes: '/perfil/classes',
+          'classe-guerreiro': '/perfil/classes/guerreiro',
+          'classe-estrategista': '/perfil/classes/estrategista',
+          'classe-mestre': '/perfil/classes/mestre',
           quests: '/quests',
           estatisticas: '/estatisticas',
           pilares: '/pilares',
@@ -536,6 +540,35 @@ try {
           );
           if (name === 'estatisticas' && populated)
             await auditStatistics({ page, width, capture, check });
+          if (name === 'perfil')
+            check(
+              !(await page.locator('[data-avatar]').count()) &&
+                (await page
+                  .locator('.player-banner .player-portrait--large img')
+                  .count()) === 1,
+              'perfil-retrato',
+              width,
+              'O Perfil deve exibir o retrato por classe, sem o avatar antigo.',
+            );
+          if (name === 'classe-mestre') {
+            // Carta futura: a arte fica visível e a seleção é só visual.
+            const before = await readSnapshot(page);
+            const elite = page.locator('.class-evolution').last();
+            await elite.scrollIntoViewIfNeeded();
+            await (width < 768 ? elite.tap() : elite.click());
+            await capture(
+              page,
+              `classe-mestre-elite-${populated ? 'populated' : 'empty'}`,
+              width,
+            );
+            check(
+              (await elite.getAttribute('aria-pressed')) === 'true' &&
+                (await readSnapshot(page)) === before,
+              'classe-mestre-elite',
+              width,
+              'Selecionar uma carta não pode alterar dados persistidos.',
+            );
+          }
         }
       }
       await page.goto(base + '/treinos');
