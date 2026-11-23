@@ -29,9 +29,16 @@ export function JourneyLandscape() {
       />
       <path
         fill="#090909"
-        d="m0 260 178-40 99 23 122-46 143 52 108-33 81 18 75-25 94 18v33Z M753 209v-65h12v-35l8-26 8 26v35h13v-60l7-25 7 25v60h13v-34l9-25 9 25v34h12v65Z"
+        d="m0 260 178-40 99 23 122-46 143 52 108-33 81 18 75-25 94 18v33Z"
       />
-      <path fill="#dc2626" d="M800 60V35l27 8-27 9" />
+      {/* Oculto no celular (index.css), onde ficava atrás do XP e do Radar. */}
+      <g className="journey-castle">
+        <path
+          fill="#090909"
+          d="M753 209v-65h12v-35l8-26 8 26v35h13v-60l7-25 7 25v60h13v-34l9-25 9 25v34h12v65Z"
+        />
+        <path fill="#dc2626" d="M800 60V35l27 8-27 9" />
+      </g>
     </svg>
   );
 }

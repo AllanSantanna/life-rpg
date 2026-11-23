@@ -540,6 +540,37 @@ try {
           );
           if (name === 'estatisticas' && populated)
             await auditStatistics({ page, width, capture, check });
+          if (name === 'dashboard' || name === 'perfil') {
+            // O castelo do cenário só aparece com o cartão em duas colunas.
+            const castle = await page
+              .locator('.player-banner .journey-castle')
+              .evaluate((element) => element.checkVisibility());
+            check(
+              castle === width >= 640,
+              `${name}-cenario`,
+              width,
+              `Castelo do cenário ${castle ? 'visível' : 'oculto'} em ${width} px`,
+            );
+          }
+          if (name === 'perfil') {
+            // Seções do Perfil não podem encostar umas nas outras.
+            const gaps = await page.evaluate(() => {
+              const sections = [
+                ...document.querySelectorAll(
+                  '.profile-page > .character-sheet > section, .profile-page > section',
+                ),
+              ].map((element) => element.getBoundingClientRect());
+              return sections
+                .slice(1)
+                .map((rect, index) => rect.top - sections[index].bottom);
+            });
+            check(
+              gaps.length === 3 && gaps.every((gap) => gap >= 16),
+              'perfil-espacamento',
+              width,
+              `Vão entre seções do Perfil: ${gaps.join(', ')} px`,
+            );
+          }
           if (name === 'perfil')
             check(
               !(await page.locator('[data-avatar]').count()) &&

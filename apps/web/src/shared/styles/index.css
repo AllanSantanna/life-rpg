@@ -346,6 +346,21 @@
     opacity: 0.85;
     mask-image: linear-gradient(90deg, transparent, #000 60%);
   }
+  /* Celular: o cenário vira uma faixa no topo do cartão (lua à direita do
+     retrato), sem castelo, e XP e Radar ficam sobre fundo limpo. */
+  @media (max-width: 639px) {
+    .journey-landscape {
+      height: 220px;
+      opacity: 0.55;
+      mask-image:
+        linear-gradient(90deg, transparent, #000 55%),
+        linear-gradient(#000 40%, transparent);
+      mask-composite: intersect;
+    }
+    .journey-castle {
+      display: none;
+    }
+  }
   .player-content {
     min-height: 160px;
     z-index: 1;
@@ -3324,8 +3339,15 @@ input.custom-date-picker__validation {
   color: #f3a39c;
   background: #70232c33;
 }
+/* Seções do Perfil: mesmo vão de 20 px (--space-5) das páginas dos pilares. */
+.profile-page,
 .character-sheet {
+  display: grid;
+  gap: var(--space-5);
   min-width: 0;
+}
+.character-sheet > .player-banner {
+  margin-bottom: 0;
 }
 .profile-settings {
   max-width: 640px;

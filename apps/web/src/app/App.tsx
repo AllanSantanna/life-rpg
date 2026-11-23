@@ -329,16 +329,6 @@ export function App() {
             {view === 'workouts' && <WorkoutsPage {...recordProps} />}
             {view === 'rest' && <RestPage {...recordProps} />}
             {view === 'knowledge' && <KnowledgePage {...recordProps} />}
-            {view === 'profile' && (
-              <ProfilePage
-                key={`profile-${dataEpoch}`}
-                state={state}
-                facts={facts}
-                onChange={setState}
-                onOpenEvolution={() => navigate('stats')}
-                onExploreClasses={() => navigate('classes')}
-              />
-            )}
             {view === 'classes' && (
               <ClassGallery
                 classId={state.character.classification.current}
@@ -350,19 +340,28 @@ export function App() {
               />
             )}
             {view === 'profile' && (
-              <DataBackup
-                readSource={readBackupSource}
-                beginImport={beginBackupImport}
-                onImport={importBackup}
-                onImported={() => setDataEpoch((n) => n + 1)}
-              />
-            )}
-            {view === 'profile' && (
-              <StorageBackups
-                key={`copies-${dataEpoch}`}
-                onRestore={restoreBackup}
-                {...(copies ? { copyStore: copies } : {})}
-              />
+              // Mesmo espaçamento entre seções das páginas dos pilares.
+              <div className="profile-page">
+                <ProfilePage
+                  key={`profile-${dataEpoch}`}
+                  state={state}
+                  facts={facts}
+                  onChange={setState}
+                  onOpenEvolution={() => navigate('stats')}
+                  onExploreClasses={() => navigate('classes')}
+                />
+                <DataBackup
+                  readSource={readBackupSource}
+                  beginImport={beginBackupImport}
+                  onImport={importBackup}
+                  onImported={() => setDataEpoch((n) => n + 1)}
+                />
+                <StorageBackups
+                  key={`copies-${dataEpoch}`}
+                  onRestore={restoreBackup}
+                  {...(copies ? { copyStore: copies } : {})}
+                />
+              </div>
             )}
           </div>
           <footer className="mt-9 flex flex-wrap items-center justify-between gap-3 border-t border-white/[0.06] pt-5 text-[11px] text-muted">
