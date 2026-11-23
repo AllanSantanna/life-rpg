@@ -43,6 +43,7 @@ export function ProfilePage({
         progress={facts.progress}
         dedication={facts.dedication}
         onOpenEvolution={onOpenEvolution}
+        variant="profile"
       />
       <section aria-label="Nome do jogador" className="panel profile-settings">
         <form onSubmit={saveName} className="profile-name-form">

@@ -7,16 +7,19 @@ export function PlayerPortrait({
   classId,
   level,
   name,
+  size = 'default',
 }: {
   classId: ClassId | null;
   level: number;
   name: string;
+  /** `large`: destaque ampliado da ficha do Perfil. */
+  size?: 'default' | 'large';
 }) {
   const portrait = playerPortrait(classId, level);
   const descriptionId = useId();
   return (
     <figure
-      className="player-portrait"
+      className={`player-portrait${size === 'large' ? ' player-portrait--large' : ''}`}
       data-portrait-class={portrait.character}
       data-portrait-stage={portrait.stage}
     >
