@@ -6,6 +6,102 @@ import fs from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
+/** Official effort scale (docs/design-system/colors.md), ordered low → very high. */
+export const effortScale = {
+  low: 'rgb(255, 241, 241)',
+  moderate: 'rgb(255, 179, 179)',
+  high: 'rgb(255, 92, 92)',
+  'very-high': 'rgb(224, 25, 25)',
+  unknown: 'rgb(138, 138, 138)',
+};
+/** Computed fills in the browser: band color on both views, legend parity,
+ * decreasing luminance and a visible selection contour. */
+export async function auditEffortScale({ map, width, check }) {
+  const state = await map.evaluate((root) => {
+    const regions = [...root.querySelectorAll('[data-surface]')].map((el) => {
+      const style = getComputedStyle(el);
+      return {
+        tone: el.dataset.tone,
+        group: el.dataset.group,
+        fill: style.fill,
+        opacity: style.opacity,
+        fillOpacity: style.fillOpacity,
+        blend: style.mixBlendMode,
+      };
+    });
+    const legend = [
+      ...root.querySelectorAll('.muscle-v2-legend .muscle-v2-swatch'),
+    ].map((el) => ({
+      tone: /muscle-tone-([\w-]+)/.exec(el.className)[1],
+      color: getComputedStyle(el).backgroundColor,
+      image: getComputedStyle(el).backgroundImage,
+    }));
+    const selection = [...root.querySelectorAll('.muscle-v2-selection')].map(
+      (el) => ({
+        halo: getComputedStyle(el.querySelector('.muscle-v2-selection-halo'))
+          .stroke,
+        line: getComputedStyle(el.querySelector('.muscle-v2-selection-line'))
+          .stroke,
+      }),
+    );
+    return { regions, legend, selection };
+  });
+  const wrong = state.regions.filter(
+    (r) =>
+      r.fill !== effortScale[r.tone] ||
+      r.opacity !== '1' ||
+      r.fillOpacity !== '1' ||
+      r.blend !== 'normal',
+  );
+  check(
+    !wrong.length,
+    'muscle-scale-fill',
+    width,
+    `Regiões fora da cor da faixa: ${JSON.stringify(wrong.slice(0, 3))}`,
+  );
+  const groups = new Map();
+  for (const r of state.regions)
+    groups.set(r.group, (groups.get(r.group) ?? new Set()).add(r.fill));
+  check(
+    [...groups.values()].every((fills) => fills.size === 1),
+    'muscle-scale-views',
+    width,
+    'Mesmo grupo com cores diferentes entre vistas',
+  );
+  check(
+    JSON.stringify(state.legend.map((l) => l.tone)) ===
+      JSON.stringify(Object.keys(effortScale)) &&
+      state.legend.every(
+        (l) => l.color === effortScale[l.tone] && l.image === 'none',
+      ),
+    'muscle-scale-legend',
+    width,
+    `Legenda difere do mapa: ${JSON.stringify(state.legend)}`,
+  );
+  const luminance = (rgb) =>
+    rgb
+      .match(/[\d.]+/g)
+      .map(Number)
+      .map((c) => c / 255)
+      .map((c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4))
+      .reduce((sum, c, i) => sum + c * [0.2126, 0.7152, 0.0722][i], 0);
+  const order = ['low', 'moderate', 'high', 'very-high'].map((tone) =>
+    luminance(effortScale[tone]),
+  );
+  check(
+    order.every((value, i) => i === 0 || value < order[i - 1]),
+    'muscle-scale-order',
+    width,
+    'Escala não progride do claro ao escuro',
+  );
+  check(
+    state.selection.length === 1 &&
+      state.selection[0].halo !== state.selection[0].line,
+    'muscle-scale-selection',
+    width,
+    `Contorno duplo de seleção ausente: ${JSON.stringify(state.selection)}`,
+  );
+}
 /** Receives only an isolated browser fixture page; never a persistent user profile. */
 export async function auditMuscleMap({ page, width, capture, check }) {
   const map = page.getByRole('region', { name: 'Mapa muscular', exact: true });
@@ -29,12 +125,7 @@ export async function auditMuscleMap({ page, width, capture, check }) {
     width,
     'Seleção por Enter falhou',
   );
-  const firstFill = await first.evaluate((el) => {
-    const id = el.getAttribute('fill').slice(5, -1);
-    return getComputedStyle(
-      document.getElementById(id).querySelector('.muscle-v2-color'),
-    ).stopColor;
-  });
+  const firstFill = await first.evaluate((el) => getComputedStyle(el).fill);
   // Mapped known effort surfaces must remain in the red family; unknown is neutral.
   const [r, g, b] = firstFill.match(/[\d.]+/g).map(Number);
   check(
@@ -43,6 +134,7 @@ export async function auditMuscleMap({ page, width, capture, check }) {
     width,
     `Esforço saiu da escala vermelha: ${firstFill}`,
   );
+  await auditEffortScale({ map, width, check });
   await capture(page, 'muscle-effort', width);
   await map.getByRole('tab', { name: 'Recuperação', exact: true }).click();
   check(

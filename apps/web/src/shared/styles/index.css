@@ -26,6 +26,11 @@
   --color-muscle-ready: #22c55e;
   --color-muscle-recovering: #eab308;
   --color-muscle-tired: #f97316;
+  --color-muscle-effort-low: #fff1f1;
+  --color-muscle-effort-moderate: #ffb3b3;
+  --color-muscle-effort-high: #ff5c5c;
+  --color-muscle-effort-very-high: #e01919;
+  --color-muscle-unknown: #8a8a8a;
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
 }
 

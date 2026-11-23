@@ -9,12 +9,16 @@ bases visuais entram no bundle/PWA. Origem de desenvolvimento preservada em
 ## Anatomia e interação
 
 58 superfícies orgânicas frontais/traseiras do MuscleMap, com IDs individuais,
-contornos, gradientes e luminância das bases WebP. São 28 superfícies frontais e
+contornos e preenchimento sólido da faixa sobre as bases WebP. São 28 superfícies frontais e
 30 traseiras. Cada região tem botão SVG, nome acessível, título, foco, Enter e
 Espaço. Seleção identifica vista/ID; alternar modo mantém a região. Uma lista de
 botões de 44 px oferece alternativa de teclado/toque, importante quando a região
 anatômica fica pequena no celular. Modos usam abas, setas, Home/End e painel
-rotulado. Seleção também tem borda e texto, sem depender apenas da cor.
+rotulado. Seleção também tem borda e texto, sem depender apenas da cor: a região
+selecionada recebe contorno duplo (anel escuro `--color-background` com linha clara
+`--color-foreground` por cima das regiões vizinhas) e brilho vermelho; o foco por
+teclado usa anel escuro com halo claro. Assim o destaque é visível do quase branco
+ao vermelho forte e no cinza indeterminado.
 
 [Créditos, licença, snapshot e adaptações](anatomy/PROVENANCE.md).
 Não dependemos de `@musclemap/core`/`react`: apenas dados estáticos incorporados.
@@ -292,9 +296,25 @@ participações, janela de 14 dias e peso secundário 0,5. São escolhas de prod
 que exigem atualização da ajuda (`MethodHelp.tsx`), deste documento e dos testes.
 Não há configuração persistida nova nem gravação na montagem.
 
-Cores (inalteradas): esforço vinho/vermelho (1–24, 25–49, 50–74, 75–100);
-recuperação verde (≥90), amarelo (70–89), laranja (50–69), vermelho (<50). Sem
-contribuição recente ou grupo não mapeado: cinza/indeterminado.
+Cores: esforço do quase branco ao vermelho forte, com os limites de `metricTone`
+inalterados:
+
+| Faixa         | Intervalo             | Token                             | Cor       |
+| ------------- | --------------------- | --------------------------------- | --------- |
+| Baixo         | 1–24%                 | `--color-muscle-effort-low`       | `#fff1f1` |
+| Moderado      | 25–49%                | `--color-muscle-effort-moderate`  | `#ffb3b3` |
+| Alto          | 50–74%                | `--color-muscle-effort-high`      | `#ff5c5c` |
+| Muito alto    | 75–100%               | `--color-muscle-effort-very-high` | `#e01919` |
+| Indeterminado | Sem dados suficientes | `--color-muscle-unknown`          | `#8a8a8a` |
+
+Recuperação: verde (≥90), amarelo (70–89), laranja (50–69), vermelho (<50). Sem
+contribuição recente ou grupo não mapeado: cinza indeterminado, nos dois modos.
+Cada região recebe a classe `muscle-tone-*` e é pintada com a cor sólida da faixa
+(`fill: var(--muscle-color)`), sem gradiente, opacidade, filtro ou mescla no
+preenchimento; a textura em `soft-light` sobre os músculos foi removida porque
+alterava a cor de forma desigual entre regiões. A legenda usa a mesma classe e a
+mesma cor sólida. `effortScale.test.tsx` e `auditEffortScale` verificam tokens,
+ordem de luminância, frente/costas, legenda e contorno de seleção.
 
 ## Evidência publicada versus parâmetros do aplicativo
 

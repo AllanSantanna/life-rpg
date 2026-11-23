@@ -63,26 +63,6 @@ export function AnatomyFigure({
               <path key={p.id} d={p.d} />
             ))}
           </clipPath>
-          {diagram.surfaces.map((surface) => {
-            const group = anatomicalGroups[surface.group];
-            const score = group ? (summaries[group]?.[mode] ?? null) : null;
-            const tone = metricTone(score, mode);
-            return (
-              <linearGradient
-                key={surface.id}
-                id={`${uid}-${surface.id}`}
-                x1="0"
-                y1="0"
-                x2="1"
-                y2="0"
-                className={`muscle-tone-${tone}`}
-              >
-                <stop offset="0" className="muscle-v2-shade" />
-                <stop offset=".42" className="muscle-v2-color" />
-                <stop offset="1" className="muscle-v2-shade" />
-              </linearGradient>
-            );
-          })}
         </defs>
         <image
           href={diagram.image}
@@ -97,6 +77,7 @@ export function AnatomyFigure({
         {diagram.surfaces.map((surface) => {
           const group = anatomicalGroups[surface.group];
           const score = group ? (summaries[group]?.[mode] ?? null) : null;
+          const tone = metricTone(score, mode);
           const selected = active?.id === surface.id;
           const name = anatomicalLabels[surface.group];
           const side = surface.id.includes('_LEFT')
@@ -105,7 +86,7 @@ export function AnatomyFigure({
           const status =
             score === null
               ? 'Indeterminado'
-              : `${score}% · ${toneLabels[metricTone(score, mode)]}`;
+              : `${score}% · ${toneLabels[tone]}`;
           return (
             <path
               key={surface.id}
@@ -113,8 +94,8 @@ export function AnatomyFigure({
               id={`${uid}-region-${surface.id}`}
               data-surface={surface.id}
               data-group={group ?? 'unmapped'}
-              fill={`url(#${uid}-${surface.id})`}
-              className="muscle-v2-surface"
+              data-tone={tone}
+              className={`muscle-v2-surface muscle-tone-${tone}`}
               role="button"
               tabIndex={0}
               aria-pressed={selected}
@@ -137,16 +118,13 @@ export function AnatomyFigure({
             </path>
           );
         })}
-        <image
-          href={diagram.image}
-          x="0"
-          y="0"
-          width="1024"
-          height="1536"
-          clipPath={`url(#${uid}-body)`}
-          className="muscle-v2-texture"
-          aria-hidden="true"
-        />
+        {active && (
+          // Drawn above neighbouring regions so the whole contour stays visible.
+          <g className="muscle-v2-selection" aria-hidden="true">
+            <path d={active.d} className="muscle-v2-selection-halo" />
+            <path d={active.d} className="muscle-v2-selection-line" />
+          </g>
+        )}
         {active && (
           <g className="muscle-v2-callout" aria-hidden="true">
             <path
