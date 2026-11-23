@@ -2,7 +2,11 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import http from 'node:http';
 import { resolve, extname, sep } from 'node:path';
-import { readCanonical, waitForCommit } from './audit-storage-helpers.mjs';
+import {
+  readCanonical,
+  untilWaiting,
+  waitForCommit,
+} from './audit-storage-helpers.mjs';
 
 // Production builds are served only on a temporary loopback origin. Every
 // scenario uses a disposable context; no user profile or remote site is used.
@@ -919,10 +923,7 @@ try {
             const reg = await navigator.serviceWorker.getRegistration();
             await reg.update();
           });
-          await page.waitForFunction(
-            async () =>
-              !!(await navigator.serviceWorker.getRegistration()).waiting,
-          );
+          await untilWaiting(page, true);
           await page.reload();
           assert.equal(
             await entry(),

@@ -12,7 +12,11 @@ import fs from 'node:fs/promises';
 import http from 'node:http';
 import { tmpdir } from 'node:os';
 import { extname, join, resolve, sep } from 'node:path';
-import { readCanonical, waitForCommit } from './audit-storage-helpers.mjs';
+import {
+  readCanonical,
+  untilWaiting,
+  waitForCommit,
+} from './audit-storage-helpers.mjs';
 
 const { chromium, devices } = await import(
   process.env.PLAYWRIGHT_MODULE ?? 'playwright'
@@ -340,10 +344,7 @@ try {
       });
       // updatefound may fire before update() resolves. Observe current state
       // instead of attaching a late listener that can wait indefinitely.
-      await page.waitForFunction(
-        async () =>
-          !!(await navigator.serviceWorker.getRegistration())?.waiting,
-      );
+      await untilWaiting(page, true);
       // Sem skipWaiting: a aba aberta continua na versão anterior.
       assert.ok(
         await page.evaluate(
@@ -353,9 +354,7 @@ try {
       await page.goto('about:blank');
       await page.close();
       const next = await open(context, 'perfil');
-      await next.waitForFunction(
-        async () => !(await navigator.serviceWorker.getRegistration())?.waiting,
-      );
+      await untilWaiting(next, false);
       assert.equal(
         await next
           .getByRole('textbox', { name: 'Nome do jogador' })

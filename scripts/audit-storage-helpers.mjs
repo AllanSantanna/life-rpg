@@ -1,4 +1,6 @@
 /** Helpers exclusively for disposable audit contexts, never a real profile. */
+import assert from 'node:assert/strict';
+
 export async function resetFixtureDatabase(page) {
   await page.locator('.app-shell').waitFor();
   await page.evaluate(
@@ -88,4 +90,23 @@ export async function readSnapshot(page) {
     .getByText('Gravação em andamento · aguarde a confirmação', { exact: true })
     .waitFor({ state: 'hidden' });
   return readCanonical(page);
+}
+/**
+ * Aguarda o registro ter (ou não ter) um service worker em espera. Não usa
+ * waitForFunction: com um predicado async ele recebe uma Promise e resolve na
+ * hora, antes da instalação do novo worker (verificado no Playwright 1.65).
+ */
+export async function untilWaiting(page, expected, timeout = 10_000) {
+  const deadline = Date.now() + timeout;
+  const waiting = () =>
+    page.evaluate(
+      async () => !!(await navigator.serviceWorker.getRegistration())?.waiting,
+    );
+  while ((await waiting()) !== expected) {
+    assert.ok(
+      Date.now() < deadline,
+      `Worker em espera ${expected ? 'ausente' : 'persistente'} após ${timeout} ms`,
+    );
+    await page.waitForTimeout(100);
+  }
 }
