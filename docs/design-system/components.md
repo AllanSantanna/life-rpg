@@ -201,14 +201,22 @@ Na importação, `.strength-stack` combinado com `.strength-confirm` mantém a p
 vertical. A criação de fichas mostra somente a barra de ações do seletor enquanto
 ele está aberto; a barra da etapa fica oculta nesse estado.
 
-## Retrato do jogador
+## Retrato do jogador e galeria de classes
 
 [PlayerPortrait](../../apps/web/src/modules/profile/PlayerPortrait.tsx) é local ao
-módulo Perfil e reutilizável em cartões que recebam classe e nível atuais. A
-Visão geral o injeta no slot opcional `PlayerHeader.portrait`; o Perfil preserva
-o avatar anterior. Imagem sem corte, moldura discreta com tokens existentes e
-espaço estável para evitar deslocamentos. Consulte o
-[contrato e estágios visuais](../../apps/web/src/modules/profile/README.md#retratos-da-visão-geral).
+módulo Perfil e é renderizado por `PlayerHeader` na Visão geral (tamanho padrão)
+e no Perfil (`variant="profile"`, retrato ampliado e moldura dupla). Imagem sem
+corte, tokens existentes e espaço estável para evitar deslocamentos. O slot
+`actions` do cabeçalho recebe o `ActionButton` “Explorar classes”.
+
+[ClassGallery](../../apps/web/src/modules/profile/ClassGallery.tsx) apresenta as
+seis classes e as 24 cartas originais. Reutiliza `.text-action` (voltar e “Ver
+detalhes”), `.filter-button` com `.active` (outras classes) e `.panel`. As cores
+vêm de `data-class` → `--class-color`, que aponta para os tokens dos pilares ou
+para os tokens de classe. Cartas de evolução são botões com `aria-pressed`;
+estágios futuros usam ícone `lock`, rótulo “Bloqueado” e a arte esmaecida, que
+fica nítida ao selecionar. Consulte o
+[contrato, estágios e rotas](../../apps/web/src/modules/profile/README.md#galeria-de-classes).
 
 ## Marca
 

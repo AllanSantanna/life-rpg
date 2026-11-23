@@ -37,6 +37,21 @@ As classes `.metric-finances`, `.metric-workouts`, `.metric-rest` e
 `#d69bf7` e `#f5b862`. Essa paleta mais viva pertence aos indicadores do dashboard.
 Não houve migração dessas cores nesta tarefa.
 
+## Classes
+
+A galeria de classes atribui `--class-color` por `data-class`. Guerreiro,
+Estrategista, Guardião e Sábio reutilizam os tokens de Treinos, Finanças,
+Descanso e Conhecimento, coerentes com as molduras das cartas. Sem pilar
+equivalente, dois tokens foram acrescentados ao tema:
+
+| Classe      | Token                      | Valor     |
+| ----------- | -------------------------- | --------- |
+| Aventureiro | `--color-class-adventurer` | `#c9a27a` |
+| Mestre      | `--color-class-master`     | `#f0a04b` |
+
+Esses tokens são exclusivos da identificação das classes; não representam
+pilares nem estados de progresso.
+
 ## Ações e superfícies contextuais
 
 `ActionButton` e o primário avançado usam `--color-action-start: #e33137`,

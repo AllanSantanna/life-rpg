@@ -1,7 +1,7 @@
 # Perfil e classes automáticas
 
-O Perfil contém nome editável, avatar atual, classe, nível, XP/barra e Radar com
-atalho para Estatísticas. Também reúne _Backup de dados_ (exportar e importar
+O Perfil contém nome editável, retrato por classe e estágio, classe, nível,
+XP/barra, Radar com atalho para Estatísticas e o botão **Explorar classes**. Também reúne _Backup de dados_ (exportar e importar
 arquivo; ver [backup manual](../../../../../docs/architecture/data-backup.md)) e
 as cópias de segurança dos registros. O mesmo `PlayerHeader` aparece no dashboard. Conquistas
 continuam disponíveis no dashboard e em Estatísticas.
@@ -52,38 +52,70 @@ quests, conquistas, XP ou nível e não concede recompensas. Não há mudanças 
 fórmulas do Radar ou da progressão. A migração só substitui o envelope após uma
 gravação bem-sucedida; falhas conservam o original e permitem continuar na sessão.
 
-## Retratos da Visão geral
+## Retratos da Visão geral e do Perfil
 
 [PlayerPortrait](PlayerPortrait.tsx) consome a classe atual (`ClassId | null`) e o
 nível já projetado. Não calcula nem persiste classe, XP, nível ou estágio. O
 mapeamento visual em [portraits.ts](portraits.ts) seleciona um dos
 [24 WebP originais](assets/portraits/README.md):
 
-| Nível atual | Estágio visual |
-| ----------- | -------------- |
-| 1–4         | 1 · Inicial    |
-| 5–9         | 2 · Experiente |
-| 10–19       | 3 · Avançado   |
-| 20+         | 4 · Elite      |
+| Nível atual | Estágio visual  |
+| ----------- | --------------- |
+| 1–4         | I · Inicial     |
+| 5–9         | II · Experiente |
+| 10–19       | III · Avançado  |
+| 20+         | IV · Elite      |
 
 Guerreiro, Estrategista, Guardião, Sábio e Mestre seguem seus IDs existentes.
 Classe nula usa **somente a arte** de Aventureiro; o domínio e o rótulo visível
 continuam “Sem classe definida”. Isso não reintroduz Aventureiro no catálogo.
-`character.avatar` é preservado e continua sendo usado na tela Perfil.
 
-`PlayerHeader.portrait` é um slot opcional: apenas a Visão geral injeta o novo
-retrato. A tela Perfil preserva o `CharacterAvatar` anterior. Nome, classe,
-nível, XP e Radar mantêm os mesmos dados e controles. As mudanças de props
-atualizam o retrato no mesmo render, sem estado duplicado ou efeitos de gravação.
+`PlayerHeader` renderiza o retrato nos dois contextos. `variant="profile"` amplia
+o retrato (`size="large"`, 136–184 px, moldura dupla grafite/carmesim) e recebe as
+ações da ficha; a Visão geral mantém o tamanho padrão (96–128 px). O avatar SVG
+antigo (`CharacterAvatar`) foi removido da interface. `character.avatar`
+continua nos registros, na validação e nas migrações, sem migração nova, para
+manter a compatibilidade com backups e versões anteriores.
 
-O contêiner reserva proporção 1:1 (96–128 px), com `object-fit: contain` e
+O contêiner reserva proporção 1:1, com `object-fit: contain` e
 `image-rendering: pixelated`; as dimensões intrínsecas são declaradas no `img`.
 O texto alternativo conserva “Avatar de {nome}”, acompanhado de descrição
 acessível da arte/estágio. O retrato visível usa carregamento imediato e
 decodificação assíncrona, sem animação ou requisição de imagem externa.
 
-Vite importa URLs dos arquivos WebP, não seus bytes para o JavaScript. Os 24
-arquivos somam 476,52 KiB e entram no precache existente da PWA; a troca de classe
-ou estágio funciona offline após a instalação desse cache. O prefixo
-`/life-rpg/` é aplicado automaticamente pelo build Pages. Não há nova dependência,
-migração ou alteração do ciclo de atualização do service worker.
+## Galeria de classes
+
+O botão **Explorar classes** (`ActionButton`, abaixo da classe e do nível na ficha
+do Perfil) abre `/perfil/classes`, “Classes do Life RPG”. Cada classe tem a rota
+`/perfil/classes/<classe>` (`aventureiro`, `guerreiro`, `estrategista`,
+`guardiao`, `sabio`, `mestre`). As rotas usam a navegação por URL existente
+(`pushState`, voltar do navegador, links diretos e o `404.html` do Pages sob
+`/life-rpg/`); a navegação principal mantém Perfil como página atual. Um nome
+desconhecido mostra a galeria.
+
+[ClassGallery](ClassGallery.tsx) é somente leitura:
+
+- A galeria mostra as seis classes com a carta do estágio do nível atual, nome,
+  pilar, indicação discreta da classe atual e “Ver detalhes”.
+- O detalhe mostra descrição, pilar, nível atual, as regras de classificação e as
+  quatro cartas. O estágio atual fica destacado, os anteriores aparecem como
+  “Alcançado” e os futuros como “Bloqueado”, com a arte visível. Selecionar uma
+  carta mostra nome, estágio, requisito de nível e situação.
+- A seleção da carta é estado local do componente. Não existe escolha manual de
+  classe, desbloqueio, XP por visualização ou gravação de dados.
+
+Os textos das regras vêm de [classCards.ts](classCards.ts), montados com
+`classCatalog` e `CLASS_RULES` (período, limites de Mestre e ordem de desempate).
+Mudanças nessas constantes atualizam a explicação. Aventureiro é descrito como
+representação visual para a ausência de classe, não como classe do sistema.
+
+As [24 cartas originais](assets/cards/README.md) somam 637,52 KiB e as 24 do
+retrato 476,52 KiB. Vite importa apenas URLs; os 48 WebP entram no precache
+existente da PWA e funcionam offline após a instalação. Cartas fora da área
+visível usam `loading="lazy"`. No celular, as quatro evoluções formam um
+carrossel com rolagem local (`scroll-snap`), sem alargar a página; a partir de
+640 px, uma grade de quatro colunas. Animações discretas são desligadas com
+`prefers-reduced-motion`. As cores de classe reutilizam os tokens dos pilares;
+Aventureiro e Mestre têm `--color-class-adventurer` e `--color-class-master`.
+Não há nova dependência, migração, alteração do IndexedDB ou do ciclo de
+atualização do service worker.
