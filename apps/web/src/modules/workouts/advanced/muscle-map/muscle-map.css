@@ -9,24 +9,21 @@
   color: var(--color-foreground);
   min-width: 0;
 }
+/* Effort scale: near-white -> light pink -> medium red -> strong red. */
 .muscle-tone-unknown {
-  --muscle-color: var(--color-muted);
+  --muscle-color: var(--color-muscle-unknown);
 }
 .muscle-tone-low {
-  --muscle-color: color-mix(
-    in srgb,
-    var(--color-primary-dark) 65%,
-    var(--color-surface)
-  );
+  --muscle-color: var(--color-muscle-effort-low);
 }
 .muscle-tone-moderate {
-  --muscle-color: var(--color-primary-dark);
+  --muscle-color: var(--color-muscle-effort-moderate);
 }
 .muscle-tone-high {
-  --muscle-color: var(--color-primary);
+  --muscle-color: var(--color-muscle-effort-high);
 }
 .muscle-tone-very-high {
-  --muscle-color: var(--color-action-hover-start);
+  --muscle-color: var(--color-muscle-effort-very-high);
 }
 .muscle-tone-ready {
   --muscle-color: var(--color-muscle-ready);
@@ -222,41 +219,44 @@
 .muscle-v2-base {
   filter: grayscale(1) brightness(0.7) contrast(1.15);
 }
-.muscle-v2-texture {
-  mix-blend-mode: soft-light;
-  opacity: 0.8;
-  pointer-events: none;
-  filter: grayscale(1) contrast(1.2);
-}
-.muscle-v2-color {
-  stop-color: var(--muscle-color);
-}
-.muscle-v2-shade {
-  stop-color: color-mix(
-    in srgb,
-    var(--muscle-color) 36%,
-    var(--color-background)
-  );
-}
+/* Solid fill: the region shows exactly the band color (no gradient,
+   opacity, blend or filter on the fill). The dark anatomical contour
+   separates neighbouring regions on every band, including near-white. */
 .muscle-v2-surface {
+  fill: var(--muscle-color);
   stroke: color-mix(in srgb, var(--color-background) 80%, var(--color-muted));
   stroke-width: 2;
   cursor: pointer;
-  transition: opacity 0.15s;
 }
 .muscle-v2-surface:hover {
   stroke: var(--color-focus);
   stroke-width: 4;
 }
+/* Adaptive double contour: a dark inner ring contrasts with light fills and
+   a light outer halo contrasts with dark fills and the dark stage. */
 .muscle-v2-surface[aria-pressed='true'],
 .muscle-v2-surface:focus-visible {
-  stroke: var(--color-foreground);
+  stroke: var(--color-background);
   stroke-width: 5;
-  filter: drop-shadow(0 0 6px var(--color-primary));
+  filter: drop-shadow(0 0 2px var(--color-foreground))
+    drop-shadow(0 0 6px var(--color-primary));
 }
 .muscle-v2-surface:focus-visible {
   outline: none;
   stroke-width: 8;
+}
+.muscle-v2-selection {
+  pointer-events: none;
+  fill: none;
+  stroke-linejoin: round;
+}
+.muscle-v2-selection-halo {
+  stroke: var(--color-background);
+  stroke-width: 12;
+}
+.muscle-v2-selection-line {
+  stroke: var(--color-foreground);
+  stroke-width: 4;
 }
 .muscle-v2-callout {
   pointer-events: none;
@@ -488,12 +488,10 @@
 .muscle-v2-swatch {
   width: 32px;
   height: 36px;
-  border: 1px solid var(--muscle-color);
+  border: 1px solid var(--muscle-edge);
   border-radius: var(--control-radius);
-  background: linear-gradient(
-    var(--muscle-color),
-    color-mix(in srgb, var(--muscle-color) 30%, var(--color-background))
-  );
+  /* Same solid color painted on the anatomy. */
+  background: var(--muscle-color);
 }
 .muscle-v2-announcement {
   font-size: 13px;
