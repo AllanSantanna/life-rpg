@@ -35,6 +35,6 @@ não se deve espelhá-las uma segunda vez.
 ## Limite visual
 
 As superfícies são contornos orgânicos amplos sobre bases detalhadas. Não contêm
-a microestrutura de fibras vermelhas da referência aprovada. Cores sólidas das
-faixas, contornos e seleção são renderizados pelo Life RPG. Não usamos
+a microestrutura de fibras vermelhas da referência aprovada. Sombras, textura de
+luminância, tons vermelhos e seleção são renderizados pelo Life RPG. Não usamos
 recorte do mockup, cenário de terceiros nem alegamos equivalência anatômica clínica.

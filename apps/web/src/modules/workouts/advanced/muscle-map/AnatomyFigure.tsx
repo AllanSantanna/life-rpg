@@ -63,6 +63,26 @@ export function AnatomyFigure({
               <path key={p.id} d={p.d} />
             ))}
           </clipPath>
+          {diagram.surfaces.map((surface) => {
+            const group = anatomicalGroups[surface.group];
+            const score = group ? (summaries[group]?.[mode] ?? null) : null;
+            const tone = metricTone(score, mode);
+            return (
+              <linearGradient
+                key={surface.id}
+                id={`${uid}-${surface.id}`}
+                x1="0"
+                y1="0"
+                x2="1"
+                y2="0"
+                className={`muscle-tone-${tone}`}
+              >
+                <stop offset="0" className="muscle-v2-shade" />
+                <stop offset=".42" className="muscle-v2-color" />
+                <stop offset="1" className="muscle-v2-shade" />
+              </linearGradient>
+            );
+          })}
         </defs>
         <image
           href={diagram.image}
@@ -95,7 +115,8 @@ export function AnatomyFigure({
               data-surface={surface.id}
               data-group={group ?? 'unmapped'}
               data-tone={tone}
-              className={`muscle-v2-surface muscle-tone-${tone}`}
+              fill={`url(#${uid}-${surface.id})`}
+              className="muscle-v2-surface"
               role="button"
               tabIndex={0}
               aria-pressed={selected}
@@ -118,6 +139,16 @@ export function AnatomyFigure({
             </path>
           );
         })}
+        <image
+          href={diagram.image}
+          x="0"
+          y="0"
+          width="1024"
+          height="1536"
+          clipPath={`url(#${uid}-body)`}
+          className="muscle-v2-texture"
+          aria-hidden="true"
+        />
         {active && (
           // Drawn above neighbouring regions so the whole contour stays visible.
           <g className="muscle-v2-selection" aria-hidden="true">

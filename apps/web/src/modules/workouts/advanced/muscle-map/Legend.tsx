@@ -11,6 +11,7 @@ const recoveryScale: [Tone, string][] = [
   ['tired', '50–69%'],
   ['fatigued', '< 50%'],
 ];
+const unknown: [Tone, string] = ['unknown', 'Sem dados suficientes'];
 export function Legend({ mode }: { mode: MapMode }) {
   return (
     <div
@@ -21,10 +22,11 @@ export function Legend({ mode }: { mode: MapMode }) {
         {mode === 'effort' ? 'Esforço relativo' : 'Recuperação estimada'}
       </strong>
       <ul>
-        {[
-          ...(mode === 'effort' ? effortScale : recoveryScale),
-          ['unknown', 'Sem dados suficientes'] as [Tone, string],
-        ].map(([tone, range]) => (
+        {(mode === 'effort'
+          ? // Effort reads from grey (no data) through light to dark red.
+            [unknown, ...effortScale]
+          : [...recoveryScale, unknown]
+        ).map(([tone, range]) => (
           <li key={tone}>
             <span
               className={`muscle-v2-swatch muscle-tone-${tone}`}

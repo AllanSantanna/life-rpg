@@ -6,36 +6,53 @@ import fs from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-/** Official effort scale (docs/design-system/colors.md), ordered low → very high. */
-export const effortScale = {
-  low: 'rgb(255, 241, 241)',
-  moderate: 'rgb(255, 179, 179)',
-  high: 'rgb(255, 92, 92)',
-  'very-high': 'rgb(224, 25, 25)',
-  unknown: 'rgb(138, 138, 138)',
+/** Parses computed colors as `rgb(...)` or `color(srgb r g b)` into 0–255. */
+const channels = (color) => {
+  const values = color
+    .match(/[\d.]+/g)
+    .map(Number)
+    .slice(0, 3);
+  return color.startsWith('color(') ? values.map((v) => v * 255) : values;
 };
-/** Computed fills in the browser: band color on both views, legend parity,
- * decreasing luminance and a visible selection contour. */
-export async function auditEffortScale({ map, width, check }) {
+const luminance = (color) =>
+  channels(color)
+    .map((c) => c / 255)
+    .map((c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4))
+    .reduce((sum, c, i) => sum + c * [0.2126, 0.7152, 0.0722][i], 0);
+/** Original palette (e7b7b83): each region is a shaded gradient whose central
+ * stop matches the legend swatch of the same tone, with the anatomical
+ * texture on top; the selection keeps the double contour. */
+export async function auditPalette({ map, width, check, mode }) {
   const state = await map.evaluate((root) => {
     const regions = [...root.querySelectorAll('[data-surface]')].map((el) => {
-      const style = getComputedStyle(el);
+      const id = el.getAttribute('fill').slice(5, -1);
+      const gradient = document.getElementById(id);
+      const stops = [...gradient.querySelectorAll('stop')].map(
+        (stop) => getComputedStyle(stop).stopColor,
+      );
       return {
         tone: el.dataset.tone,
         group: el.dataset.group,
-        fill: style.fill,
-        opacity: style.opacity,
-        fillOpacity: style.fillOpacity,
-        blend: style.mixBlendMode,
+        gradientTone: /muscle-tone-([\w-]+)/.exec(
+          gradient.getAttribute('class'),
+        )[1],
+        stops,
       };
     });
-    const legend = [
-      ...root.querySelectorAll('.muscle-v2-legend .muscle-v2-swatch'),
-    ].map((el) => ({
-      tone: /muscle-tone-([\w-]+)/.exec(el.className)[1],
-      color: getComputedStyle(el).backgroundColor,
-      image: getComputedStyle(el).backgroundImage,
-    }));
+    const legend = Object.fromEntries(
+      [...root.querySelectorAll('.muscle-v2-legend .muscle-v2-swatch')].map(
+        (el) => [
+          /muscle-tone-([\w-]+)/.exec(el.className)[1],
+          {
+            border: getComputedStyle(el).borderTopColor,
+            image: getComputedStyle(el).backgroundImage,
+          },
+        ],
+      ),
+    );
+    const textures = [...root.querySelectorAll('.muscle-v2-texture')].map(
+      (el) => getComputedStyle(el).mixBlendMode,
+    );
     const selection = [...root.querySelectorAll('.muscle-v2-selection')].map(
       (el) => ({
         halo: getComputedStyle(el.querySelector('.muscle-v2-selection-halo'))
@@ -44,60 +61,67 @@ export async function auditEffortScale({ map, width, check }) {
           .stroke,
       }),
     );
-    return { regions, legend, selection };
+    return { regions, legend, textures, selection };
   });
   const wrong = state.regions.filter(
     (r) =>
-      r.fill !== effortScale[r.tone] ||
-      r.opacity !== '1' ||
-      r.fillOpacity !== '1' ||
-      r.blend !== 'normal',
+      r.gradientTone !== r.tone ||
+      r.stops.length !== 3 ||
+      r.stops[0] === r.stops[1] ||
+      !state.legend[r.tone] ||
+      state.legend[r.tone].border !== r.stops[1],
   );
   check(
     !wrong.length,
-    'muscle-scale-fill',
+    `muscle-palette-${mode}`,
     width,
-    `Regiões fora da cor da faixa: ${JSON.stringify(wrong.slice(0, 3))}`,
+    `Regiões fora da paleta/legenda: ${JSON.stringify(wrong.slice(0, 3))}`,
   );
   const groups = new Map();
   for (const r of state.regions)
-    groups.set(r.group, (groups.get(r.group) ?? new Set()).add(r.fill));
+    groups.set(r.group, (groups.get(r.group) ?? new Set()).add(r.stops[1]));
   check(
-    [...groups.values()].every((fills) => fills.size === 1),
-    'muscle-scale-views',
+    [...groups.values()].every((colors) => colors.size === 1),
+    `muscle-palette-views-${mode}`,
     width,
     'Mesmo grupo com cores diferentes entre vistas',
   );
   check(
-    JSON.stringify(state.legend.map((l) => l.tone)) ===
-      JSON.stringify(Object.keys(effortScale)) &&
-      state.legend.every(
-        (l) => l.color === effortScale[l.tone] && l.image === 'none',
-      ),
-    'muscle-scale-legend',
+    Object.values(state.legend).every((l) =>
+      l.image.startsWith('linear-gradient'),
+    ),
+    `muscle-palette-legend-${mode}`,
     width,
-    `Legenda difere do mapa: ${JSON.stringify(state.legend)}`,
-  );
-  const luminance = (rgb) =>
-    rgb
-      .match(/[\d.]+/g)
-      .map(Number)
-      .map((c) => c / 255)
-      .map((c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4))
-      .reduce((sum, c, i) => sum + c * [0.2126, 0.7152, 0.0722][i], 0);
-  const order = ['low', 'moderate', 'high', 'very-high'].map((tone) =>
-    luminance(effortScale[tone]),
+    'Legenda sem o gradiente original',
   );
   check(
-    order.every((value, i) => i === 0 || value < order[i - 1]),
-    'muscle-scale-order',
+    state.textures.length === 2 &&
+      state.textures.every((blend) => blend === 'soft-light'),
+    `muscle-palette-texture-${mode}`,
     width,
-    'Escala não progride do claro ao escuro',
+    `Textura anatômica ausente: ${state.textures}`,
   );
+  if (mode === 'effort') {
+    const order = ['low', 'moderate', 'high', 'very-high'].map((tone) =>
+      luminance(state.legend[tone].border),
+    );
+    const legendOrder = await map
+      .locator('.muscle-v2-legend .muscle-v2-swatch')
+      .evaluateAll((els) =>
+        els.map((el) => /muscle-tone-([\w-]+)/.exec(el.className)[1]),
+      );
+    check(
+      order.every((value, i) => i === 0 || value < order[i - 1]) &&
+        legendOrder.join() === 'unknown,low,moderate,high,very-high',
+      'muscle-palette-order',
+      width,
+      `Esforço não vai do cinza ao claro e ao escuro: ${legendOrder}`,
+    );
+  }
   check(
     state.selection.length === 1 &&
       state.selection[0].halo !== state.selection[0].line,
-    'muscle-scale-selection',
+    `muscle-palette-selection-${mode}`,
     width,
     `Contorno duplo de seleção ausente: ${JSON.stringify(state.selection)}`,
   );
@@ -125,16 +149,21 @@ export async function auditMuscleMap({ page, width, capture, check }) {
     width,
     'Seleção por Enter falhou',
   );
-  const firstFill = await first.evaluate((el) => getComputedStyle(el).fill);
+  const firstFill = await first.evaluate((el) => {
+    const id = el.getAttribute('fill').slice(5, -1);
+    return getComputedStyle(
+      document.getElementById(id).querySelector('.muscle-v2-color'),
+    ).stopColor;
+  });
   // Mapped known effort surfaces must remain in the red family; unknown is neutral.
-  const [r, g, b] = firstFill.match(/[\d.]+/g).map(Number);
+  const [r, g, b] = channels(firstFill);
   check(
     r > g && r > b,
     'muscle-red',
     width,
     `Esforço saiu da escala vermelha: ${firstFill}`,
   );
-  await auditEffortScale({ map, width, check });
+  await auditPalette({ map, width, check, mode: 'effort' });
   await capture(page, 'muscle-effort', width);
   await map.getByRole('tab', { name: 'Recuperação', exact: true }).click();
   check(
@@ -149,6 +178,7 @@ export async function auditMuscleMap({ page, width, capture, check }) {
     width,
     'Legenda ausente',
   );
+  await auditPalette({ map, width, check, mode: 'recovery' });
   await capture(page, 'muscle-recovery', width);
   const back = map
     .getByRole('group', { name: 'Mapa muscular · visão traseira' })

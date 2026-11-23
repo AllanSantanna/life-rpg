@@ -9,21 +9,25 @@
   color: var(--color-foreground);
   min-width: 0;
 }
-/* Effort scale: near-white -> light pink -> medium red -> strong red. */
 .muscle-tone-unknown {
-  --muscle-color: var(--color-muscle-unknown);
+  --muscle-color: var(--color-muted);
 }
+/* Effort goes from the grey of "unknown" to dark red: lighter = lower. */
 .muscle-tone-low {
-  --muscle-color: var(--color-muscle-effort-low);
+  --muscle-color: color-mix(
+    in srgb,
+    var(--color-focus) 55%,
+    var(--color-muted)
+  );
 }
 .muscle-tone-moderate {
-  --muscle-color: var(--color-muscle-effort-moderate);
+  --muscle-color: var(--color-workouts);
 }
 .muscle-tone-high {
-  --muscle-color: var(--color-muscle-effort-high);
+  --muscle-color: var(--color-primary);
 }
 .muscle-tone-very-high {
-  --muscle-color: var(--color-muscle-effort-very-high);
+  --muscle-color: var(--color-action-end);
 }
 .muscle-tone-ready {
   --muscle-color: var(--color-muscle-ready);
@@ -219,21 +223,34 @@
 .muscle-v2-base {
   filter: grayscale(1) brightness(0.7) contrast(1.15);
 }
-/* Solid fill: the region shows exactly the band color (no gradient,
-   opacity, blend or filter on the fill). The dark anatomical contour
-   separates neighbouring regions on every band, including near-white. */
+.muscle-v2-texture {
+  mix-blend-mode: soft-light;
+  opacity: 0.8;
+  pointer-events: none;
+  filter: grayscale(1) contrast(1.2);
+}
+.muscle-v2-color {
+  stop-color: var(--muscle-color);
+}
+.muscle-v2-shade {
+  stop-color: color-mix(
+    in srgb,
+    var(--muscle-color) 36%,
+    var(--color-background)
+  );
+}
 .muscle-v2-surface {
-  fill: var(--muscle-color);
   stroke: color-mix(in srgb, var(--color-background) 80%, var(--color-muted));
   stroke-width: 2;
   cursor: pointer;
+  transition: opacity 0.15s;
 }
 .muscle-v2-surface:hover {
   stroke: var(--color-focus);
   stroke-width: 4;
 }
-/* Adaptive double contour: a dark inner ring contrasts with light fills and
-   a light outer halo contrasts with dark fills and the dark stage. */
+/* Current selection contour (kept over the original palette): a dark inner
+   ring and a light outer halo stay visible on dark, red and grey fills. */
 .muscle-v2-surface[aria-pressed='true'],
 .muscle-v2-surface:focus-visible {
   stroke: var(--color-background);
@@ -488,10 +505,12 @@
 .muscle-v2-swatch {
   width: 32px;
   height: 36px;
-  border: 1px solid var(--muscle-edge);
+  border: 1px solid var(--muscle-color);
   border-radius: var(--control-radius);
-  /* Same solid color painted on the anatomy. */
-  background: var(--muscle-color);
+  background: linear-gradient(
+    var(--muscle-color),
+    color-mix(in srgb, var(--muscle-color) 30%, var(--color-background))
+  );
 }
 .muscle-v2-announcement {
   font-size: 13px;

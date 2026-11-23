@@ -23,11 +23,17 @@ const read = (path: string) =>
 const theme = read('../../../../shared/styles/index.css');
 const mapCss = read('./muscle-map.css');
 const effortTones = ['low', 'moderate', 'high', 'very-high'] as const;
-const expected = {
-  low: '#fff1f1',
-  moderate: '#ffb3b3',
-  high: '#ff5c5c',
-  'very-high': '#e01919',
+// Paleta do mapa: recuperação original (e7b7b83); esforço do cinza ao vermelho escuro.
+const palette: Record<string, string> = {
+  unknown: 'var(--color-muted)',
+  low: 'color-mix(in srgb, var(--color-focus) 55%, var(--color-muted))',
+  moderate: 'var(--color-workouts)',
+  high: 'var(--color-primary)',
+  'very-high': 'var(--color-action-end)',
+  ready: 'var(--color-muscle-ready)',
+  recovering: 'var(--color-muscle-recovering)',
+  tired: 'var(--color-muscle-tired)',
+  fatigued: 'var(--color-primary)',
 };
 
 function token(name: string) {
@@ -35,12 +41,19 @@ function token(name: string) {
 }
 function rule(selector: string) {
   const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  return new RegExp(`(?:^|\\n)${escaped}\\s*\\{([^}]*)\\}`).exec(mapCss)?.[1];
+  return new RegExp(`(?:^|\\n)${escaped}\\s*\\{([^}]*)\\}`)
+    .exec(mapCss)?.[1]
+    ?.replace(/\s+/g, ' ')
+    .replace(/\( /g, '(')
+    .replace(/ \)/g, ')');
 }
-function luminance(hex: string) {
-  return [1, 3, 5]
-    .map((i) => {
-      const c = parseInt(hex.slice(i, i + 2), 16) / 255;
+function hex(color: string) {
+  return [1, 3, 5].map((i) => parseInt(color.slice(i, i + 2), 16));
+}
+function luminance([r, g, b]: number[]) {
+  return [r!, g!, b!]
+    .map((v) => {
+      const c = v / 255;
       return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
     })
     .reduce((sum, c, i) => sum + c * [0.2126, 0.7152, 0.0722][i]!, 0);
@@ -74,42 +87,65 @@ function surfaces(view: 'frontal' | 'traseira') {
 }
 
 describe('escala de cores do esforço relativo', () => {
-  it('define as cores oficiais da escala e do indeterminado como tokens do tema', () => {
-    for (const tone of effortTones)
-      expect(token(`--color-muscle-effort-${tone}`)).toBe(expected[tone]);
-    expect(token('--color-muscle-unknown')).toBe('#8a8a8a');
-    for (const tone of effortTones)
-      expect(rule(`.muscle-tone-${tone}`)).toContain(
-        `var(--color-muscle-effort-${tone})`,
-      );
-    expect(rule('.muscle-tone-unknown')).toContain(
-      'var(--color-muscle-unknown)',
-    );
+  it('usa tokens existentes nos dois modos, com classes separadas por modo', () => {
+    for (const [tone, color] of Object.entries(palette))
+      expect(rule(`.muscle-tone-${tone}`)).toBe(` --muscle-color: ${color}; `);
+    expect(token('--color-focus')).toBe('#fca5a5');
+    expect(token('--color-workouts')).toBe('#ed8989');
+    expect(token('--color-primary')).toBe('#dc2626');
+    expect(token('--color-action-end')).toBe('#a61920');
+    expect(token('--color-muted')).toBe('#a3a3a3');
+    expect(token('--color-muscle-ready')).toBe('#22c55e');
+    expect(token('--color-muscle-recovering')).toBe('#eab308');
+    expect(token('--color-muscle-tired')).toBe('#f97316');
+    expect(theme).not.toMatch(/--color-muscle-effort-|--color-muscle-unknown/);
   });
 
-  it('ordena a escala do quase branco ao vermelho forte', () => {
-    const values = effortTones.map((tone) => luminance(expected[tone]));
+  it('parte do cinza e vai do mais claro ao mais escuro no esforço', () => {
+    const [focus, muted] = [hex('#fca5a5'), hex('#a3a3a3')];
+    const low = focus.map((c, i) => c * 0.55 + muted[i]! * 0.45);
+    const values = [low, hex('#ed8989'), hex('#dc2626'), hex('#a61920')].map(
+      luminance,
+    );
     for (let i = 1; i < values.length; i++)
       expect(values[i]).toBeLessThan(values[i - 1]!);
+    // Baixo é um rosa acinzentado mais claro que o cinza indeterminado.
+    expect(values[0]).toBeGreaterThan(luminance(muted));
   });
 
-  it('pinta as regiões com a cor sólida da faixa, sem gradiente, mescla ou textura', () => {
-    const surface = rule('.muscle-v2-surface');
-    expect(surface).toContain('fill: var(--muscle-color)');
-    expect(surface).not.toMatch(/opacity|filter|mix-blend-mode|gradient/);
-    expect(mapCss).not.toMatch(/mix-blend-mode/);
-    expect(rule('.muscle-v2-swatch')).toMatch(
-      /background:\s*var\(--muscle-color\)/,
+  it('restaura gradientes, sombras e textura anatômica das regiões e da legenda', () => {
+    expect(rule('.muscle-v2-color')).toBe(' stop-color: var(--muscle-color); ');
+    expect(rule('.muscle-v2-shade')).toContain(
+      'color-mix(in srgb, var(--muscle-color) 36%, var(--color-background))',
+    );
+    expect(rule('.muscle-v2-texture')).toContain('mix-blend-mode: soft-light');
+    expect(rule('.muscle-v2-texture')).toContain('opacity: 0.8');
+    expect(rule('.muscle-v2-surface')).not.toMatch(/(^|[ ;])fill:/);
+    expect(rule('.muscle-v2-swatch')).toContain(
+      'linear-gradient(var(--muscle-color), color-mix(in srgb, var(--muscle-color) 30%, var(--color-background)))',
     );
     const { container } = render(
       <MuscleMap sessions={sessions} today={today} period="week" />,
     );
-    fireEvent.click(screen.getByRole('tab', { name: 'Esforço' }));
-    expect(container.querySelector('.muscle-v2 linearGradient')).toBeNull();
-    expect(container.querySelector('.muscle-v2-texture')).toBeNull();
-    for (const path of [...surfaces('frontal'), ...surfaces('traseira')]) {
-      expect(path).not.toHaveAttribute('fill');
-      expect(path).not.toHaveAttribute('opacity');
+    for (const mode of ['Esforço', 'Recuperação']) {
+      fireEvent.click(screen.getByRole('tab', { name: mode }));
+      for (const view of ['frontal', 'traseira'] as const) {
+        const group = screen.getByRole('group', {
+          name: `Mapa muscular · visão ${view}`,
+        });
+        expect(group.querySelectorAll('.muscle-v2-texture')).toHaveLength(1);
+        for (const path of surfaces(view)) {
+          const id = /^url\(#(.+)\)$/.exec(path.getAttribute('fill')!)![1]!;
+          const gradient = container.querySelector(`[id="${id}"]`)!;
+          expect(gradient.tagName).toBe('linearGradient');
+          expect(gradient).toHaveClass(`muscle-tone-${path.dataset.tone}`);
+          expect(
+            [...gradient.querySelectorAll('stop')].map(
+              (stop) => stop.className.baseVal,
+            ),
+          ).toEqual(['muscle-v2-shade', 'muscle-v2-color', 'muscle-v2-shade']);
+        }
+      }
     }
   });
 
@@ -122,7 +158,6 @@ describe('escala de cores do esforço relativo', () => {
       const tone = path.dataset.tone!;
       const score = /: (\d+)%/.exec(path.getAttribute('aria-label')!)?.[1];
       expect(tone).toBe(metricTone(score ? Number(score) : null, 'effort'));
-      expect(path).toHaveClass(`muscle-tone-${tone}`);
       seen.add(tone);
       const group = path.dataset.group!;
       byGroup.set(group, (byGroup.get(group) ?? new Set()).add(tone));
@@ -142,11 +177,11 @@ describe('escala de cores do esforço relativo', () => {
     const legend = screen.getByLabelText('Legenda de esforço');
     const items = within(legend).getAllByRole('listitem');
     expect(items.map((li) => li.textContent)).toEqual([
+      'IndeterminadoSem dados suficientes',
       'Baixo1–24%',
       'Moderado25–49%',
       'Alto50–74%',
       'Muito alto75–100%',
-      'IndeterminadoSem dados suficientes',
     ]);
     const swatchTones = items.map(
       (li) =>
@@ -154,7 +189,7 @@ describe('escala de cores do esforço relativo', () => {
           li.querySelector('.muscle-v2-swatch')!.getAttribute('class')!,
         )![1],
     );
-    expect(swatchTones).toEqual([...effortTones, 'unknown']);
+    expect(swatchTones).toEqual(['unknown', ...effortTones]);
     const mapTones = new Set(surfaces('frontal').map((p) => p.dataset.tone));
     for (const tone of mapTones) expect(swatchTones).toContain(tone);
   });
