@@ -1,0 +1,1725 @@
+{
+  "$schema": "Life RPG achievement assets manifest",
+  "version": 1,
+  "basePath": "/assets/achievements/",
+  "generatedBy": "scripts/achievement-assets/build-manifest.mjs",
+  "statuses": {
+    "ready": "Recorte limpo, validado e pronto.",
+    "review": "Utilizável, mas exige avaliação visual.",
+    "regenerate": "Não foi possível obter qualidade aceitável."
+  },
+  "source": {
+    "file": "previews/source-sheet.png",
+    "width": 1536,
+    "height": 1024,
+    "sha256": "68f38e5a6595f8f3d9fc57be2b85ad5032c32bd6b81536bfbd74323c20b092db"
+  },
+  "rarityPalette": {
+    "common": "#8B6A4A",
+    "uncommon": "#2E7D32",
+    "rare": "#2563EB",
+    "epic": "#7C3AED",
+    "legendary": "#D4AF37"
+  },
+  "summary": { "total": 55, "ready": 35, "review": 20, "regenerate": 0 },
+  "notExtracted": [
+    {
+      "element": "Logotipo \"LIFE RPG\" com espada",
+      "reason": "Elemento de apresentação da prancha; a marca oficial já existe em apps/web/public/icons."
+    },
+    {
+      "element": "Botão \"Pacote Completo (PNG)\" e títulos das seções",
+      "reason": "Texto de apresentação."
+    },
+    {
+      "element": "Paleta de raridades (cinco amostras)",
+      "reason": "Referência de cor, não ilustração; os valores ficam registrados em manifest.json."
+    },
+    {
+      "element": "Castelo com lua vermelha (canto inferior direito)",
+      "reason": "Cenário pintado sobre o fundo e a borda do painel, sem contorno separável; exigiria geração individual."
+    }
+  ],
+  "assets": [
+    {
+      "id": "frame-common",
+      "name": "Moldura Comum",
+      "category": "frames",
+      "rarity": "common",
+      "pillar": null,
+      "width": 145,
+      "height": 145,
+      "status": "ready",
+      "notes": [
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "frames/frame-common.webp",
+          "bytes": 7506,
+          "sha256": "c9eb858f3a575c86490e3d9aa5e8d2bd135a1847de10c9d13223fb6d682e835a"
+        },
+        "png": {
+          "path": "frames/frame-common.png",
+          "bytes": 19909,
+          "sha256": "28f2c82519883f7325ce3b0cc3948c7528aa644c7435b275847d67a74bfb1670"
+        }
+      },
+      "source": {
+        "label": "frame_common.png",
+        "rect": { "x": 43, "y": 95, "width": 129, "height": 127 },
+        "mode": "object"
+      }
+    },
+    {
+      "id": "frame-uncommon",
+      "name": "Moldura Incomum",
+      "category": "frames",
+      "rarity": "uncommon",
+      "pillar": null,
+      "width": 149,
+      "height": 149,
+      "status": "ready",
+      "notes": [
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "frames/frame-uncommon.webp",
+          "bytes": 7332,
+          "sha256": "f4d49f1863b8777fb3ad7c679a0b05defd3b48f7a26b51defc194d3dccaacc39"
+        },
+        "png": {
+          "path": "frames/frame-uncommon.png",
+          "bytes": 21927,
+          "sha256": "6714d7d84d17b1853a582221d502ff896e91e4421e2a0733a8c74b830c38a476"
+        }
+      },
+      "source": {
+        "label": "frame_uncommon.png",
+        "rect": { "x": 202, "y": 91, "width": 129, "height": 133 },
+        "mode": "object"
+      }
+    },
+    {
+      "id": "frame-rare",
+      "name": "Moldura Rara",
+      "category": "frames",
+      "rarity": "rare",
+      "pillar": null,
+      "width": 154,
+      "height": 154,
+      "status": "ready",
+      "notes": [
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "frames/frame-rare.webp",
+          "bytes": 9030,
+          "sha256": "a620b5fa6c4062bd72bed764126ccda0b7983c8701cb6d6dd0d0155521c88600"
+        },
+        "png": {
+          "path": "frames/frame-rare.png",
+          "bytes": 27371,
+          "sha256": "35d84f3c5e2bf2e49d81e46363de7818dbbc50f7acf22bae01854bcd8fc2ad95"
+        }
+      },
+      "source": {
+        "label": "frame_rare.png",
+        "rect": { "x": 355, "y": 87, "width": 135, "height": 138 },
+        "mode": "object"
+      }
+    },
+    {
+      "id": "frame-epic",
+      "name": "Moldura Épica",
+      "category": "frames",
+      "rarity": "epic",
+      "pillar": null,
+      "width": 163,
+      "height": 163,
+      "status": "review",
+      "notes": [
+        "Halo leve do brilho original da prancha, visível sobre fundos claros; sem impacto sobre os fundos escuros do Life RPG.",
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "frames/frame-epic.webp",
+          "bytes": 9714,
+          "sha256": "44f3bf5e9366782294a6212903c55dc1a890ec5ddc08d009ec9565cf50ed955b"
+        },
+        "png": {
+          "path": "frames/frame-epic.png",
+          "bytes": 29521,
+          "sha256": "e2aa3111c9d7f81064188142d90377a7e7246a2852807c1ee0207f2423d2e0f3"
+        }
+      },
+      "source": {
+        "label": "frame_epic.png",
+        "rect": { "x": 508, "y": 81, "width": 139, "height": 145 },
+        "mode": "object"
+      }
+    },
+    {
+      "id": "frame-legendary",
+      "name": "Moldura Lendária",
+      "category": "frames",
+      "rarity": "legendary",
+      "pillar": null,
+      "width": 160,
+      "height": 160,
+      "status": "review",
+      "notes": [
+        "Halo leve do brilho original da prancha, visível sobre fundos claros; sem impacto sobre os fundos escuros do Life RPG.",
+        "Resquício tênue do reflexo interno junto à gema inferior.",
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "frames/frame-legendary.webp",
+          "bytes": 10142,
+          "sha256": "dd5e13d6836a3e02c22bd47a4948d609ad36d8d73c208018001082230247581c"
+        },
+        "png": {
+          "path": "frames/frame-legendary.png",
+          "bytes": 29776,
+          "sha256": "f784ce74f25f686f1f95f14c0f6aa5a47bc6f5ed2455461170a491f067ee7a57"
+        }
+      },
+      "source": {
+        "label": "frame_legendary.png",
+        "rect": { "x": 665, "y": 83, "width": 139, "height": 142 },
+        "mode": "object"
+      }
+    },
+    {
+      "id": "badge-common",
+      "name": "Medalha Comum",
+      "category": "badges",
+      "rarity": "common",
+      "pillar": null,
+      "width": 127,
+      "height": 127,
+      "status": "ready",
+      "notes": [
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "badges/badge-common.webp",
+          "bytes": 5530,
+          "sha256": "35813d45f50b8d43f3cc62c41ea52bacbc451727e1b8a6fd2934abe6b3a29236"
+        },
+        "png": {
+          "path": "badges/badge-common.png",
+          "bytes": 21612,
+          "sha256": "b86271de3dbb583394c3f38358c3015b6a8bbcbf5b665ff73341f2f1b180724d"
+        }
+      },
+      "source": {
+        "label": "badge_common.png",
+        "rect": { "x": 879, "y": 101, "width": 97, "height": 113 },
+        "mode": "object"
+      }
+    },
+    {
+      "id": "badge-uncommon",
+      "name": "Medalha Incomum",
+      "category": "badges",
+      "rarity": "uncommon",
+      "pillar": null,
+      "width": 129,
+      "height": 129,
+      "status": "ready",
+      "notes": [
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "badges/badge-uncommon.webp",
+          "bytes": 5156,
+          "sha256": "3cb18d57f89584a4b9a16999c1f59d3033e2391fd9722afd61b1243091a88335"
+        },
+        "png": {
+          "path": "badges/badge-uncommon.png",
+          "bytes": 21661,
+          "sha256": "7f550452a6bf6272c918ccf1c7f620d0c6e7a96dabe006dfb8f0801ddcdf28b6"
+        }
+      },
+      "source": {
+        "label": "badge_uncommon.png",
+        "rect": { "x": 1009, "y": 99, "width": 98, "height": 115 },
+        "mode": "object"
+      }
+    },
+    {
+      "id": "badge-rare",
+      "name": "Medalha Rara",
+      "category": "badges",
+      "rarity": "rare",
+      "pillar": null,
+      "width": 141,
+      "height": 141,
+      "status": "ready",
+      "notes": [
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "badges/badge-rare.webp",
+          "bytes": 7552,
+          "sha256": "b35496878e71dccaadf28841222511c1a79c93146c19aed58531e95919a1deb6"
+        },
+        "png": {
+          "path": "badges/badge-rare.png",
+          "bytes": 28903,
+          "sha256": "7fa5c0b33a1b0920b4a397ca386a901bdac14569f7b45fb81a8430499c7583ce"
+        }
+      },
+      "source": {
+        "label": "badge_rare.png",
+        "rect": { "x": 1133, "y": 94, "width": 116, "height": 125 },
+        "mode": "object"
+      }
+    },
+    {
+      "id": "badge-epic",
+      "name": "Medalha Épica",
+      "category": "badges",
+      "rarity": "epic",
+      "pillar": null,
+      "width": 151,
+      "height": 151,
+      "status": "review",
+      "notes": [
+        "Halo leve do brilho original da prancha, visível sobre fundos claros; sem impacto sobre os fundos escuros do Life RPG.",
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "badges/badge-epic.webp",
+          "bytes": 8680,
+          "sha256": "4a174e26716438f184ac5062166d21fee0e383ca1c7867e9c500db1656552cba"
+        },
+        "png": {
+          "path": "badges/badge-epic.png",
+          "bytes": 34095,
+          "sha256": "cc92c574aaedfb01b9dc3fc925bb07e4a2ba89018744d57e595e480ed7d488a1"
+        }
+      },
+      "source": {
+        "label": "badge_epic.png",
+        "rect": { "x": 1262, "y": 83, "width": 124, "height": 135 },
+        "mode": "object"
+      }
+    },
+    {
+      "id": "badge-legendary",
+      "name": "Medalha Lendária",
+      "category": "badges",
+      "rarity": "legendary",
+      "pillar": null,
+      "width": 147,
+      "height": 147,
+      "status": "review",
+      "notes": [
+        "Halo leve do brilho original da prancha, visível sobre fundos claros; sem impacto sobre os fundos escuros do Life RPG.",
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "badges/badge-legendary.webp",
+          "bytes": 8914,
+          "sha256": "84ac82a6c52b57dbb84635b0e2a8ab20a313bbd81d3853c958b6651e31ad6576"
+        },
+        "png": {
+          "path": "badges/badge-legendary.png",
+          "bytes": 31984,
+          "sha256": "0ec4ccb380db7551c8f5c8dcd2d7cb629d92db2cf65bc9a195885fa256a3ecf4"
+        }
+      },
+      "source": {
+        "label": "badge_legendary.png",
+        "rect": { "x": 1398, "y": 86, "width": 123, "height": 131 },
+        "mode": "object"
+      }
+    },
+    {
+      "id": "icon-training",
+      "name": "Ícone Treinos",
+      "category": "icons",
+      "rarity": null,
+      "pillar": "training",
+      "width": 131,
+      "height": 131,
+      "status": "ready",
+      "notes": [
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "icons/icon-training.webp",
+          "bytes": 5292,
+          "sha256": "9df4f1c547129a21ae73ce72f1f4027fa33865fd4e73358746827a3560069523"
+        },
+        "png": {
+          "path": "icons/icon-training.png",
+          "bytes": 18228,
+          "sha256": "5df98a8d80f919d2bc2a8274c9a215b781c87d4e3357113ed6991a54c06bb121"
+        }
+      },
+      "source": {
+        "label": "icon_training.png",
+        "rect": { "x": 46, "y": 297, "width": 117, "height": 96 },
+        "mode": "object"
+      }
+    },
+    {
+      "id": "icon-knowledge",
+      "name": "Ícone Conhecimento",
+      "category": "icons",
+      "rarity": null,
+      "pillar": "knowledge",
+      "width": 131,
+      "height": 131,
+      "status": "ready",
+      "notes": [
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "icons/icon-knowledge.webp",
+          "bytes": 6154,
+          "sha256": "9d2c309ae23bf64282647071e8745dba6bb94e2cba1a2a8bf885145d22106980"
+        },
+        "png": {
+          "path": "icons/icon-knowledge.png",
+          "bytes": 20802,
+          "sha256": "39101019b04d56444c252d227da0f03b9dfceadae8e11ad19fa11e7a142bbc90"
+        }
+      },
+      "source": {
+        "label": "icon_knowledge.png",
+        "rect": { "x": 199, "y": 296, "width": 117, "height": 97 },
+        "mode": "object"
+      }
+    },
+    {
+      "id": "icon-finances",
+      "name": "Ícone Finanças",
+      "category": "icons",
+      "rarity": null,
+      "pillar": "finances",
+      "width": 127,
+      "height": 127,
+      "status": "ready",
+      "notes": [
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "icons/icon-finances.webp",
+          "bytes": 5822,
+          "sha256": "00b1598e2cdfbadd665553c1cf1538718e5dce657f240d710cb805d9a4dbe8a6"
+        },
+        "png": {
+          "path": "icons/icon-finances.png",
+          "bytes": 19580,
+          "sha256": "0dd1dce2067b5fe2ff0da9c827ba95849c64dcb723d476bd71f6e17bc96de12f"
+        }
+      },
+      "source": {
+        "label": "icon_finance.png",
+        "rect": { "x": 341, "y": 296, "width": 113, "height": 97 },
+        "mode": "object"
+      }
+    },
+    {
+      "id": "icon-rest",
+      "name": "Ícone Descanso",
+      "category": "icons",
+      "rarity": null,
+      "pillar": "rest",
+      "width": 130,
+      "height": 130,
+      "status": "ready",
+      "notes": [
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "icons/icon-rest.webp",
+          "bytes": 5724,
+          "sha256": "9545ce871cc8e4d16629096a1ca79997065df097b383f0f9d09e39e9a5a45004"
+        },
+        "png": {
+          "path": "icons/icon-rest.png",
+          "bytes": 20214,
+          "sha256": "1460560f4e40dc57a6661affcd5cfbad3ab3fb70283688c90d46dab30a2fad80"
+        }
+      },
+      "source": {
+        "label": "icon_rest.png",
+        "rect": { "x": 477, "y": 296, "width": 116, "height": 98 },
+        "mode": "object"
+      }
+    },
+    {
+      "id": "icon-quests",
+      "name": "Ícone Quests",
+      "category": "icons",
+      "rarity": null,
+      "pillar": null,
+      "width": 118,
+      "height": 118,
+      "status": "ready",
+      "notes": [
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "icons/icon-quests.webp",
+          "bytes": 5502,
+          "sha256": "b98619422035a4beccd7fd118923581d0a2c1e5bdfaa51e652e5f0b231f7a3ab"
+        },
+        "png": {
+          "path": "icons/icon-quests.png",
+          "bytes": 18554,
+          "sha256": "a97cdf98c9d5bd34072d87a6bccbcda054a1050b5df4dc265239cc875e9ff271"
+        }
+      },
+      "source": {
+        "label": "icon_quest.png",
+        "rect": { "x": 613, "y": 296, "width": 106, "height": 97 },
+        "mode": "object"
+      }
+    },
+    {
+      "id": "icon-milestone",
+      "name": "Ícone Marco especial",
+      "category": "icons",
+      "rarity": null,
+      "pillar": null,
+      "width": 118,
+      "height": 118,
+      "status": "ready",
+      "notes": [
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "icons/icon-milestone.webp",
+          "bytes": 5446,
+          "sha256": "2d47e3ef3b6352f75e646b26927eec0b07a635b5137e997cdce4c1e6227bd2b0"
+        },
+        "png": {
+          "path": "icons/icon-milestone.png",
+          "bytes": 17954,
+          "sha256": "5cb778c60e1a98451304f203244116b2176fd996844fdc76b23ac313595342c9"
+        }
+      },
+      "source": {
+        "label": "icon_milestone.png",
+        "rect": { "x": 739, "y": 296, "width": 106, "height": 98 },
+        "mode": "object"
+      }
+    },
+    {
+      "id": "icon-achievement",
+      "name": "Ícone Conquista especial",
+      "category": "icons",
+      "rarity": null,
+      "pillar": null,
+      "width": 120,
+      "height": 120,
+      "status": "ready",
+      "notes": [
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "icons/icon-achievement.webp",
+          "bytes": 5624,
+          "sha256": "2ab83d5508855796735db53c82f4432b99566de3a7e94c57c4c26bc2b273e7c1"
+        },
+        "png": {
+          "path": "icons/icon-achievement.png",
+          "bytes": 18470,
+          "sha256": "09ffd27ade92c733f431938c8d2d7fbc4fcbde6298147c08c22080003bd45776"
+        }
+      },
+      "source": {
+        "label": "icon_achievement.png",
+        "rect": { "x": 868, "y": 296, "width": 108, "height": 98 },
+        "mode": "object"
+      }
+    },
+    {
+      "id": "ui-locked",
+      "name": "Indicador Bloqueada",
+      "category": "ui",
+      "rarity": null,
+      "pillar": null,
+      "width": 70,
+      "height": 70,
+      "status": "ready",
+      "notes": [
+        "O disco escuro de apresentação atrás do cadeado foi descartado.",
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "ui/ui-locked.webp",
+          "bytes": 2646,
+          "sha256": "a1ec81fccff203301d753350288fec7a78cf0ae1c4b81e622d1a01ecdf0c11a9"
+        },
+        "png": {
+          "path": "ui/ui-locked.png",
+          "bytes": 5861,
+          "sha256": "c787bba9f4d3a2e045130ecd00fcff4788b22043d82c601aa23f7352d61a7caa"
+        }
+      },
+      "source": {
+        "label": "icon_locked.png",
+        "rect": { "x": 1048, "y": 306, "width": 48, "height": 62 },
+        "mode": "object"
+      }
+    },
+    {
+      "id": "ui-unlocked",
+      "name": "Indicador Desbloqueada",
+      "category": "ui",
+      "rarity": null,
+      "pillar": null,
+      "width": 69,
+      "height": 69,
+      "status": "ready",
+      "notes": [
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "ui/ui-unlocked.webp",
+          "bytes": 2546,
+          "sha256": "afaf37fc050481a49d07394715c461a068cbef6d98708b37caef28b327775ef5"
+        },
+        "png": {
+          "path": "ui/ui-unlocked.png",
+          "bytes": 5836,
+          "sha256": "006060dddc79de44a61c511d97809a175be57960cec27656499de725c2b369cf"
+        }
+      },
+      "source": {
+        "label": "icon_unlocked.png",
+        "rect": { "x": 1147, "y": 307, "width": 51, "height": 61 },
+        "mode": "object"
+      }
+    },
+    {
+      "id": "ui-progress",
+      "name": "Indicador Progresso",
+      "category": "ui",
+      "rarity": null,
+      "pillar": null,
+      "width": 78,
+      "height": 78,
+      "status": "ready",
+      "notes": [
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "ui/ui-progress.webp",
+          "bytes": 3040,
+          "sha256": "0cba7c395c5b49a328871c0cbf144214e2fe0d1fc36da3c4edb6054da212cd0d"
+        },
+        "png": {
+          "path": "ui/ui-progress.png",
+          "bytes": 6011,
+          "sha256": "eeeb5b06d917a43bbd5b78e53c12f64ca0d425b43c398996766c6fa3974ad1ee"
+        }
+      },
+      "source": {
+        "label": "icon_progress.png",
+        "rect": { "x": 1237, "y": 305, "width": 70, "height": 68 },
+        "mode": "object"
+      }
+    },
+    {
+      "id": "ui-completed",
+      "name": "Indicador Concluída",
+      "category": "ui",
+      "rarity": null,
+      "pillar": null,
+      "width": 80,
+      "height": 80,
+      "status": "ready",
+      "notes": [
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "ui/ui-completed.webp",
+          "bytes": 3122,
+          "sha256": "30d2b3627f838b2c15ed33b12120650a45bd18056a16dbdd00b4694cdab8d30c"
+        },
+        "png": {
+          "path": "ui/ui-completed.png",
+          "bytes": 8380,
+          "sha256": "a1fd2fc68a1e17898a39abcb11113469773c189d51c9a98612856d04c0ff3916"
+        }
+      },
+      "source": {
+        "label": "icon_completed.png",
+        "rect": { "x": 1343, "y": 304, "width": 72, "height": 70 },
+        "mode": "object"
+      }
+    },
+    {
+      "id": "ui-new",
+      "name": "Indicador Nova",
+      "category": "ui",
+      "rarity": null,
+      "pillar": null,
+      "width": 70,
+      "height": 70,
+      "status": "ready",
+      "notes": [
+        "Alfa reconstruído a partir da luz emitida sobre o fundo escuro; fiel sobre fundos escuros, mais suave sobre fundos claros.",
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "ui/ui-new.webp",
+          "bytes": 4086,
+          "sha256": "c28fb959ffbc4e26e0de0287753a65e01adc7510a38426721a314eba3e14073d"
+        },
+        "png": {
+          "path": "ui/ui-new.png",
+          "bytes": 6014,
+          "sha256": "e7dfd4491c58db8b20637ae69c628cafe7eee637e50efcd7e8f2bf41430b8dfa"
+        }
+      },
+      "source": {
+        "label": "icon_new.png",
+        "rect": { "x": 1447, "y": 306, "width": 56, "height": 62 },
+        "mode": "light"
+      }
+    },
+    {
+      "id": "achievement-training-01",
+      "name": "Conquista Treinos 01",
+      "category": "specific",
+      "rarity": null,
+      "pillar": "training",
+      "width": 119,
+      "height": 119,
+      "status": "ready",
+      "notes": [
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "specific/achievement-training-01.webp",
+          "bytes": 6012,
+          "sha256": "b927f6e342ee96fb5a1e27d97a6fc2edac67d0744418ed9b316f8bb252978214"
+        },
+        "png": {
+          "path": "specific/achievement-training-01.png",
+          "bytes": 21441,
+          "sha256": "853745bfd76294a8db5d37e20afb23f92c4aae2109e485458f1c3462f695d37b"
+        }
+      },
+      "source": {
+        "label": "conquista_treino_01.png",
+        "rect": { "x": 48, "y": 461, "width": 107, "height": 99 },
+        "mode": "object"
+      }
+    },
+    {
+      "id": "achievement-training-02",
+      "name": "Conquista Treinos 02",
+      "category": "specific",
+      "rarity": null,
+      "pillar": "training",
+      "width": 118,
+      "height": 118,
+      "status": "ready",
+      "notes": [
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "specific/achievement-training-02.webp",
+          "bytes": 5568,
+          "sha256": "070aa023ece1af0c777f072242983983771b239f1e1957285ad7b4747dfc719b"
+        },
+        "png": {
+          "path": "specific/achievement-training-02.png",
+          "bytes": 19689,
+          "sha256": "296eeaa0355f019d85f81fadc93c1c7062cc18aa94e17027ce53f4d710eb0edf"
+        }
+      },
+      "source": {
+        "label": "conquista_treino_02.png",
+        "rect": { "x": 197, "y": 464, "width": 106, "height": 96 },
+        "mode": "object"
+      }
+    },
+    {
+      "id": "achievement-training-03",
+      "name": "Conquista Treinos 03",
+      "category": "specific",
+      "rarity": null,
+      "pillar": "training",
+      "width": 117,
+      "height": 117,
+      "status": "ready",
+      "notes": [
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "specific/achievement-training-03.webp",
+          "bytes": 5884,
+          "sha256": "a4cf2341990ed11f161d364ef9e2cb24c7417d469a93e9c691fa0910022dcb23"
+        },
+        "png": {
+          "path": "specific/achievement-training-03.png",
+          "bytes": 20422,
+          "sha256": "d79568d6631bb237ff7fa5712322182deeb9d0ec60bea6ad179246ff71efe95e"
+        }
+      },
+      "source": {
+        "label": "conquista_treino_03.png",
+        "rect": { "x": 343, "y": 464, "width": 105, "height": 96 },
+        "mode": "object"
+      }
+    },
+    {
+      "id": "achievement-training-04",
+      "name": "Conquista Treinos 04",
+      "category": "specific",
+      "rarity": null,
+      "pillar": "training",
+      "width": 118,
+      "height": 118,
+      "status": "ready",
+      "notes": [
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "specific/achievement-training-04.webp",
+          "bytes": 6094,
+          "sha256": "d875bb433ca12d4f6d37a9b4cbe33a1bdd3ee9017d4f6940bf6e95dfe4bc5cc3"
+        },
+        "png": {
+          "path": "specific/achievement-training-04.png",
+          "bytes": 21176,
+          "sha256": "72eb94453029c96ede2cb95a1f0c4303ec6bd339cdc7c9d2eca114d3078ebb7d"
+        }
+      },
+      "source": {
+        "label": "conquista_treino_04.png",
+        "rect": { "x": 486, "y": 464, "width": 106, "height": 96 },
+        "mode": "object"
+      }
+    },
+    {
+      "id": "achievement-training-05",
+      "name": "Conquista Treinos 05",
+      "category": "specific",
+      "rarity": null,
+      "pillar": "training",
+      "width": 120,
+      "height": 120,
+      "status": "ready",
+      "notes": [
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "specific/achievement-training-05.webp",
+          "bytes": 6510,
+          "sha256": "ec628f798e1199e71581317fc30c4e2e5907149929944d935f2bacb907aa967f"
+        },
+        "png": {
+          "path": "specific/achievement-training-05.png",
+          "bytes": 23445,
+          "sha256": "f4b85bfd532f0b4be28ccb3030476d9b97369e8433f44b81aaf50c1a5226d0f2"
+        }
+      },
+      "source": {
+        "label": "conquista_treino_05.png",
+        "rect": { "x": 635, "y": 462, "width": 108, "height": 98 },
+        "mode": "object"
+      }
+    },
+    {
+      "id": "achievement-knowledge-01",
+      "name": "Conquista Conhecimento 01",
+      "category": "specific",
+      "rarity": null,
+      "pillar": "knowledge",
+      "width": 120,
+      "height": 120,
+      "status": "review",
+      "notes": [
+        "Halo leve do brilho original da prancha, visível sobre fundos claros; sem impacto sobre os fundos escuros do Life RPG.",
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "specific/achievement-knowledge-01.webp",
+          "bytes": 6490,
+          "sha256": "40b4d1e79acfe1768292d5ac1ed1238002b84eaa40c1ed879c034a914169ca4a"
+        },
+        "png": {
+          "path": "specific/achievement-knowledge-01.png",
+          "bytes": 22315,
+          "sha256": "72517bdbe418058a718f4341ddb1c99b948803e07c5393597add093c6218c5f8"
+        }
+      },
+      "source": {
+        "label": "conquista_conhecimento_01.png",
+        "rect": { "x": 799, "y": 463, "width": 108, "height": 97 },
+        "mode": "object"
+      }
+    },
+    {
+      "id": "achievement-knowledge-02",
+      "name": "Conquista Conhecimento 02",
+      "category": "specific",
+      "rarity": null,
+      "pillar": "knowledge",
+      "width": 123,
+      "height": 123,
+      "status": "review",
+      "notes": [
+        "Halo leve do brilho original da prancha, visível sobre fundos claros; sem impacto sobre os fundos escuros do Life RPG.",
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "specific/achievement-knowledge-02.webp",
+          "bytes": 6664,
+          "sha256": "021ab0d1f27f474a7d2d34911ad40c85498cde43589b32d8531890c2058b41f0"
+        },
+        "png": {
+          "path": "specific/achievement-knowledge-02.png",
+          "bytes": 23369,
+          "sha256": "4e2ba835e6355598240df6c2f5dc3f2a3ae7ec8eac26cc3523a16fafc513167d"
+        }
+      },
+      "source": {
+        "label": "conquista_conhecimento_02.png",
+        "rect": { "x": 944, "y": 462, "width": 109, "height": 98 },
+        "mode": "object"
+      }
+    },
+    {
+      "id": "achievement-knowledge-03",
+      "name": "Conquista Conhecimento 03",
+      "category": "specific",
+      "rarity": null,
+      "pillar": "knowledge",
+      "width": 120,
+      "height": 120,
+      "status": "review",
+      "notes": [
+        "Halo leve do brilho original da prancha, visível sobre fundos claros; sem impacto sobre os fundos escuros do Life RPG.",
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "specific/achievement-knowledge-03.webp",
+          "bytes": 6480,
+          "sha256": "f303f7287654afa499e45cfbdb1c582cb9760c94cfdd3ea3ee2503eb7fc41200"
+        },
+        "png": {
+          "path": "specific/achievement-knowledge-03.png",
+          "bytes": 22419,
+          "sha256": "95126260273477f259d78c231eff5d26fe3cf773a7abe54bb1a0f93116eac1e4"
+        }
+      },
+      "source": {
+        "label": "conquista_conhecimento_03.png",
+        "rect": { "x": 1092, "y": 462, "width": 108, "height": 98 },
+        "mode": "object"
+      }
+    },
+    {
+      "id": "achievement-knowledge-04",
+      "name": "Conquista Conhecimento 04",
+      "category": "specific",
+      "rarity": null,
+      "pillar": "knowledge",
+      "width": 123,
+      "height": 123,
+      "status": "review",
+      "notes": [
+        "Halo leve do brilho original da prancha, visível sobre fundos claros; sem impacto sobre os fundos escuros do Life RPG.",
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "specific/achievement-knowledge-04.webp",
+          "bytes": 6422,
+          "sha256": "ac13ba3e44f921e03fb0e29ced8b6c9a18165549bf58361ce2b6db3d75f3179c"
+        },
+        "png": {
+          "path": "specific/achievement-knowledge-04.png",
+          "bytes": 22561,
+          "sha256": "421fd10087488abe2af2361abb5390aaa29e803b5b20bcecdd4b11ab8c761055"
+        }
+      },
+      "source": {
+        "label": "conquista_conhecimento_04.png",
+        "rect": { "x": 1239, "y": 462, "width": 109, "height": 98 },
+        "mode": "object"
+      }
+    },
+    {
+      "id": "achievement-knowledge-05",
+      "name": "Conquista Conhecimento 05",
+      "category": "specific",
+      "rarity": null,
+      "pillar": "knowledge",
+      "width": 127,
+      "height": 127,
+      "status": "review",
+      "notes": [
+        "Halo leve do brilho original da prancha, visível sobre fundos claros; sem impacto sobre os fundos escuros do Life RPG.",
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "specific/achievement-knowledge-05.webp",
+          "bytes": 6670,
+          "sha256": "722addf634a318baab97797b43e2559417659f9ba94bc2bb5da804e2a6594e0c"
+        },
+        "png": {
+          "path": "specific/achievement-knowledge-05.png",
+          "bytes": 23125,
+          "sha256": "bee8e2f03d7992b5447e1d8db9206bebd89261689ffab57112c9672041241af8"
+        }
+      },
+      "source": {
+        "label": "conquista_conhecimento_05.png",
+        "rect": { "x": 1386, "y": 461, "width": 113, "height": 99 },
+        "mode": "object"
+      }
+    },
+    {
+      "id": "achievement-finances-01",
+      "name": "Conquista Finanças 01",
+      "category": "specific",
+      "rarity": null,
+      "pillar": "finances",
+      "width": 123,
+      "height": 123,
+      "status": "ready",
+      "notes": [
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "specific/achievement-finances-01.webp",
+          "bytes": 6450,
+          "sha256": "572e18c182f540f32a6705c698764f1b965825b820f202385a52a83707da3045"
+        },
+        "png": {
+          "path": "specific/achievement-finances-01.png",
+          "bytes": 21818,
+          "sha256": "a4660e9bd2d8428506f1f74f2423f8b8472e8716b095e385b7dbff762ee64ea4"
+        }
+      },
+      "source": {
+        "label": "conquista_financas_01.png",
+        "rect": { "x": 45, "y": 589, "width": 109, "height": 99 },
+        "mode": "object"
+      }
+    },
+    {
+      "id": "achievement-finances-02",
+      "name": "Conquista Finanças 02",
+      "category": "specific",
+      "rarity": null,
+      "pillar": "finances",
+      "width": 118,
+      "height": 118,
+      "status": "ready",
+      "notes": [
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "specific/achievement-finances-02.webp",
+          "bytes": 6384,
+          "sha256": "e70c5935c1370135bc0c9bd0af7e4ae0207c1921b42145c6e6518cd4fa909f98"
+        },
+        "png": {
+          "path": "specific/achievement-finances-02.png",
+          "bytes": 21622,
+          "sha256": "619ab325fcc7c234f63f834857ae91c16df3f6fd4844d8e626fc2658e7d7d176"
+        }
+      },
+      "source": {
+        "label": "conquista_financas_02.png",
+        "rect": { "x": 195, "y": 589, "width": 106, "height": 99 },
+        "mode": "object"
+      }
+    },
+    {
+      "id": "achievement-finances-03",
+      "name": "Conquista Finanças 03",
+      "category": "specific",
+      "rarity": null,
+      "pillar": "finances",
+      "width": 123,
+      "height": 123,
+      "status": "ready",
+      "notes": [
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "specific/achievement-finances-03.webp",
+          "bytes": 6250,
+          "sha256": "ad130f7d8e62a6b268d5ab0dc96581b8e5e0af11e042105a49f9b73dadb96cb0"
+        },
+        "png": {
+          "path": "specific/achievement-finances-03.png",
+          "bytes": 21160,
+          "sha256": "72edc90b14686d66e8dc92fe188f9773e78a2769c33c2cece4e8a373131dcf45"
+        }
+      },
+      "source": {
+        "label": "conquista_financas_03.png",
+        "rect": { "x": 339, "y": 588, "width": 109, "height": 100 },
+        "mode": "object"
+      }
+    },
+    {
+      "id": "achievement-finances-04",
+      "name": "Conquista Finanças 04",
+      "category": "specific",
+      "rarity": null,
+      "pillar": "finances",
+      "width": 120,
+      "height": 120,
+      "status": "ready",
+      "notes": [
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "specific/achievement-finances-04.webp",
+          "bytes": 6628,
+          "sha256": "5647cd2da549e116004e57a4b3d0c30d5a2aa5c5630cb98feb5faa772a0341e0"
+        },
+        "png": {
+          "path": "specific/achievement-finances-04.png",
+          "bytes": 22703,
+          "sha256": "d8e6cc11bf41b8320e58ad3243022601c7e79696640817e5a61c9c57b5e99b93"
+        }
+      },
+      "source": {
+        "label": "conquista_financas_04.png",
+        "rect": { "x": 487, "y": 585, "width": 108, "height": 103 },
+        "mode": "object"
+      }
+    },
+    {
+      "id": "achievement-finances-05",
+      "name": "Conquista Finanças 05",
+      "category": "specific",
+      "rarity": null,
+      "pillar": "finances",
+      "width": 120,
+      "height": 120,
+      "status": "ready",
+      "notes": [
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "specific/achievement-finances-05.webp",
+          "bytes": 6356,
+          "sha256": "d63abd5512ebf0e4064fadb0d303a02202671e04a5dedfd64949ed7ced42bee4"
+        },
+        "png": {
+          "path": "specific/achievement-finances-05.png",
+          "bytes": 21453,
+          "sha256": "98e9810915f338247a90f8ea34663f9d3a137ad74b99be82bac080ca0deac00d"
+        }
+      },
+      "source": {
+        "label": "conquista_financas_05.png",
+        "rect": { "x": 634, "y": 589, "width": 108, "height": 99 },
+        "mode": "object"
+      }
+    },
+    {
+      "id": "achievement-rest-01",
+      "name": "Conquista Descanso 01",
+      "category": "specific",
+      "rarity": null,
+      "pillar": "rest",
+      "width": 118,
+      "height": 118,
+      "status": "review",
+      "notes": [
+        "Halo leve do brilho original da prancha, visível sobre fundos claros; sem impacto sobre os fundos escuros do Life RPG.",
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "specific/achievement-rest-01.webp",
+          "bytes": 6230,
+          "sha256": "b6401fa7518c25eb4e9149804ef2f156436076e2ed6aa3dee7995ff6a8fd3a87"
+        },
+        "png": {
+          "path": "specific/achievement-rest-01.png",
+          "bytes": 22577,
+          "sha256": "7a41d0d3d19b00433f49f11a5fb2e08bccd739462883c5c7242d4fca8e5c71e4"
+        }
+      },
+      "source": {
+        "label": "conquista_descanso_01.png",
+        "rect": { "x": 799, "y": 584, "width": 106, "height": 104 },
+        "mode": "object"
+      }
+    },
+    {
+      "id": "achievement-rest-02",
+      "name": "Conquista Descanso 02",
+      "category": "specific",
+      "rarity": null,
+      "pillar": "rest",
+      "width": 125,
+      "height": 125,
+      "status": "review",
+      "notes": [
+        "Halo leve do brilho original da prancha, visível sobre fundos claros; sem impacto sobre os fundos escuros do Life RPG.",
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "specific/achievement-rest-02.webp",
+          "bytes": 6626,
+          "sha256": "ec33fb6ce6e1e53c8178ab666bccb94a9adc40890b318de2ca6690cc538d853a"
+        },
+        "png": {
+          "path": "specific/achievement-rest-02.png",
+          "bytes": 23461,
+          "sha256": "9cab0a6225f7e0d7f6c1c492b5f94e938249990ccf98ab5ce7c3f67565281d89"
+        }
+      },
+      "source": {
+        "label": "conquista_descanso_02.png",
+        "rect": { "x": 944, "y": 587, "width": 111, "height": 101 },
+        "mode": "object"
+      }
+    },
+    {
+      "id": "achievement-rest-03",
+      "name": "Conquista Descanso 03",
+      "category": "specific",
+      "rarity": null,
+      "pillar": "rest",
+      "width": 120,
+      "height": 120,
+      "status": "review",
+      "notes": [
+        "Halo leve do brilho original da prancha, visível sobre fundos claros; sem impacto sobre os fundos escuros do Life RPG.",
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "specific/achievement-rest-03.webp",
+          "bytes": 6702,
+          "sha256": "d0337a84b50318554a8b9d8e0935023d74d9bd5e5afe3ee9c8fd0f565f6a2cc8"
+        },
+        "png": {
+          "path": "specific/achievement-rest-03.png",
+          "bytes": 23795,
+          "sha256": "5aec71e54bdb3070ed7702d44b69ae13b33ac89c92fbbbf10dad5f0bc0c34702"
+        }
+      },
+      "source": {
+        "label": "conquista_descanso_03.png",
+        "rect": { "x": 1092, "y": 583, "width": 108, "height": 105 },
+        "mode": "object"
+      }
+    },
+    {
+      "id": "achievement-rest-04",
+      "name": "Conquista Descanso 04",
+      "category": "specific",
+      "rarity": null,
+      "pillar": "rest",
+      "width": 120,
+      "height": 120,
+      "status": "review",
+      "notes": [
+        "Halo leve do brilho original da prancha, visível sobre fundos claros; sem impacto sobre os fundos escuros do Life RPG.",
+        "A prancha rotula este arquivo como conquista_descanso_05 (duplicado); renumerado pela posição.",
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "specific/achievement-rest-04.webp",
+          "bytes": 7166,
+          "sha256": "be625b3a0d202f57a0ae3723f5d95338904d52a62cac2344a9fe87c09dbed2cb"
+        },
+        "png": {
+          "path": "specific/achievement-rest-04.png",
+          "bytes": 24614,
+          "sha256": "aa591c86e70cddd40910d53915389edcced8d3422853ad212c4c8f8f660d49a0"
+        }
+      },
+      "source": {
+        "label": "conquista_descanso_05.png",
+        "rect": { "x": 1238, "y": 585, "width": 108, "height": 103 },
+        "mode": "object"
+      }
+    },
+    {
+      "id": "achievement-rest-05",
+      "name": "Conquista Descanso 05",
+      "category": "specific",
+      "rarity": null,
+      "pillar": "rest",
+      "width": 130,
+      "height": 130,
+      "status": "review",
+      "notes": [
+        "Halo leve do brilho original da prancha, visível sobre fundos claros; sem impacto sobre os fundos escuros do Life RPG.",
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "specific/achievement-rest-05.webp",
+          "bytes": 6902,
+          "sha256": "7f2fe8755af4ec5b6c4b8b72895af4fc0807226b101055b4126b6ac7f4c91307"
+        },
+        "png": {
+          "path": "specific/achievement-rest-05.png",
+          "bytes": 25515,
+          "sha256": "b4a937d0d7a460e7c2256432a9bb21b016e8bd060aaea365243442dbfa06d15f"
+        }
+      },
+      "source": {
+        "label": "conquista_descanso_05.png",
+        "rect": { "x": 1385, "y": 583, "width": 116, "height": 105 },
+        "mode": "object"
+      }
+    },
+    {
+      "id": "effect-unlock",
+      "name": "Efeito Desbloqueio",
+      "category": "effects",
+      "rarity": null,
+      "pillar": null,
+      "width": 114,
+      "height": 114,
+      "status": "review",
+      "notes": [
+        "Alfa reconstruído a partir da luz emitida sobre o fundo escuro; fiel sobre fundos escuros, mais suave sobre fundos claros.",
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "effects/effect-unlock.webp",
+          "bytes": 8374,
+          "sha256": "37139d3eb55512a357dc5bfcfe3ac120eac19747568b8b7d981b0ff9d333daf6"
+        },
+        "png": {
+          "path": "effects/effect-unlock.png",
+          "bytes": 16107,
+          "sha256": "95d8981a67771c1a474a426ed2a1ed9e888798d2fd7ad0a1f74b6c8b4aad8477"
+        }
+      },
+      "source": {
+        "label": "effect_unlock.png",
+        "rect": { "x": 37, "y": 748, "width": 102, "height": 92 },
+        "mode": "light"
+      }
+    },
+    {
+      "id": "effect-shine",
+      "name": "Efeito Brilho",
+      "category": "effects",
+      "rarity": null,
+      "pillar": null,
+      "width": 112,
+      "height": 112,
+      "status": "review",
+      "notes": [
+        "Alfa reconstruído a partir da luz emitida sobre o fundo escuro; fiel sobre fundos escuros, mais suave sobre fundos claros.",
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "effects/effect-shine.webp",
+          "bytes": 8186,
+          "sha256": "47df4b396e1323800e798402b5553f9a87213b7420d3d51effed31154132bec4"
+        },
+        "png": {
+          "path": "effects/effect-shine.png",
+          "bytes": 12165,
+          "sha256": "37e59a75ae3b7b1de77907f8a76f36fd1424b31ff10e71e3dda3b2c457188794"
+        }
+      },
+      "source": {
+        "label": "effect_shine.png",
+        "rect": { "x": 161, "y": 755, "width": 100, "height": 85 },
+        "mode": "light"
+      }
+    },
+    {
+      "id": "effect-particles",
+      "name": "Efeito Partículas",
+      "category": "effects",
+      "rarity": null,
+      "pillar": null,
+      "width": 86,
+      "height": 86,
+      "status": "review",
+      "notes": [
+        "Alfa reconstruído a partir da luz emitida sobre o fundo escuro; fiel sobre fundos escuros, mais suave sobre fundos claros.",
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "effects/effect-particles.webp",
+          "bytes": 3912,
+          "sha256": "65c181a52ce85eb43a7209dfe342bb9e6434466cb92fe63077eb2be7286345b6"
+        },
+        "png": {
+          "path": "effects/effect-particles.png",
+          "bytes": 3444,
+          "sha256": "0b9027fab46189b642a4dc4d8aa81e60c9d0dc82204d01b536e93e91b6c52ab0"
+        }
+      },
+      "source": {
+        "label": "effect_particles.png",
+        "rect": { "x": 293, "y": 759, "width": 76, "height": 72 },
+        "mode": "light"
+      }
+    },
+    {
+      "id": "effect-levelup",
+      "name": "Efeito Subida de nível",
+      "category": "effects",
+      "rarity": null,
+      "pillar": null,
+      "width": 109,
+      "height": 109,
+      "status": "review",
+      "notes": [
+        "Alfa reconstruído a partir da luz emitida sobre o fundo escuro; fiel sobre fundos escuros, mais suave sobre fundos claros.",
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "effects/effect-levelup.webp",
+          "bytes": 5650,
+          "sha256": "f59a42e716f6d01be85c1960a94c1884f90efd85aefeb0efc6706f237dcdfc48"
+        },
+        "png": {
+          "path": "effects/effect-levelup.png",
+          "bytes": 9969,
+          "sha256": "3c1d4b9fbdc53cff5ff50a16afaadac5201f796d4fc9338e26790aff42aa4988"
+        }
+      },
+      "source": {
+        "label": "effect_levelup.png",
+        "rect": { "x": 399, "y": 748, "width": 97, "height": 86 },
+        "mode": "light"
+      }
+    },
+    {
+      "id": "effect-glow",
+      "name": "Efeito Louros luminosos",
+      "category": "effects",
+      "rarity": null,
+      "pillar": null,
+      "width": 111,
+      "height": 111,
+      "status": "review",
+      "notes": [
+        "Halo leve do brilho original da prancha, visível sobre fundos claros; sem impacto sobre os fundos escuros do Life RPG.",
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "effects/effect-glow.webp",
+          "bytes": 5170,
+          "sha256": "609b53da73dcb359807006d94b22974942a460e46a15280abf9124399a78f497"
+        },
+        "png": {
+          "path": "effects/effect-glow.png",
+          "bytes": 11755,
+          "sha256": "00f7dd404b1b099aeaebadf976edab626d68fe048143ee0f16f979ae6fef5f24"
+        }
+      },
+      "source": {
+        "label": "effect_glow.png",
+        "rect": { "x": 518, "y": 761, "width": 99, "height": 79 },
+        "mode": "object"
+      }
+    },
+    {
+      "id": "label-common",
+      "name": "Etiqueta Comum",
+      "category": "labels",
+      "rarity": "common",
+      "pillar": null,
+      "width": 145,
+      "height": 51,
+      "status": "ready",
+      "notes": [
+        "O texto em português faz parte da arte da etiqueta.",
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "labels/label-common.webp",
+          "bytes": 3416,
+          "sha256": "2dfbea0430cc5c50198f4b2c4831c0e431aed7aebb3263a29cbfd99828f37de7"
+        },
+        "png": {
+          "path": "labels/label-common.png",
+          "bytes": 9269,
+          "sha256": "59a94e87299e81bbf0c8ee3ad4fe7d8bcf4551a4f6eba3db4fb3202828a169a8"
+        }
+      },
+      "source": {
+        "label": "label_common.png",
+        "rect": { "x": 680, "y": 756, "width": 129, "height": 35 },
+        "mode": "object"
+      }
+    },
+    {
+      "id": "label-uncommon",
+      "name": "Etiqueta Incomum",
+      "category": "labels",
+      "rarity": "uncommon",
+      "pillar": null,
+      "width": 144,
+      "height": 51,
+      "status": "ready",
+      "notes": [
+        "O texto em português faz parte da arte da etiqueta.",
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "labels/label-uncommon.webp",
+          "bytes": 3618,
+          "sha256": "dbce4591b3c236c96e195074a09b1497ffd5f9fbe942a86befc80c6b9efbe731"
+        },
+        "png": {
+          "path": "labels/label-uncommon.png",
+          "bytes": 9795,
+          "sha256": "164f589f6182496a273e1e51051b68ef06c3494adc1d0e46f2e7e6fce50ccebc"
+        }
+      },
+      "source": {
+        "label": "label_uncommon.png",
+        "rect": { "x": 824, "y": 756, "width": 128, "height": 35 },
+        "mode": "object"
+      }
+    },
+    {
+      "id": "label-rare",
+      "name": "Etiqueta Rara",
+      "category": "labels",
+      "rarity": "rare",
+      "pillar": null,
+      "width": 137,
+      "height": 49,
+      "status": "ready",
+      "notes": [
+        "O texto em português faz parte da arte da etiqueta.",
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "labels/label-rare.webp",
+          "bytes": 3178,
+          "sha256": "f9e1afd518f26bc6dd4066841ba305750f5c25c57bcb499aa7852a6f13311a53"
+        },
+        "png": {
+          "path": "labels/label-rare.png",
+          "bytes": 9172,
+          "sha256": "23d5b57e5fefc92c00965e05eafbe92f5e28aeddc652a5992c951a40859dfdf2"
+        }
+      },
+      "source": {
+        "label": "label_rare.png",
+        "rect": { "x": 974, "y": 756, "width": 123, "height": 35 },
+        "mode": "object"
+      }
+    },
+    {
+      "id": "label-epic",
+      "name": "Etiqueta Épica",
+      "category": "labels",
+      "rarity": "epic",
+      "pillar": null,
+      "width": 153,
+      "height": 52,
+      "status": "ready",
+      "notes": [
+        "O texto em português faz parte da arte da etiqueta.",
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "labels/label-epic.webp",
+          "bytes": 3384,
+          "sha256": "0883fe5d8e25069977a3b29a281512115dcbd9186548a1b9893a6acb612456f9"
+        },
+        "png": {
+          "path": "labels/label-epic.png",
+          "bytes": 10213,
+          "sha256": "fb88b6a6f2bf783a9c2c394d7a607b8aa58aad5ae3e43d9de1a9f48e63858c01"
+        }
+      },
+      "source": {
+        "label": "label_epic.png",
+        "rect": { "x": 725, "y": 817, "width": 137, "height": 36 },
+        "mode": "object"
+      }
+    },
+    {
+      "id": "label-legendary",
+      "name": "Etiqueta Lendária",
+      "category": "labels",
+      "rarity": "legendary",
+      "pillar": null,
+      "width": 162,
+      "height": 58,
+      "status": "ready",
+      "notes": [
+        "O texto em português faz parte da arte da etiqueta.",
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "labels/label-legendary.webp",
+          "bytes": 4226,
+          "sha256": "121178a6da03e9f50763c7ab91500f55c6b5af6d484a5498fd9a3b8178803e31"
+        },
+        "png": {
+          "path": "labels/label-legendary.png",
+          "bytes": 11752,
+          "sha256": "b2c0e1338180d77e79796312a59d0a4f89f248a566c0ee0f2a3b12dd33afe96d"
+        }
+      },
+      "source": {
+        "label": "label_legendary.png",
+        "rect": { "x": 895, "y": 815, "width": 144, "height": 40 },
+        "mode": "object"
+      }
+    },
+    {
+      "id": "banner-achievement",
+      "name": "Estandarte de conquista",
+      "category": "decor",
+      "rarity": null,
+      "pillar": null,
+      "width": 94,
+      "height": 94,
+      "status": "ready",
+      "notes": [
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "decor/banner-achievement.webp",
+          "bytes": 2904,
+          "sha256": "930b745a191394cfddf7c79d9d085362fadeab8ae78a6b2e3d01ad5f2d841c7c"
+        },
+        "png": {
+          "path": "decor/banner-achievement.png",
+          "bytes": 9881,
+          "sha256": "54b71cccf2fc041afa944d180b8c8ef8bbfb3e3cb2f07e7d5ef1fbc95f0c1e6b"
+        }
+      },
+      "source": {
+        "label": "banner_achievement.png",
+        "rect": { "x": 1189, "y": 752, "width": 83, "height": 84 },
+        "mode": "object"
+      }
+    },
+    {
+      "id": "laurel",
+      "name": "Louros",
+      "category": "decor",
+      "rarity": null,
+      "pillar": null,
+      "width": 98,
+      "height": 98,
+      "status": "review",
+      "notes": [
+        "Halo leve do brilho original da prancha, visível sobre fundos claros; sem impacto sobre os fundos escuros do Life RPG.",
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "decor/laurel.webp",
+          "bytes": 4836,
+          "sha256": "72d2cc386bd512d09bc9f193c8288be149a2c34dabcc94abb1a547500f4a897c"
+        },
+        "png": {
+          "path": "decor/laurel.png",
+          "bytes": 10201,
+          "sha256": "6ef71d15c7b1c12bdf2000e140e5960f015a06d631c277a64ccc0f5f55ff82e1"
+        }
+      },
+      "source": {
+        "label": "laurel.png",
+        "rect": { "x": 1325, "y": 755, "width": 88, "height": 78 },
+        "mode": "object"
+      }
+    },
+    {
+      "id": "gem-red",
+      "name": "Gema vermelha",
+      "category": "decor",
+      "rarity": null,
+      "pillar": null,
+      "width": 79,
+      "height": 79,
+      "status": "ready",
+      "notes": [
+        "A borda do painel à direita foi detectada e descartada.",
+        "Resolução nativa da prancha (sem ampliação): nítido até cerca de metade da largura em px CSS em telas 2x; tamanhos maiores exigem geração individual."
+      ],
+      "files": {
+        "webp": {
+          "path": "decor/gem-red.webp",
+          "bytes": 2376,
+          "sha256": "a0dd851dbe5952bfb7108e600342dc2b0200f4605d077c52c68827c1d877c5c7"
+        },
+        "png": {
+          "path": "decor/gem-red.png",
+          "bytes": 5342,
+          "sha256": "6b2c36dd03922710edd436ec5f009fdde34c8dd80dbe2e6b2bd7047b66e4edb7"
+        }
+      },
+      "source": {
+        "label": "gem_red.png",
+        "rect": { "x": 1454, "y": 754, "width": 47, "height": 71 },
+        "mode": "object"
+      }
+    }
+  ]
+}
