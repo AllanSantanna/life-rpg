@@ -14,6 +14,7 @@ import {
   PLAYER_STORAGE_KEY,
   PLAYER_STORAGE_VERSION,
 } from './playerState';
+import { achievementState } from '../test/achievements';
 afterEach(cleanup);
 const xp = () =>
   screen.getByRole('progressbar', { name: 'Experiência do jogador' });
@@ -98,9 +99,10 @@ describe('Persistência da evolução real', () => {
       screen.getByRole('img', { name: 'Avatar de Lia' }),
     ).toBeInTheDocument();
     expect(xp()).toHaveAttribute('aria-valuenow', '150');
-    expect(
-      screen.getByRole('heading', { name: 'Mente curiosa' }).closest('article'),
-    ).toHaveClass('is-locked');
+    nav('Perfil');
+    expect(achievementState('Mente curiosa')).toBe('locked');
+    expect(achievementState('Primeiro treino')).toBe('unlocked');
+    nav('Início');
     expect(localStorage.getItem(PLAYER_STORAGE_KEY)).toBe(raw);
     train();
     expect(xp()).toHaveAttribute('aria-valuenow', '150');

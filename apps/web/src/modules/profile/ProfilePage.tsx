@@ -8,6 +8,7 @@ import type { PlayerState } from '../../app/playerState';
 import { ActionButton } from '../../shared/components/ActionButton';
 import { PlayerHeader } from './PlayerHeader';
 import { renameCharacter, type CharacterProjection } from './character';
+import { AchievementsSection } from '../gamification/achievements/AchievementsSection';
 
 export function ProfilePage({
   state,
@@ -15,12 +16,15 @@ export function ProfilePage({
   onChange,
   onOpenEvolution,
   onExploreClasses,
+  highlightAchievements = false,
 }: {
   state: PlayerState;
   facts: CharacterProjection;
   onChange: Dispatch<SetStateAction<PlayerState>>;
   onOpenEvolution: () => void;
   onExploreClasses: () => void;
+  /** Aberto pelo atalho "Ver conquistas" (`/perfil#conquistas`). */
+  highlightAchievements?: boolean;
 }) {
   const [name, setName] = useState(state.profile.name);
   const [message, setMessage] = useState('');
@@ -81,6 +85,10 @@ export function ProfilePage({
           {message}
         </p>
       </section>
+      <AchievementsSection
+        achievements={facts.achievements}
+        highlighted={highlightAchievements}
+      />
     </div>
   );
 }

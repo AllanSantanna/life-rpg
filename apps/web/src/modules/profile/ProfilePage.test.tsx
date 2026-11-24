@@ -143,7 +143,7 @@ describe('perfil simples integrado', () => {
     expect(localStorage.getItem(PLAYER_STORAGE_KEY)).toBe(before);
   });
 
-  it('mostra apenas identidade, classe, nível, XP e Radar, com conquistas preservadas em Estatísticas', () => {
+  it('mostra identidade, classe, nível, XP, Radar e a seção Conquistas, sem personalização, com resumo em Estatísticas', () => {
     render(<App />);
     nav('Perfil');
     expect(currentClass()).toHaveTextContent('Sem classe definida');
@@ -165,6 +165,15 @@ describe('perfil simples integrado', () => {
     expect(
       screen.queryByRole('combobox', { name: /Classe/ }),
     ).not.toBeInTheDocument();
+    const achievements = screen.getByRole('region', { name: 'Conquistas' });
+    expect(
+      within(achievements).getByRole('heading', {
+        name: 'Galeria de conquistas',
+      }),
+    ).toBeInTheDocument();
+    expect(
+      within(achievements).getByRole('heading', { name: 'Primeiro passo' }),
+    ).toBeInTheDocument();
     fireEvent.click(
       screen.getByRole('button', {
         name: 'Ver Radar de Evolução em Estatísticas',
@@ -174,7 +183,10 @@ describe('perfil simples integrado', () => {
       screen.getByRole('heading', { name: 'Sua evolução' }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('heading', { name: 'Primeiro passo' }),
+      within(screen.getByRole('region', { name: 'Conquistas' })).getByRole(
+        'button',
+        { name: 'Ver conquistas' },
+      ),
     ).toBeInTheDocument();
   });
 
