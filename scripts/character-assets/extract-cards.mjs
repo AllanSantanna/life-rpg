@@ -5,9 +5,10 @@
  * Uso: node scripts/character-assets/extract-cards.mjs [prancha.png]
  * Padrão: apps/web/src/modules/profile/assets/previews/characters-sheet.png
  *
- * A prancha (1536 × 1024) tem 3 linhas e 8 colunas sobre fundo preto. Cada
- * linha traz duas classes, quatro estágios cada, na mesma ordem da prancha
- * rotulada aprovada. Reaproveita o recorte das conquistas: o fundo preto é
+ * A prancha (1448 × 1086) tem 4 linhas e 8 colunas sobre fundo preto. As três
+ * primeiras trazem duas classes cada, quatro estágios, na ordem da prancha
+ * rotulada aprovada. A quarta linha (versões alternativas de Sábio e Mestre)
+ * não foi escolhida pelo usuário em 24/11/2026 e não é extraída. Reaproveita o recorte das conquistas: o fundo preto é
  * removido a partir das bordas da área de busca, com alfa suave no brilho
  * externo; o interior da carta (personagem, cenário e moldura) fica intacto.
  * Nenhum pixel é reamostrado.
@@ -28,21 +29,26 @@ const ASSETS = resolve('apps/web/src/modules/profile/assets');
 const SHEET = join(ASSETS, 'previews', 'characters-sheet.png');
 const WEBP_QUALITY = 0.9;
 
-/** Colunas e linhas medidas na prancha (pixels claros, limiar 60). */
+/**
+ * Colunas e linhas medidas na prancha de 1448 × 1086 (pixels claros, limiar 120;
+ * os vãos entre linhas têm 2–4 px, então a folga de busca é pequena).
+ */
+const SHEET_SIZE = [1448, 1086];
 const COLUMNS = [
-  [24, 203],
-  [217, 390],
-  [402, 576],
-  [586, 764],
-  [782, 953],
-  [966, 1140],
-  [1153, 1327],
-  [1338, 1514],
+  [13, 197],
+  [204, 376],
+  [384, 556],
+  [562, 730],
+  [737, 908],
+  [914, 1084],
+  [1091, 1260],
+  [1267, 1440],
 ];
 const ROWS = [
-  [51, 309],
-  [319, 581],
-  [596, 868],
+  [6, 264],
+  [269, 527],
+  [531, 786],
+  // [789, 1047]: alternativas de Sábio e Mestre, não usadas.
 ];
 /** Duas classes por linha: colunas 0–3 e 4–7. */
 const LAYOUT = [
@@ -50,25 +56,20 @@ const LAYOUT = [
   ['estrategista', 'guardiao'],
   ['sabio', 'mestre'],
 ];
-/** Folga além dos pixels claros para incluir o brilho externo da moldura. */
-const MARGIN = 6;
+/** Folga além dos pixels claros, limitada pelos vãos estreitos da prancha. */
+const MARGIN_X = 3;
+const MARGIN_Y = 2;
 
 const HALO =
   'Halo tênue do brilho original fora da moldura, visível só sobre fundos claros; invisível nos fundos escuros do Life RPG.';
-const HANDS =
-  'Mãos com anatomia incorreta na arte original (apontado na revisão do usuário em 24/11/2026). Recorte limpo, mas a ilustração precisa ser gerada novamente; não foi repintada para não inventar detalhes.';
-/**
- * Revisão visual (quadriculado e fundo escuro, 2×) e do usuário. Ausentes:
- * `ready`. `regenerate` continua integrado até a nova arte ser fornecida.
- */
+const GOLD_FRAME =
+  'Nesta prancha a moldura do estágio IV é dourada, não vermelha como os demais estágios do Guerreiro.';
+/** Revisão visual (quadriculado e fundo escuro, 2×). Ausentes: `ready`. */
 const REVIEW = {
-  'aventureiro-nivel-4': ['review', HALO],
-  'sabio-nivel-3': ['review', HALO],
-  'sabio-nivel-4': ['review', HALO],
-  'estrategista-nivel-1': ['regenerate', HANDS],
-  'estrategista-nivel-3': ['regenerate', HANDS],
-  'sabio-nivel-1': ['regenerate', HANDS],
-  'sabio-nivel-2': ['regenerate', HANDS],
+  'guerreiro-nivel-4': ['review', `${HALO} ${GOLD_FRAME}`],
+  'estrategista-nivel-4': ['review', HALO],
+  'guardiao-nivel-4': ['review', HALO],
+  'mestre-nivel-4': ['review', HALO],
 };
 
 export const CARDS = LAYOUT.flatMap((pair, row) =>
@@ -80,7 +81,12 @@ export const CARDS = LAYOUT.flatMap((pair, row) =>
         id: `${character}-nivel-${stage}`,
         character,
         stage,
-        rect: [x0 - MARGIN, y0 - MARGIN, x1 + 1 + MARGIN, y1 + 1 + MARGIN],
+        rect: [
+          Math.max(0, x0 - MARGIN_X),
+          Math.max(0, y0 - MARGIN_Y),
+          Math.min(SHEET_SIZE[0], x1 + 1 + MARGIN_X),
+          Math.min(SHEET_SIZE[1], y1 + 1 + MARGIN_Y),
+        ],
         mode: 'object',
         square: false,
         padding: 2,
@@ -93,7 +99,7 @@ async function main() {
   const sheetPath = resolve(process.argv[2] ?? SHEET);
   const sheetBytes = readFileSync(sheetPath);
   const sheet = decodePng(sheetBytes);
-  if (sheet.width !== 1536 || sheet.height !== 1024)
+  if (sheet.width !== SHEET_SIZE[0] || sheet.height !== SHEET_SIZE[1])
     throw new Error(`prancha inesperada: ${sheet.width}×${sheet.height}`);
   if (sheetPath !== SHEET) {
     mkdirSync(dirname(SHEET), { recursive: true });
@@ -140,7 +146,7 @@ async function main() {
         height: sheet.height,
         sha256: createHash('sha256').update(sheetBytes).digest('hex'),
       },
-      settings: { MARGIN, WEBP_QUALITY, padding: 2 },
+      settings: { MARGIN_X, MARGIN_Y, WEBP_QUALITY, padding: 2 },
       cards: report,
     }),
   );
