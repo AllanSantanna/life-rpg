@@ -13,6 +13,7 @@
 import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { ASSETS } from './assets.config.mjs';
 import { launchBrowser, encodeWebp } from './cdp.mjs';
 import { decodePng, encodePng } from './png.mjs';
@@ -41,7 +42,7 @@ function median(values) {
 }
 
 /** Recorta a área e estima o fundo por interpolação das medianas das bordas. */
-function prepare(sheet, [x0, y0, x1, y1]) {
+export function prepare(sheet, [x0, y0, x1, y1]) {
   const width = x1 - x0;
   const height = y1 - y0;
   const rgb = new Float32Array(width * height * 3);
@@ -285,7 +286,7 @@ function guardedFlood(region, seeds, threshold, gap) {
   return filled;
 }
 
-function extractObject(region, asset) {
+export function extractObject(region, asset) {
   const { width, height, excess } = region;
   const threshold = asset.backgroundDistance ?? BACKGROUND_DISTANCE;
   const border = [];
@@ -381,7 +382,7 @@ function touchesEdge(mask, width, height) {
 }
 
 /** Descontamina a cor do fundo, recorta, centraliza e adiciona margem. */
-function compose(region, alpha, asset) {
+export function compose(region, alpha, asset) {
   const { width, height, rgb, background } = region;
   let x0 = width;
   let y0 = height;
@@ -398,10 +399,10 @@ function compose(region, alpha, asset) {
   }
   const contentWidth = x1 - x0 + 1;
   const contentHeight = y1 - y0 + 1;
-  const pad = Math.max(
-    4,
-    Math.round(Math.max(contentWidth, contentHeight) * 0.06),
-  );
+  // `padding` explícito (ex.: cartas de personagens) substitui a margem padrão.
+  const pad =
+    asset.padding ??
+    Math.max(4, Math.round(Math.max(contentWidth, contentHeight) * 0.06));
   let outWidth = contentWidth + pad * 2;
   let outHeight = contentHeight + pad * 2;
   if (asset.square !== false)
@@ -508,4 +509,10 @@ async function main() {
   );
 }
 
-await main();
+// Executa só quando chamado diretamente; outros extratores importam as funções.
+if (
+  process.argv[1] &&
+  resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+) {
+  await main();
+}
