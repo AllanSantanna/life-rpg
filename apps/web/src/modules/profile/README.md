@@ -62,8 +62,8 @@ gravação bem-sucedida; falhas conservam o original e permitem continuar na ses
 
 [PlayerPortrait](PlayerPortrait.tsx) consome a classe atual (`ClassId | null`) e o
 nível já projetado. Não calcula nem persiste classe, XP, nível ou estágio. O
-mapeamento visual em [portraits.ts](portraits.ts) seleciona um dos
-[24 WebP originais](assets/portraits/README.md):
+mapeamento visual em [portraits.ts](portraits.ts) seleciona uma das
+[24 cartas de fantasia sombria](assets/cards/README.md), as mesmas da galeria:
 
 | Nível atual | Estágio visual  |
 | ----------- | --------------- |
@@ -77,14 +77,16 @@ Classe nula usa **somente a arte** de Aventureiro; o domínio e o rótulo visív
 continuam “Sem classe definida”. Isso não reintroduz Aventureiro no catálogo.
 
 `PlayerHeader` renderiza o retrato nos dois contextos. `variant="profile"` amplia
-o retrato (`size="large"`, 136–184 px, moldura dupla grafite/carmesim) e recebe as
-ações da ficha; a Visão geral mantém o tamanho padrão (96–128 px). O avatar SVG
+o retrato (`size="large"`, 136–184 px de altura, brilho carmesim) e recebe as
+ações da ficha; a Visão geral mantém a altura padrão (96–128 px). O avatar SVG
 antigo (`CharacterAvatar`) foi removido da interface. `character.avatar`
 continua nos registros, na validação e nas migrações, sem migração nova, para
 manter a compatibilidade com backups e versões anteriores.
 
-O contêiner reserva proporção 1:1, com `object-fit: contain` e
-`image-rendering: pixelated`; as dimensões intrínsecas são declaradas no `img`.
+A carta já tem moldura metálica: o contêiner mantém a altura anterior, usa a
+proporção da carta (181:270) com `object-fit: contain` e não desenha outra
+moldura. As dimensões intrínsecas são declaradas no `img`. A arte pixelada
+anterior (retratos e cartas) está em `assets/legacy/`, fora do bundle.
 O texto alternativo conserva “Avatar de {nome}”, acompanhado de descrição
 acessível da arte/estágio. O retrato visível usa carregamento imediato e
 decodificação assíncrona, sem animação ou requisição de imagem externa.
@@ -115,9 +117,10 @@ Os textos das regras vêm de [classCards.ts](classCards.ts), montados com
 Mudanças nessas constantes atualizam a explicação. Aventureiro é descrito como
 representação visual para a ausência de classe, não como classe do sistema.
 
-As [24 cartas originais](assets/cards/README.md) somam 637,52 KiB e as 24 do
-retrato 476,52 KiB. Vite importa apenas URLs; os 48 WebP entram no precache
-existente da PWA e funcionam offline após a instalação. Cartas fora da área
+As [24 cartas](assets/cards/README.md) somam 495.77 KiB e servem ao
+retrato e à galeria (antes eram 48 arquivos, 1.114 KiB). Vite importa apenas URLs;
+os 24 WebP entram no precache existente da PWA e funcionam offline após a
+instalação. Cartas fora da área
 visível usam `loading="lazy"`. No celular, as quatro evoluções formam um
 carrossel com rolagem local (`scroll-snap`), sem alargar a página; a partir de
 640 px, uma grade de quatro colunas. Animações discretas são desligadas com
