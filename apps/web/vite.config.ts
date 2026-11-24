@@ -82,7 +82,13 @@ export default defineConfig(({ mode }) => {
           globPatterns: ['**/*.{js,css,html,ico,png,webp,svg,woff2}'],
           // 404.html é só o fallback do servidor; a navegação offline usa
           // index.html (navigateFallback do plugin).
-          globIgnores: ['**/LandscapeScene-*.js', '404.html'],
+          // Os assets de conquistas ainda não são usados pelo app: ficam fora
+          // do precache até a integração (inclusive prancha e pré-visualização).
+          globIgnores: [
+            '**/LandscapeScene-*.js',
+            '404.html',
+            'assets/achievements/**',
+          ],
           runtimeCaching: [
             {
               // O renderer 3D é baixado somente ao abrir Estatísticas com WebGL.
