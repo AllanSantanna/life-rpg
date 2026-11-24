@@ -1,9 +1,12 @@
+import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import { copyFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
+import { achievementAssetPaths } from './src/modules/gamification/achievements/assetPaths';
 
 /** Endereço de publicação no GitHub Pages (`npm run build:pages`). */
 const PAGES_BASE = '/life-rpg/';
@@ -82,13 +85,19 @@ export default defineConfig(({ mode }) => {
           globPatterns: ['**/*.{js,css,html,ico,png,webp,svg,woff2}'],
           // 404.html é só o fallback do servidor; a navegação offline usa
           // index.html (navigateFallback do plugin).
-          // Os assets de conquistas ainda não são usados pelo app: ficam fora
-          // do precache até a integração (inclusive prancha e pré-visualização).
+          // A pasta de conquistas fica fora do glob (prancha, pré-visualização,
+          // PNG e assets sem uso); só os WebP usados entram, logo abaixo.
           globIgnores: [
             '**/LandscapeScene-*.js',
             '404.html',
             'assets/achievements/**',
           ],
+          additionalManifestEntries: achievementAssetPaths.map((path) => ({
+            url: path,
+            revision: createHash('md5')
+              .update(readFileSync(join(import.meta.dirname, 'public', path)))
+              .digest('hex'),
+          })),
           runtimeCaching: [
             {
               // O renderer 3D é baixado somente ao abrir Estatísticas com WebGL.
