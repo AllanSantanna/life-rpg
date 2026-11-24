@@ -91,9 +91,10 @@ anterior não armazenava a data do clique. Novas confirmações usam a data real
 XP histórico real não expira; dedicação recente diminui conforme o tempo passa.
 
 Atributos Força/Conhecimento/Riqueza usam os escores reais de Treinos/Conhecimento/
-Finanças em 7 dias; Disciplina usa a média dos quatro pilares. Conquistas derivam
-primeira atividade qualificada, sete dias consecutivos, três livros concluídos e
-metas dos quatro pilares em 7 dias. Não há desbloqueios iniciais nem bônus de XP.
+Finanças em 7 dias; Disciplina usa a média dos quatro pilares. As 42 conquistas
+derivam dos registros (dias distintos, sequências, semanas, livros concluídos e
+organização), conforme o [catálogo](../apps/web/src/modules/gamification/README.md#conquistas).
+Não há desbloqueios iniciais nem bônus de XP.
 
 ## Persistência e migração
 

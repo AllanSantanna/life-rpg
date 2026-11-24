@@ -3,8 +3,10 @@
 O Perfil contém nome editável, retrato por classe e estágio, classe, nível,
 XP/barra, Radar com atalho para Estatísticas e o botão **Explorar classes**. Também reúne _Backup de dados_ (exportar e importar
 arquivo; ver [backup manual](../../../../../docs/architecture/data-backup.md)) e
-as cópias de segurança dos registros. O mesmo `PlayerHeader` aparece no dashboard. Conquistas
-continuam disponíveis no dashboard e em Estatísticas.
+as cópias de segurança dos registros. O mesmo `PlayerHeader` aparece no dashboard. A seção
+**Conquistas** (`/perfil#conquistas`) fica após o nome, com progresso geral, medalhas em
+destaque e a galeria completa; o Início e Estatísticas mostram só o resumo. Ver
+[conquistas](../gamification/README.md#conquistas).
 
 As seções do Perfil (ficha, nome, backup e cópias) ficam em `.profile-page`,
 uma grade com o mesmo vão de 20 px (`--space-5`) das páginas dos pilares; a

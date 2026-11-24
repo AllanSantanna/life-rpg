@@ -1,8 +1,9 @@
 # Assets de conquistas
 
-Etapa de preparação: os arquivos existem, mas **nenhuma tela os utiliza ainda**.
-O sistema de conquistas, XP, níveis, classes, Quests, Radar e a persistência não
-foram alterados.
+Usados pelo sistema de conquistas (Início, Estatísticas e Perfil); o catálogo e
+as regras estão no [módulo gamification](../../apps/web/src/modules/gamification/README.md#conquistas).
+A lista exata de arquivos usados fica em
+[assetPaths.ts](../../apps/web/src/modules/gamification/achievements/assetPaths.ts).
 
 ## Localização
 
@@ -58,6 +59,13 @@ validação nunca promove um estado. Abra
 `previews/achievements-contact-sheet.html` diretamente no navegador para
 comparar cada asset com a prancha sobre preto, cinza e quadriculado.
 
-A pasta inteira está em `globIgnores` do Workbox ([vite.config.ts](../../apps/web/vite.config.ts)):
-nada entra no precache da PWA enquanto não houver uso. Na integração, inclua
-apenas os WebP efetivamente usados, de preferência importados pelo módulo.
+A pasta inteira está em `globIgnores` do Workbox ([vite.config.ts](../../apps/web/vite.config.ts));
+apenas os 44 WebP listados em `assetPaths.ts` entram no precache, por
+`additionalManifestEntries` com revisão pelo hash do conteúdo. A prancha, a
+pré-visualização, os PNG e os assets não usados ficam fora do cache offline
+(continuam copiados para o build, como todo conteúdo de `public/`).
+
+Assets `review` em uso (medalhas de Conhecimento e Descanso, `badge-epic`,
+`badge-legendary`, molduras épica e lendária) foram conferidos sobre os fundos
+escuros da interface, onde o halo não aparece. As medalhas são exibidas até
+112 px CSS; acima de ~72 px CSS ficam levemente suaves em telas 2x.

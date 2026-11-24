@@ -23,6 +23,9 @@ Importar usa o mesmo caminho transacional de restaurar uma cópia.
   civil, estado concluído/desfeito e `source: 'user'`. Uma entrada por missão/data.
 
 XP, nível, atributos, conquistas, Radar e gráficos de XP são projeções recalculadas.
+As chaves `life-rpg:achievement-presentation` e `life-rpg:achievements-view` guardam
+apenas estado visual das conquistas (apresentação já exibida e "Ocultar galeria"),
+fora do `PlayerState` e do backup, como `life-rpg:statistics-view`.
 Não existem depósitos cumulativos de recompensa. `progressOrigin` é normalizado
 para nível 1/0 XP e limiar de 2.000 XP; os campos legados `activityHistory` e
 `unlockedAchievementIds` ficam vazios. `missionCompletion` conserva apenas o

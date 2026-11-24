@@ -218,6 +218,19 @@ estágios futuros usam ícone `lock`, rótulo “Bloqueado” e a arte esmaecida
 fica nítida ao selecionar. Consulte o
 [contrato, estágios e rotas](../../apps/web/src/modules/profile/README.md#galeria-de-classes).
 
+## Conquistas
+
+Componentes do módulo [gamification](../../apps/web/src/modules/gamification/README.md#conquistas):
+`AchievementMedal` (medalha WebP decorativa, `aria-hidden`, estados e efeitos por
+`data-rarity`/`data-state`), `AchievementCard`, `AchievementsSummary` (Início e
+Estatísticas, compacto por container query), `AchievementsSection` (Perfil) e
+`AchievementUnlockNotice`. Filtros reutilizam `CustomSelect`; "Ocultar galeria"
+reutiliza o interruptor `.strength-switch`; a ação reutiliza `ActionButton`.
+
+A notificação de desbloqueio é **não modal** de propósito: aparece durante
+formulários e confirmações, então não usa `<dialog>` nem move o foco. Fica acima
+do menu inferior no celular e no canto inferior direito no desktop.
+
 ## Marca
 
 [BrandLogo](../../apps/web/src/shared/components/BrandLogo.tsx) usa o SVG local LR;

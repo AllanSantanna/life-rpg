@@ -52,6 +52,21 @@ equivalente, dois tokens foram acrescentados ao tema:
 Esses tokens são exclusivos da identificação das classes; não representam
 pilares nem estados de progresso.
 
+## Raridades de conquistas
+
+Extraídas da paleta da prancha de conquistas. Uso exclusivo de raridade (brilho,
+borda e etiqueta); o texto usa a cor misturada com branco para contraste.
+
+| Raridade | Token                      | Valor     |
+| -------- | -------------------------- | --------- |
+| Comum    | `--color-rarity-common`    | `#8b6a4a` |
+| Incomum  | `--color-rarity-uncommon`  | `#2e7d32` |
+| Rara     | `--color-rarity-rare`      | `#2563eb` |
+| Épica    | `--color-rarity-epic`      | `#7c3aed` |
+| Lendária | `--color-rarity-legendary` | `#d4af37` |
+
+`data-rarity` atribui `--rarity-color`, como `data-area` faz com os pilares.
+
 ## Ações e superfícies contextuais
 
 `ActionButton` e o primário avançado usam `--color-action-start: #e33137`,
