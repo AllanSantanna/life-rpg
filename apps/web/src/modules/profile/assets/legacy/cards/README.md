@@ -1,5 +1,7 @@
 # Cartas originais das classes
 
+> **Legado (24/11/2026):** substituída pelas [cartas de fantasia sombria](../../cards/README.md); preservada até a aprovação definitiva. Fora dos globs do Vite: não entra no bundle.
+
 24 cartas WebP fornecidas pelo usuário, copiadas de
 `life-rpg-assets-backup/assets/personagens/life-rpg-personagens-recortados/cartas/`
 (fora do repositório) sem recorte, redimensionamento ou recompressão. O backup

@@ -1,6 +1,7 @@
 import { CLASS_RULES, classCatalog, type ClassId } from './classes';
 import type { MissionCategory } from '../missions/types';
 import {
+  characterCard,
   characterNames,
   portraitStages,
   stageLevels,
@@ -9,60 +10,9 @@ import {
   type PortraitStage,
 } from './portraits';
 
-// Vite emits hashed local URLs and applies the production base (/life-rpg/).
-// Only the URL enters the bundle; each card is fetched when its <img> needs it.
-const images = import.meta.glob<string>('./assets/cards/*/*.webp', {
-  eager: true,
-  query: '?url',
-  import: 'default',
-});
-
-// Original intrinsic dimensions; the supplied art is not resized or re-encoded.
-const cardDimensions = {
-  aventureiro: [
-    [180, 249],
-    [178, 249],
-    [180, 249],
-    [175, 249],
-  ],
-  guerreiro: [
-    [183, 249],
-    [181, 249],
-    [181, 249],
-    [193, 249],
-  ],
-  estrategista: [
-    [180, 238],
-    [178, 238],
-    [180, 238],
-    [175, 238],
-  ],
-  guardiao: [
-    [183, 238],
-    [181, 238],
-    [181, 238],
-    [193, 238],
-  ],
-  sabio: [
-    [180, 252],
-    [178, 252],
-    [180, 252],
-    [175, 252],
-  ],
-  mestre: [
-    [183, 252],
-    [181, 252],
-    [181, 252],
-    [193, 252],
-  ],
-} as const satisfies Record<PortraitCharacter, readonly number[][]>;
-
+/** Carta da galeria: a mesma arte do retrato (`characterCard`). */
 export function classCard(character: PortraitCharacter, stage: PortraitStage) {
-  const source = `./assets/cards/${character}/${character}-nivel-${stage}.webp`;
-  const src = images[source];
-  if (!src) throw new Error(`Carta local ausente: ${source}`);
-  const [width, height] = cardDimensions[character][stage - 1]!;
-  return { src, width, height };
+  return characterCard(character, stage);
 }
 
 /** "Nível 1 a 4" / "Nível 20 ou superior", from the same table as the portraits. */

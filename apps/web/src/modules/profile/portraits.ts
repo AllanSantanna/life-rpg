@@ -1,7 +1,10 @@
 import type { ClassId } from './classes';
 
 // Vite emits hashed local URLs and applies the production base (/life-rpg/).
-const images = import.meta.glob<string>('./assets/portraits/*/*.webp', {
+// Uma única arte por classe e estágio: a carta de fantasia sombria (com moldura)
+// serve ao retrato do Início/Perfil e à galeria. A arte pixelada anterior fica em
+// assets/legacy/, fora deste glob e do bundle.
+const images = import.meta.glob<string>('./assets/cards/*/*.webp', {
   eager: true,
   query: '?url',
   import: 'default',
@@ -52,57 +55,67 @@ export function portraitCharacter(classId: ClassId | null): PortraitCharacter {
   return classId === null ? 'aventureiro' : portraitClasses[classId];
 }
 
-// Original intrinsic dimensions; no resizing or re-encoding of the supplied art.
-const dimensions = {
+// Dimensões intrínsecas das cartas extraídas (sem reamostragem); ver
+// assets/previews/characters-report.json.
+const cardDimensions = {
   aventureiro: [
-    [180, 172],
-    [178, 172],
-    [180, 172],
-    [175, 172],
+    [186, 264],
+    [180, 264],
+    [180, 264],
+    [179, 265],
   ],
   guerreiro: [
-    [183, 172],
-    [181, 172],
-    [181, 172],
-    [193, 172],
+    [178, 266],
+    [180, 266],
+    [180, 266],
+    [182, 268],
   ],
   estrategista: [
-    [180, 168],
-    [178, 168],
-    [180, 168],
-    [175, 168],
+    [185, 270],
+    [179, 270],
+    [178, 270],
+    [179, 270],
   ],
   guardiao: [
-    [183, 168],
-    [181, 168],
-    [181, 168],
-    [193, 168],
+    [178, 270],
+    [179, 270],
+    [178, 271],
+    [184, 271],
   ],
   sabio: [
-    [180, 173],
-    [178, 173],
-    [180, 173],
-    [175, 173],
+    [186, 277],
+    [180, 278],
+    [183, 278],
+    [190, 279],
   ],
   mestre: [
-    [183, 173],
-    [181, 173],
-    [181, 173],
-    [193, 173],
+    [178, 279],
+    [179, 280],
+    [181, 281],
+    [181, 282],
   ],
-} as const;
+} as const satisfies Record<
+  PortraitCharacter,
+  readonly (readonly [number, number])[]
+>;
+
+/** Carta de uma classe e estágio: URL e dimensões intrínsecas. */
+export function characterCard(
+  character: PortraitCharacter,
+  stage: PortraitStage,
+) {
+  const source = `./assets/cards/${character}/${character}-nivel-${stage}.webp`;
+  const src = images[source];
+  if (!src) throw new Error(`Carta local ausente: ${source}`);
+  const [width, height] = cardDimensions[character][stage - 1]!;
+  return { src, width, height };
+}
 
 export function playerPortrait(classId: ClassId | null, level: number) {
   const character = portraitCharacter(classId);
   const stage = portraitStage(level);
-  const source = `./assets/portraits/${character}/${character}-nivel-${stage}.webp`;
-  const src = images[source];
-  if (!src) throw new Error(`Retrato local ausente: ${source}`);
-  const [width, height] = dimensions[character][(stage - 1) as 0 | 1 | 2 | 3];
   return {
-    src,
-    width,
-    height,
+    ...characterCard(character, stage),
     character,
     stage,
     className: characterNames[character],

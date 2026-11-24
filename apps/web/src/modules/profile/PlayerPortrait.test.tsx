@@ -1,11 +1,17 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { PlayerPortrait } from './PlayerPortrait';
+import { playerPortrait } from './portraits';
+import { classCard } from './classCards';
 import { createInitialPlayerState } from '../../app/playerState';
 import { PlayerHeader } from './PlayerHeader';
 import { initialCharacter } from './character';
 import type { ClassId } from './classes';
-import { portraitStage } from './portraits';
+import {
+  portraitStage,
+  type PortraitCharacter,
+  type PortraitStage,
+} from './portraits';
 
 afterEach(cleanup);
 const classes: [ClassId | null, string, string][] = [
@@ -102,4 +108,30 @@ it('deriva o retrato da classe e do nível recebidos, sem redefinir XP ou mudar 
   );
   expect(screen.getByText('Sábio')).toBeInTheDocument();
   expect(character).toEqual(original);
+});
+
+describe('Arte de fantasia sombria', () => {
+  it('retrato e galeria usam a mesma carta por classe e estágio, nunca a arte legada', () => {
+    for (const [classId, slug] of classes) {
+      for (const { level, stage } of stages) {
+        const portrait = playerPortrait(classId, level);
+        const card = classCard(
+          slug as PortraitCharacter,
+          stage as PortraitStage,
+        );
+        expect(portrait.src).toBe(card.src);
+        expect(portrait.src).toContain(
+          `cards/${slug}/${slug}-nivel-${stage}.webp`,
+        );
+        expect(portrait.src).not.toContain('legacy');
+        expect([portrait.width, portrait.height]).toEqual([
+          card.width,
+          card.height,
+        ]);
+        // Proporção de carta (retrato), sem ampliação além do original.
+        expect(card.height / card.width).toBeGreaterThan(1.3);
+        expect(card.width).toBeLessThanOrEqual(200);
+      }
+    }
+  });
 });
