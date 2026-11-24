@@ -117,7 +117,7 @@ Os textos das regras vêm de [classCards.ts](classCards.ts), montados com
 Mudanças nessas constantes atualizam a explicação. Aventureiro é descrito como
 representação visual para a ausência de classe, não como classe do sistema.
 
-As [24 cartas](assets/cards/README.md) somam 495.77 KiB e servem ao
+As [24 cartas](assets/cards/README.md) somam 470,03 KiB e servem ao
 retrato e à galeria (antes eram 48 arquivos, 1.114 KiB). Vite importa apenas URLs;
 os 24 WebP entram no precache existente da PWA e funcionam offline após a
 instalação. Cartas fora da área

@@ -2,11 +2,12 @@
 
 24 cartas WebP (6 classes × 4 estágios) extraídas da prancha aprovada
 [`previews/characters-sheet.png`](../previews/characters-sheet.png)
-(1536 × 1024, sem textos) por
+(1448 × 1086, sem textos) por
 [`scripts/character-assets/extract-cards.mjs`](../../../../../../../scripts/character-assets/extract-cards.mjs).
-Cada arquivo contém só o personagem dentro da moldura original, com fundo externo
-transparente; nomes, estágios e níveis são exibidos pelos componentes React.
-Nenhuma imagem foi ampliada ou repintada.
+Usadas as três primeiras linhas; a quarta (versões alternativas de Sábio e Mestre)
+não foi escolhida. Cada arquivo contém só o personagem dentro da moldura original,
+com fundo externo transparente; nomes, estágios e níveis são exibidos pelos
+componentes React. Nenhuma imagem foi ampliada ou repintada.
 
 A mesma carta serve ao retrato do Início/Perfil (`PlayerPortrait`) e à galeria
 de classes. A arte pixelada anterior está preservada em
@@ -14,36 +15,36 @@ de classes. A arte pixelada anterior está preservada em
 bundle). Comparação lado a lado:
 [`previews/characters-preview.html`](../previews/characters-preview.html).
 
-São **507672 bytes (495.77 KiB)** no total. Vite emite cada arquivo com
-hash e base de publicação; o service worker as inclui no precache existente.
+São **481314 bytes (470,03 KiB)** no total. Vite emite cada arquivo com hash e base
+de publicação; o service worker as inclui no precache existente.
 
-Estados: `ready` (pronta), `review` (halo tênue do brilho original fora da
-moldura, visível só sobre fundos claros) e `regenerate` (anatomia das mãos
-incorreta na arte original; integrada até a nova versão ser fornecida).
+Estados: `ready` (pronta) e `review` (halo tênue do brilho original fora da
+moldura, visível só sobre fundos claros). Na arte, o Guerreiro IV tem moldura
+dourada. Esta prancha corrigiu as mãos de Estrategista I e III e Sábio I e II.
 
-| Arquivo                                  | Dimensões | Bytes | Estado     | SHA-256                                                            |
-| ---------------------------------------- | --------- | ----- | ---------- | ------------------------------------------------------------------ |
-| `aventureiro/aventureiro-nivel-1.webp`   | 186 × 264 | 19308 | ready      | `b3741d322fe68d75f44d8543ec276c519d9b4672c3bb4eefcb38c51b1d12bde3` |
-| `aventureiro/aventureiro-nivel-2.webp`   | 180 × 264 | 19022 | ready      | `880a9d77932f64ad3ba792680c5a98e6e5b2723f387b0ae63dd16d717ba3d13e` |
-| `aventureiro/aventureiro-nivel-3.webp`   | 180 × 264 | 20500 | ready      | `9a6b8935be72a9ffd4fd61d2ad0196dfe2edd09125556828b1ba6fc50d866322` |
-| `aventureiro/aventureiro-nivel-4.webp`   | 179 × 265 | 21806 | review     | `31c51ebf178ca192adb9af70e0188148889978bf142dc9c4487ec15b282b47bc` |
-| `guerreiro/guerreiro-nivel-1.webp`       | 178 × 266 | 18622 | ready      | `ea23cf41cd5b48667012920d4d9d68e07a4278173780e052a9cb3a5c75794cd6` |
-| `guerreiro/guerreiro-nivel-2.webp`       | 180 × 266 | 19984 | ready      | `faf344410bf12f50fa3602abbceac6ca0398107b078b681dfa0b07ec5386ec11` |
-| `guerreiro/guerreiro-nivel-3.webp`       | 180 × 266 | 21160 | ready      | `054412bf46ba3bbd1624a52dcefd829cee7fb02c4c1e1ae3ef8d78f11e5a62bd` |
-| `guerreiro/guerreiro-nivel-4.webp`       | 182 × 268 | 23834 | ready      | `e10aed169d8a739533229c0b27c77a9ed3dae5fc7cec340cbf3921c134211cf1` |
-| `estrategista/estrategista-nivel-1.webp` | 185 × 270 | 19708 | regenerate | `747557e4ec5a5ccee699a51cacee7571e1ba4e185d28809366e7707581424cfa` |
-| `estrategista/estrategista-nivel-2.webp` | 179 × 270 | 19578 | ready      | `b6801670f0bc630df1ee525b11319b5c8cad7a882453950b9ec9674d3955197c` |
-| `estrategista/estrategista-nivel-3.webp` | 178 × 270 | 20422 | regenerate | `29c41d093e848a58e4fe998f3cada12f7003aa6f9fe8e56d6f0def0c18b2bc35` |
-| `estrategista/estrategista-nivel-4.webp` | 179 × 270 | 21700 | ready      | `ce2494ea35c823867b4826ef6ad0a7ffa42f686f71f5c2901538d82cc437a073` |
-| `guardiao/guardiao-nivel-1.webp`         | 178 × 270 | 19798 | ready      | `f99282d3f985bd9641dc4e855bd350bce228f26057ea16c982a99cbfabac0021` |
-| `guardiao/guardiao-nivel-2.webp`         | 179 × 270 | 19740 | ready      | `8670abd13887fdfadf8996c562033cb60f54a3c0b1ede179ac204bd365741bf0` |
-| `guardiao/guardiao-nivel-3.webp`         | 178 × 271 | 20874 | ready      | `51e68bafaf80aa08052df7b7f9069acd9abcc41ee922b6d3e9b8a77886db592d` |
-| `guardiao/guardiao-nivel-4.webp`         | 184 × 271 | 23960 | ready      | `cd99785749b0d7410a8515a267feca209a32e4013da03894a298bc315969de91` |
-| `sabio/sabio-nivel-1.webp`               | 186 × 277 | 20132 | regenerate | `522a6364fc21933afed53c2119ed65a60885be57bb1755dc9293308130cf5149` |
-| `sabio/sabio-nivel-2.webp`               | 180 × 278 | 20692 | regenerate | `4891d10473147f315481cfc68bcc87b8174d3ccefa4771e5077c4ea63335d1f9` |
-| `sabio/sabio-nivel-3.webp`               | 183 × 278 | 22818 | review     | `a1ec1fe087b6a4d1c33a261ab4ad437c01a336abf38b4e94e1e0159c52731e5e` |
-| `sabio/sabio-nivel-4.webp`               | 190 × 279 | 24552 | review     | `c66c77093636494b14f1c0b3f07122a4dc7b06368a7c4bb4a913651f7383ac52` |
-| `mestre/mestre-nivel-1.webp`             | 178 × 279 | 21140 | ready      | `8ae6f136de93acb386a96203551ff29767e90a8e4131b93c284a9458cf501355` |
-| `mestre/mestre-nivel-2.webp`             | 179 × 280 | 21370 | ready      | `9adddd276cf38b2e24315bc4d8a5a4a833438236b5e3a0eb5dc15cf41c87d926` |
-| `mestre/mestre-nivel-3.webp`             | 181 × 281 | 22056 | ready      | `3621b48f86cd4d1e803891822c01eb50661bf61d9a8d2fe6eb50ad5def7c1bd9` |
-| `mestre/mestre-nivel-4.webp`             | 181 × 282 | 24896 | ready      | `3d82f2af78a08d8287a1bef9b779af3560d6ed08041fe0e094564db31c8cdbc0` |
+| Arquivo                                  | Dimensões | Bytes | Estado | SHA-256                                                            |
+| ---------------------------------------- | --------- | ----- | ------ | ------------------------------------------------------------------ |
+| `aventureiro/aventureiro-nivel-1.webp`   | 191 × 267 | 18574 | ready  | `5d6b61921d93ee5c406e88f4781eaaf7ede9a965fdf59f5d82a8686c6947267f` |
+| `aventureiro/aventureiro-nivel-2.webp`   | 183 × 267 | 18460 | ready  | `cc9b4b116a14973d33fc70f2fb66431c42cacd32a96208a44a0954f53c233233` |
+| `aventureiro/aventureiro-nivel-3.webp`   | 179 × 267 | 18848 | ready  | `021135f68ca6e6c8b0b23ae076f7d969670ded36e8a801ee6b3b0604191b17ae` |
+| `aventureiro/aventureiro-nivel-4.webp`   | 175 × 267 | 20110 | ready  | `cd99334e1fe1b98f592716fd380ccf723b92effff3b885daee6020d5fab95bee` |
+| `guerreiro/guerreiro-nivel-1.webp`       | 180 × 267 | 18014 | ready  | `97fae1e0cc56d136856ac34743a881e06c1ab4b21bd2112abf8b80f9c76d3f2e` |
+| `guerreiro/guerreiro-nivel-2.webp`       | 179 × 267 | 18890 | ready  | `e268f61c444b1f5cf163ee2db87320dab07c9e3a40e501409e26fe0af1439636` |
+| `guerreiro/guerreiro-nivel-3.webp`       | 180 × 267 | 19672 | ready  | `b9d14ffd7845a715d6efd719d5420e04c214876aece3787cfebe34d89c5bfd11` |
+| `guerreiro/guerreiro-nivel-4.webp`       | 184 × 267 | 22424 | review | `07b8d6b6fd2062035e8d7f055dfe342402b4493b2c3e4fb951fdc49a1a2ff6f9` |
+| `estrategista/estrategista-nivel-1.webp` | 191 × 267 | 19168 | ready  | `b896d82ce7387175440f03fac73960b257d6d51551145198ef6f1d1bfd3653be` |
+| `estrategista/estrategista-nivel-2.webp` | 181 × 267 | 19456 | ready  | `dc159408d7335cfcefd55ebca047971cf20dd69e3064ad7db13698408c768072` |
+| `estrategista/estrategista-nivel-3.webp` | 178 × 267 | 20012 | ready  | `659b9f1e2cd1ea189fe9207a0214dd9756b8fd825ed0435b629d6e0175239d65` |
+| `estrategista/estrategista-nivel-4.webp` | 175 × 267 | 21270 | review | `e64b2509edd060421ae9a07edeb5c45b6bddeb5dc7c4391f10b5e98d422dcfca` |
+| `guardiao/guardiao-nivel-1.webp`         | 178 × 267 | 19270 | ready  | `7f7a8486559f88eef7e6d7f37141b8b2cb0a01e253e813de567d3d24acfb1cd9` |
+| `guardiao/guardiao-nivel-2.webp`         | 177 × 267 | 20202 | ready  | `698fad1f4f3f6b2ac16bd37e244d4b9b5d553a20b302366be0b80a4ad3a1686d` |
+| `guardiao/guardiao-nivel-3.webp`         | 180 × 267 | 20796 | ready  | `38a19a92c4a9942515cb4b7f73d11b2ad7123bdb4f058b1559e82245a7cdf1bf` |
+| `guardiao/guardiao-nivel-4.webp`         | 184 × 267 | 22722 | review | `140355c26893272c11c2a6cdb0ad8db874df04fe4b914ef5ae1fbe39b3f56f44` |
+| `sabio/sabio-nivel-1.webp`               | 193 × 264 | 19282 | ready  | `54144b7df97e9c6b702328b4dcc7e17f7827b6794981ed88b6909da0e9754524` |
+| `sabio/sabio-nivel-2.webp`               | 183 × 264 | 19538 | ready  | `7575d341c7c0e1ceb609df1b4a69044086b8978116873f5953761894c48ec61a` |
+| `sabio/sabio-nivel-3.webp`               | 178 × 264 | 21050 | ready  | `1c36bebf3c74013bdbc41f3f866befee5b17fb3f3b1fc716230132acc57bad65` |
+| `sabio/sabio-nivel-4.webp`               | 177 × 264 | 21342 | ready  | `f926193f8be782fce9bbb847b5ccfcc937ef4d9260da003ca44b34a4f0aeb525` |
+| `mestre/mestre-nivel-1.webp`             | 177 × 264 | 19058 | ready  | `7dbc20b2381390c1ed7ae73dc4d488f826675602b0f79a1263315a9f8d12f68a` |
+| `mestre/mestre-nivel-2.webp`             | 177 × 264 | 19966 | ready  | `a984675340c999c27e776e3b10ec96221cb158534c7ac6552b5883d0d2f40547` |
+| `mestre/mestre-nivel-3.webp`             | 178 × 264 | 20556 | ready  | `eb0704f9fd2b4f6de6fc5c9afe414d1fd355b3850878b53b9a8147bbcfec132f` |
+| `mestre/mestre-nivel-4.webp`             | 180 × 264 | 22634 | review | `f217fc8fb8366757406a05f829ff54410fa72e8af5e27a28f909f00da08f7a72` |
