@@ -38,12 +38,12 @@ export function projectCharacter(state: PlayerState, today: string) {
     startingProgress,
     recordReward(state.records, missions, today) + rewards.total,
   );
-  const achievements = realAchievements(
-    state.records,
+  const achievements = realAchievements({
+    records: state.records,
     missions,
+    goals: state.goals,
     today,
-    activities,
-  );
+  });
   return {
     missions,
     activities,

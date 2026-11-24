@@ -279,7 +279,7 @@ describe('Integração com o Perfil e a URL', () => {
       within(sheet).getByRole('img', { name: /^Avatar de / }),
     ).toHaveAttribute(
       'src',
-      expect.stringContaining('portraits/guerreiro/guerreiro-nivel-1'),
+      expect.stringContaining('cards/guerreiro/guerreiro-nivel-1'),
     );
     expect(sheet.querySelector('[data-avatar]')).toBeNull();
     const before = localStorage.getItem(PLAYER_STORAGE_KEY);

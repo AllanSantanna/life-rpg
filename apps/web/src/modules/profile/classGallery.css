@@ -111,7 +111,6 @@
   width: 100%;
   max-width: 220px;
   height: auto;
-  image-rendering: pixelated;
 }
 .class-tile-body {
   display: grid;

@@ -1,0 +1,569 @@
+{
+  "sheet": {
+    "file": "previews/source-sheet.png",
+    "width": 1536,
+    "height": 1024,
+    "sha256": "68f38e5a6595f8f3d9fc57be2b85ad5032c32bd6b81536bfbd74323c20b092db"
+  },
+  "settings": {
+    "BACKGROUND_DISTANCE": 22,
+    "HOLE_DISTANCE": 55,
+    "CLOSE_GAPS": 2,
+    "EDGE_BAND": 3,
+    "EDGE_OPAQUE": 0.22,
+    "LIGHT_FLOOR": 0.05,
+    "WEBP_QUALITY": 0.9
+  },
+  "assets": [
+    {
+      "id": "frame-common",
+      "width": 145,
+      "height": 145,
+      "sourceRect": { "x": 43, "y": 95, "width": 129, "height": 127 },
+      "searchRect": [29, 91, 185, 228],
+      "touchesSearchEdge": [],
+      "discardedFragments": [],
+      "bytes": { "png": 19909, "webp": 7506 }
+    },
+    {
+      "id": "frame-uncommon",
+      "width": 149,
+      "height": 149,
+      "sourceRect": { "x": 202, "y": 91, "width": 129, "height": 133 },
+      "searchRect": [187, 91, 343, 228],
+      "touchesSearchEdge": [],
+      "discardedFragments": [],
+      "bytes": { "png": 21927, "webp": 7332 }
+    },
+    {
+      "id": "frame-rare",
+      "width": 154,
+      "height": 154,
+      "sourceRect": { "x": 355, "y": 87, "width": 135, "height": 138 },
+      "searchRect": [344, 76, 500, 228],
+      "touchesSearchEdge": [],
+      "discardedFragments": [],
+      "bytes": { "png": 27371, "webp": 9030 }
+    },
+    {
+      "id": "frame-epic",
+      "width": 163,
+      "height": 163,
+      "sourceRect": { "x": 508, "y": 81, "width": 139, "height": 145 },
+      "searchRect": [500, 76, 656, 228],
+      "touchesSearchEdge": [],
+      "discardedFragments": [{ "area": 6, "box": [535, 226, 538, 227] }],
+      "bytes": { "png": 29521, "webp": 9714 }
+    },
+    {
+      "id": "frame-legendary",
+      "width": 160,
+      "height": 160,
+      "sourceRect": { "x": 665, "y": 83, "width": 139, "height": 142 },
+      "searchRect": [657, 76, 813, 228],
+      "touchesSearchEdge": [],
+      "discardedFragments": [{ "area": 6, "box": [676, 226, 679, 227] }],
+      "bytes": { "png": 29776, "webp": 10142 }
+    },
+    {
+      "id": "badge-common",
+      "width": 127,
+      "height": 127,
+      "sourceRect": { "x": 879, "y": 101, "width": 97, "height": 113 },
+      "searchRect": [859, 94, 995, 226],
+      "touchesSearchEdge": [],
+      "discardedFragments": [],
+      "bytes": { "png": 21612, "webp": 5530 }
+    },
+    {
+      "id": "badge-uncommon",
+      "width": 129,
+      "height": 129,
+      "sourceRect": { "x": 1009, "y": 99, "width": 98, "height": 115 },
+      "searchRect": [990, 94, 1126, 226],
+      "touchesSearchEdge": [],
+      "discardedFragments": [],
+      "bytes": { "png": 21661, "webp": 5156 }
+    },
+    {
+      "id": "badge-rare",
+      "width": 141,
+      "height": 141,
+      "sourceRect": { "x": 1133, "y": 94, "width": 116, "height": 125 },
+      "searchRect": [1122, 94, 1258, 226],
+      "touchesSearchEdge": [],
+      "discardedFragments": [],
+      "bytes": { "png": 28903, "webp": 7552 }
+    },
+    {
+      "id": "badge-epic",
+      "width": 151,
+      "height": 151,
+      "sourceRect": { "x": 1262, "y": 83, "width": 124, "height": 135 },
+      "searchRect": [1256, 80, 1392, 226],
+      "touchesSearchEdge": [],
+      "discardedFragments": [],
+      "bytes": { "png": 34095, "webp": 8680 }
+    },
+    {
+      "id": "badge-legendary",
+      "width": 147,
+      "height": 147,
+      "sourceRect": { "x": 1398, "y": 86, "width": 123, "height": 131 },
+      "searchRect": [1392, 80, 1528, 226],
+      "touchesSearchEdge": [],
+      "discardedFragments": [],
+      "bytes": { "png": 31984, "webp": 8914 }
+    },
+    {
+      "id": "icon-training",
+      "width": 131,
+      "height": 131,
+      "sourceRect": { "x": 46, "y": 297, "width": 117, "height": 96 },
+      "searchRect": [41, 288, 169, 394],
+      "touchesSearchEdge": ["bottom"],
+      "discardedFragments": [],
+      "bytes": { "png": 18228, "webp": 5292 }
+    },
+    {
+      "id": "icon-knowledge",
+      "width": 131,
+      "height": 131,
+      "sourceRect": { "x": 199, "y": 296, "width": 117, "height": 97 },
+      "searchRect": [193, 288, 321, 394],
+      "touchesSearchEdge": ["bottom"],
+      "discardedFragments": [{ "area": 15, "box": [238, 288, 243, 290] }],
+      "bytes": { "png": 20802, "webp": 6154 }
+    },
+    {
+      "id": "icon-finances",
+      "width": 127,
+      "height": 127,
+      "sourceRect": { "x": 341, "y": 296, "width": 113, "height": 97 },
+      "searchRect": [334, 288, 462, 394],
+      "touchesSearchEdge": ["bottom"],
+      "discardedFragments": [],
+      "bytes": { "png": 19580, "webp": 5822 }
+    },
+    {
+      "id": "icon-rest",
+      "width": 130,
+      "height": 130,
+      "sourceRect": { "x": 477, "y": 296, "width": 116, "height": 98 },
+      "searchRect": [471, 288, 599, 394],
+      "touchesSearchEdge": ["bottom"],
+      "discardedFragments": [],
+      "bytes": { "png": 20214, "webp": 5724 }
+    },
+    {
+      "id": "icon-quests",
+      "width": 118,
+      "height": 118,
+      "sourceRect": { "x": 613, "y": 296, "width": 106, "height": 97 },
+      "searchRect": [601, 288, 729, 394],
+      "touchesSearchEdge": ["bottom"],
+      "discardedFragments": [],
+      "bytes": { "png": 18554, "webp": 5502 }
+    },
+    {
+      "id": "icon-milestone",
+      "width": 118,
+      "height": 118,
+      "sourceRect": { "x": 739, "y": 296, "width": 106, "height": 98 },
+      "searchRect": [729, 288, 857, 394],
+      "touchesSearchEdge": [],
+      "discardedFragments": [],
+      "bytes": { "png": 17954, "webp": 5446 }
+    },
+    {
+      "id": "icon-achievement",
+      "width": 120,
+      "height": 120,
+      "sourceRect": { "x": 868, "y": 296, "width": 108, "height": 98 },
+      "searchRect": [857, 288, 985, 394],
+      "touchesSearchEdge": ["bottom"],
+      "discardedFragments": [],
+      "bytes": { "png": 18470, "webp": 5624 }
+    },
+    {
+      "id": "ui-locked",
+      "width": 70,
+      "height": 70,
+      "sourceRect": { "x": 1048, "y": 306, "width": 48, "height": 62 },
+      "searchRect": [1024, 292, 1120, 382],
+      "touchesSearchEdge": [],
+      "discardedFragments": [],
+      "bytes": { "png": 5861, "webp": 2646 }
+    },
+    {
+      "id": "ui-unlocked",
+      "width": 69,
+      "height": 69,
+      "sourceRect": { "x": 1147, "y": 307, "width": 51, "height": 61 },
+      "searchRect": [1122, 292, 1218, 382],
+      "touchesSearchEdge": [],
+      "discardedFragments": [],
+      "bytes": { "png": 5836, "webp": 2546 }
+    },
+    {
+      "id": "ui-progress",
+      "width": 78,
+      "height": 78,
+      "sourceRect": { "x": 1237, "y": 305, "width": 70, "height": 68 },
+      "searchRect": [1223, 292, 1319, 382],
+      "touchesSearchEdge": [],
+      "discardedFragments": [],
+      "bytes": { "png": 6011, "webp": 3040 }
+    },
+    {
+      "id": "ui-completed",
+      "width": 80,
+      "height": 80,
+      "sourceRect": { "x": 1343, "y": 304, "width": 72, "height": 70 },
+      "searchRect": [1330, 292, 1426, 382],
+      "touchesSearchEdge": [],
+      "discardedFragments": [],
+      "bytes": { "png": 8380, "webp": 3122 }
+    },
+    {
+      "id": "ui-new",
+      "width": 70,
+      "height": 70,
+      "sourceRect": { "x": 1447, "y": 306, "width": 56, "height": 62 },
+      "searchRect": [1426, 292, 1522, 382],
+      "touchesSearchEdge": [],
+      "discardedFragments": [],
+      "bytes": { "png": 6014, "webp": 4086 }
+    },
+    {
+      "id": "achievement-training-01",
+      "width": 119,
+      "height": 119,
+      "sourceRect": { "x": 48, "y": 461, "width": 107, "height": 99 },
+      "searchRect": [29, 458, 169, 560],
+      "touchesSearchEdge": ["bottom"],
+      "discardedFragments": [{ "area": 6, "box": [95, 458, 99, 459] }],
+      "bytes": { "png": 21441, "webp": 6012 }
+    },
+    {
+      "id": "achievement-training-02",
+      "width": 118,
+      "height": 118,
+      "sourceRect": { "x": 197, "y": 464, "width": 106, "height": 96 },
+      "searchRect": [179, 458, 319, 560],
+      "touchesSearchEdge": ["bottom"],
+      "discardedFragments": [],
+      "bytes": { "png": 19689, "webp": 5568 }
+    },
+    {
+      "id": "achievement-training-03",
+      "width": 117,
+      "height": 117,
+      "sourceRect": { "x": 343, "y": 464, "width": 105, "height": 96 },
+      "searchRect": [327, 458, 467, 560],
+      "touchesSearchEdge": ["bottom"],
+      "discardedFragments": [],
+      "bytes": { "png": 20422, "webp": 5884 }
+    },
+    {
+      "id": "achievement-training-04",
+      "width": 118,
+      "height": 118,
+      "sourceRect": { "x": 486, "y": 464, "width": 106, "height": 96 },
+      "searchRect": [473, 458, 613, 560],
+      "touchesSearchEdge": ["bottom"],
+      "discardedFragments": [],
+      "bytes": { "png": 21176, "webp": 6094 }
+    },
+    {
+      "id": "achievement-training-05",
+      "width": 120,
+      "height": 120,
+      "sourceRect": { "x": 635, "y": 462, "width": 108, "height": 98 },
+      "searchRect": [619, 458, 759, 560],
+      "touchesSearchEdge": ["bottom"],
+      "discardedFragments": [],
+      "bytes": { "png": 23445, "webp": 6510 }
+    },
+    {
+      "id": "achievement-knowledge-01",
+      "width": 120,
+      "height": 120,
+      "sourceRect": { "x": 799, "y": 463, "width": 108, "height": 97 },
+      "searchRect": [782, 458, 922, 560],
+      "touchesSearchEdge": ["bottom"],
+      "discardedFragments": [],
+      "bytes": { "png": 22315, "webp": 6490 }
+    },
+    {
+      "id": "achievement-knowledge-02",
+      "width": 123,
+      "height": 123,
+      "sourceRect": { "x": 944, "y": 462, "width": 109, "height": 98 },
+      "searchRect": [930, 458, 1070, 560],
+      "touchesSearchEdge": ["bottom"],
+      "discardedFragments": [],
+      "bytes": { "png": 23369, "webp": 6664 }
+    },
+    {
+      "id": "achievement-knowledge-03",
+      "width": 120,
+      "height": 120,
+      "sourceRect": { "x": 1092, "y": 462, "width": 108, "height": 98 },
+      "searchRect": [1077, 458, 1217, 560],
+      "touchesSearchEdge": ["bottom"],
+      "discardedFragments": [],
+      "bytes": { "png": 22419, "webp": 6480 }
+    },
+    {
+      "id": "achievement-knowledge-04",
+      "width": 123,
+      "height": 123,
+      "sourceRect": { "x": 1239, "y": 462, "width": 109, "height": 98 },
+      "searchRect": [1223, 458, 1363, 560],
+      "touchesSearchEdge": ["bottom"],
+      "discardedFragments": [],
+      "bytes": { "png": 22561, "webp": 6422 }
+    },
+    {
+      "id": "achievement-knowledge-05",
+      "width": 127,
+      "height": 127,
+      "sourceRect": { "x": 1386, "y": 461, "width": 113, "height": 99 },
+      "searchRect": [1373, 458, 1513, 560],
+      "touchesSearchEdge": ["bottom"],
+      "discardedFragments": [],
+      "bytes": { "png": 23125, "webp": 6670 }
+    },
+    {
+      "id": "achievement-finances-01",
+      "width": 123,
+      "height": 123,
+      "sourceRect": { "x": 45, "y": 589, "width": 109, "height": 99 },
+      "searchRect": [29, 577, 169, 688],
+      "touchesSearchEdge": ["bottom"],
+      "discardedFragments": [],
+      "bytes": { "png": 21818, "webp": 6450 }
+    },
+    {
+      "id": "achievement-finances-02",
+      "width": 118,
+      "height": 118,
+      "sourceRect": { "x": 195, "y": 589, "width": 106, "height": 99 },
+      "searchRect": [179, 577, 319, 688],
+      "touchesSearchEdge": ["bottom"],
+      "discardedFragments": [],
+      "bytes": { "png": 21622, "webp": 6384 }
+    },
+    {
+      "id": "achievement-finances-03",
+      "width": 123,
+      "height": 123,
+      "sourceRect": { "x": 339, "y": 588, "width": 109, "height": 100 },
+      "searchRect": [327, 577, 467, 688],
+      "touchesSearchEdge": ["bottom"],
+      "discardedFragments": [],
+      "bytes": { "png": 21160, "webp": 6250 }
+    },
+    {
+      "id": "achievement-finances-04",
+      "width": 120,
+      "height": 120,
+      "sourceRect": { "x": 487, "y": 585, "width": 108, "height": 103 },
+      "searchRect": [473, 577, 613, 688],
+      "touchesSearchEdge": ["bottom"],
+      "discardedFragments": [],
+      "bytes": { "png": 22703, "webp": 6628 }
+    },
+    {
+      "id": "achievement-finances-05",
+      "width": 120,
+      "height": 120,
+      "sourceRect": { "x": 634, "y": 589, "width": 108, "height": 99 },
+      "searchRect": [619, 577, 759, 688],
+      "touchesSearchEdge": ["bottom"],
+      "discardedFragments": [],
+      "bytes": { "png": 21453, "webp": 6356 }
+    },
+    {
+      "id": "achievement-rest-01",
+      "width": 118,
+      "height": 118,
+      "sourceRect": { "x": 799, "y": 584, "width": 106, "height": 104 },
+      "searchRect": [782, 577, 922, 688],
+      "touchesSearchEdge": ["bottom"],
+      "discardedFragments": [],
+      "bytes": { "png": 22577, "webp": 6230 }
+    },
+    {
+      "id": "achievement-rest-02",
+      "width": 125,
+      "height": 125,
+      "sourceRect": { "x": 944, "y": 587, "width": 111, "height": 101 },
+      "searchRect": [930, 577, 1070, 688],
+      "touchesSearchEdge": ["bottom"],
+      "discardedFragments": [],
+      "bytes": { "png": 23461, "webp": 6626 }
+    },
+    {
+      "id": "achievement-rest-03",
+      "width": 120,
+      "height": 120,
+      "sourceRect": { "x": 1092, "y": 583, "width": 108, "height": 105 },
+      "searchRect": [1077, 577, 1217, 688],
+      "touchesSearchEdge": ["bottom"],
+      "discardedFragments": [],
+      "bytes": { "png": 23795, "webp": 6702 }
+    },
+    {
+      "id": "achievement-rest-04",
+      "width": 120,
+      "height": 120,
+      "sourceRect": { "x": 1238, "y": 585, "width": 108, "height": 103 },
+      "searchRect": [1223, 577, 1363, 688],
+      "touchesSearchEdge": ["bottom"],
+      "discardedFragments": [],
+      "bytes": { "png": 24614, "webp": 7166 }
+    },
+    {
+      "id": "achievement-rest-05",
+      "width": 130,
+      "height": 130,
+      "sourceRect": { "x": 1385, "y": 583, "width": 116, "height": 105 },
+      "searchRect": [1373, 577, 1513, 688],
+      "touchesSearchEdge": ["bottom"],
+      "discardedFragments": [],
+      "bytes": { "png": 25515, "webp": 6902 }
+    },
+    {
+      "id": "effect-unlock",
+      "width": 114,
+      "height": 114,
+      "sourceRect": { "x": 37, "y": 748, "width": 102, "height": 92 },
+      "searchRect": [27, 748, 147, 840],
+      "touchesSearchEdge": ["bottom"],
+      "discardedFragments": [],
+      "bytes": { "png": 16107, "webp": 8374 }
+    },
+    {
+      "id": "effect-shine",
+      "width": 112,
+      "height": 112,
+      "sourceRect": { "x": 161, "y": 755, "width": 100, "height": 85 },
+      "searchRect": [150, 748, 270, 840],
+      "touchesSearchEdge": [],
+      "discardedFragments": [],
+      "bytes": { "png": 12165, "webp": 8186 }
+    },
+    {
+      "id": "effect-particles",
+      "width": 86,
+      "height": 86,
+      "sourceRect": { "x": 293, "y": 759, "width": 76, "height": 72 },
+      "searchRect": [275, 748, 395, 840],
+      "touchesSearchEdge": [],
+      "discardedFragments": [],
+      "bytes": { "png": 3444, "webp": 3912 }
+    },
+    {
+      "id": "effect-levelup",
+      "width": 109,
+      "height": 109,
+      "sourceRect": { "x": 399, "y": 748, "width": 97, "height": 86 },
+      "searchRect": [390, 748, 510, 840],
+      "touchesSearchEdge": [],
+      "discardedFragments": [],
+      "bytes": { "png": 9969, "webp": 5650 }
+    },
+    {
+      "id": "effect-glow",
+      "width": 111,
+      "height": 111,
+      "sourceRect": { "x": 518, "y": 761, "width": 99, "height": 79 },
+      "searchRect": [508, 748, 628, 840],
+      "touchesSearchEdge": ["bottom"],
+      "discardedFragments": [],
+      "bytes": { "png": 11755, "webp": 5170 }
+    },
+    {
+      "id": "label-common",
+      "width": 145,
+      "height": 51,
+      "sourceRect": { "x": 680, "y": 756, "width": 129, "height": 35 },
+      "searchRect": [673, 752, 817, 791],
+      "touchesSearchEdge": ["bottom"],
+      "discardedFragments": [],
+      "bytes": { "png": 9269, "webp": 3416 }
+    },
+    {
+      "id": "label-uncommon",
+      "width": 144,
+      "height": 51,
+      "sourceRect": { "x": 824, "y": 756, "width": 128, "height": 35 },
+      "searchRect": [815, 752, 959, 791],
+      "touchesSearchEdge": ["bottom"],
+      "discardedFragments": [],
+      "bytes": { "png": 9795, "webp": 3618 }
+    },
+    {
+      "id": "label-rare",
+      "width": 137,
+      "height": 49,
+      "sourceRect": { "x": 974, "y": 756, "width": 123, "height": 35 },
+      "searchRect": [964, 752, 1108, 791],
+      "touchesSearchEdge": ["bottom"],
+      "discardedFragments": [],
+      "bytes": { "png": 9172, "webp": 3178 }
+    },
+    {
+      "id": "label-epic",
+      "width": 153,
+      "height": 52,
+      "sourceRect": { "x": 725, "y": 817, "width": 137, "height": 36 },
+      "searchRect": [721, 814, 865, 853],
+      "touchesSearchEdge": ["bottom"],
+      "discardedFragments": [],
+      "bytes": { "png": 10213, "webp": 3384 }
+    },
+    {
+      "id": "label-legendary",
+      "width": 162,
+      "height": 58,
+      "sourceRect": { "x": 895, "y": 815, "width": 144, "height": 40 },
+      "searchRect": [887, 812, 1043, 855],
+      "touchesSearchEdge": ["bottom"],
+      "discardedFragments": [],
+      "bytes": { "png": 11752, "webp": 4226 }
+    },
+    {
+      "id": "banner-achievement",
+      "width": 94,
+      "height": 94,
+      "sourceRect": { "x": 1189, "y": 752, "width": 83, "height": 84 },
+      "searchRect": [1180, 748, 1284, 836],
+      "touchesSearchEdge": ["bottom"],
+      "discardedFragments": [],
+      "bytes": { "png": 9881, "webp": 2904 }
+    },
+    {
+      "id": "laurel",
+      "width": 98,
+      "height": 98,
+      "sourceRect": { "x": 1325, "y": 755, "width": 88, "height": 78 },
+      "searchRect": [1318, 752, 1424, 836],
+      "touchesSearchEdge": [],
+      "discardedFragments": [],
+      "bytes": { "png": 10201, "webp": 4836 }
+    },
+    {
+      "id": "gem-red",
+      "width": 79,
+      "height": 79,
+      "sourceRect": { "x": 1454, "y": 754, "width": 47, "height": 71 },
+      "searchRect": [1444, 750, 1530, 836],
+      "touchesSearchEdge": [],
+      "discardedFragments": [{ "area": 86, "box": [1529, 750, 1529, 835] }],
+      "bytes": { "png": 5342, "webp": 2376 }
+    }
+  ]
+}

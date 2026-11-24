@@ -23,6 +23,7 @@ implementação atual; propostas futuras devem ser identificadas como propostas.
 - [Radar](../apps/web/src/modules/evolution/README.md).
 - [Painel de Estatísticas, paisagem 3D e calendário](../apps/web/src/modules/statistics/README.md).
 - [Personagem e classes](../apps/web/src/modules/profile/README.md).
+- [Conquistas: catálogo, regras e limitações](../apps/web/src/modules/gamification/README.md#conquistas) e [assets](design-system/achievement-assets.md).
 - [Persistência e migrações](../apps/web/src/shared/storage/README.md).
 - [Persistência transacional e proteção contra versões antigas](architecture/transactional-persistence.md).
 - [Backup manual: exportação, importação e transferência entre dispositivos](architecture/data-backup.md).

@@ -13,6 +13,7 @@ import {
   PLAYER_STORAGE_VERSION,
 } from './playerState';
 import { shiftDate } from '../modules/records/dates';
+import { achievementState, openProfile } from '../test/achievements';
 afterEach(cleanup);
 const xp = () =>
   screen.getByRole('progressbar', { name: 'Experiência do jogador' });
@@ -61,11 +62,9 @@ describe('Nível e progresso reais na interface', () => {
       'aria-valuenow',
       '0',
     );
-    expect(
-      screen
-        .getByRole('heading', { name: 'Primeiro passo' })
-        .closest('article'),
-    ).toHaveClass('is-locked');
+    openProfile();
+    expect(achievementState('Primeiro passo')).toBe('locked');
+    expect(achievementState('Primeiro treino')).toBe('locked');
     app.unmount();
     render(<App />);
     expect(xp()).toHaveAttribute('aria-valuenow', '0');

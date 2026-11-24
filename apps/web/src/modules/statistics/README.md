@@ -6,8 +6,8 @@ alterados. O filtro persistido do Radar continua no `App`; o filtro dos novos
 gráficos é local, começa em 30 dias e aceita 7/30/90. O calendário tem navegação
 mensal independente. Os novos controles não gravam estado, emitem comandos ou
 alteram recompensas, Quests, personagem ou contratos de storage.
-O painel de conquistas existente permanece após os indicadores, preservando o
-acesso pelo atalho do perfil.
+O resumo de conquistas (o mesmo do Início) permanece após os indicadores, com o
+atalho "Ver conquistas" para a galeria no Perfil.
 
 ## Personalização da visualização
 

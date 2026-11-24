@@ -19,6 +19,7 @@ import { applyGoalCommand } from './commands';
 import { blankGoal } from './templates';
 import { dashboardGoals } from './dashboardGoals';
 import type { GoalDefinition } from './types';
+import { achievementState, openProfile } from '../../test/achievements';
 const today = '2026-11-13';
 afterEach(cleanup);
 function add(
@@ -313,13 +314,15 @@ describe('Quests do usuário no dashboard', () => {
     );
     expect(xp()).toHaveAttribute('aria-valuenow', '270');
     expect(
-      screen
-        .getByRole('heading', { name: 'Primeiro passo' })
-        .closest('article'),
-    ).not.toHaveClass('is-locked');
-    expect(
       screen.getByRole('img', { name: 'Avatar de Lia' }),
     ).toBeInTheDocument();
+    openProfile();
+    expect(achievementState('Primeiro passo')).toBe('unlocked');
+    fireEvent.click(
+      within(
+        screen.getByRole('navigation', { name: 'Navegação principal' }),
+      ).getByRole('button', { name: 'Início' }),
+    );
     fireEvent.click(within(summary()).getByRole('link'));
     fireEvent.click(
       screen.getByRole('button', { name: 'Ver todas as quests' }),

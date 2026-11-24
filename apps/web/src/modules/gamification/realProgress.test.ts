@@ -17,6 +17,7 @@ import { effortHistory } from '../../app/mocks/effort';
 import { scorePeriod } from '../evolution/scoring';
 import { shiftDate } from '../records/dates';
 import { applyRecordCommand } from '../records/commands';
+import { emptyGoals } from '../goals/types';
 const today = '2026-11-13';
 describe('Progressão exclusivamente real', () => {
   it('não usa XP, atributos, missões ou histórico ilustrativo em uma conta vazia', () => {
@@ -40,9 +41,12 @@ describe('Progressão exclusivamente real', () => {
       ),
     ).toBe(true);
     expect(
-      realAchievements(records, [], today, activities).every(
-        (achievement) => !achievement.unlocked,
-      ),
+      realAchievements({
+        records,
+        missions: [],
+        goals: emptyGoals(),
+        today,
+      }).every((achievement) => !achievement.unlocked),
     ).toBe(true);
     expect(
       weeklyRecordXP(records, initialMissions, today).every(
@@ -149,12 +153,28 @@ describe('Progressão exclusivamente real', () => {
       })),
     };
     const calculate = (r: typeof records) =>
-      realAchievements(r, [], today, projectEffortActivities([], [], r, today));
+      realAchievements({
+        records: r,
+        missions: [],
+        goals: emptyGoals(),
+        today,
+      });
+    // Os ids do catálogo anterior (first, consistent, reader) continuam
+    // desbloqueados pelos mesmos registros; o catálogo novo soma os marcos
+    // de Treinos e Conhecimento sustentados pelos mesmos dados.
     expect(
       calculate(records)
         .filter((a) => a.unlocked)
         .map((a) => a.id),
-    ).toEqual(['first', 'consistent', 'reader']);
+    ).toEqual([
+      'training-first',
+      'training-strong-week',
+      'knowledge-first',
+      'knowledge-book-1',
+      'reader',
+      'first',
+      'consistent',
+    ]);
     expect(
       calculate({ ...records, workouts: [], readings: [] }).every(
         (a) => !a.unlocked,

@@ -269,11 +269,13 @@ try {
         (await portrait.getAttribute('src')).startsWith(`${BASE}assets/`),
       );
       await controlled(page);
-      // Retratos e cartas têm o mesmo nome original; o conteúdo identifica cada um.
+      // Retrato e galeria usam a mesma carta por classe e estágio (24 artes);
+      // o conteúdo identifica cada uma. A arte pixelada em assets/legacy/ não
+      // pode entrar no build.
       const digest = (bytes) =>
         createHash('sha256').update(bytes).digest('hex');
       const originals = new Map();
-      for (const kind of ['portraits', 'cards'])
+      for (const kind of ['cards'])
         for (const character of CHARACTERS)
           for (const stage of [1, 2, 3, 4]) {
             const bytes = await fs.readFile(
@@ -286,13 +288,17 @@ try {
             );
             originals.set(digest(bytes), `${kind}/${character}-${stage}`);
           }
-      assert.equal(originals.size, 48, 'As 48 artes originais são distintas');
+      assert.equal(originals.size, 24, 'As 24 cartas são distintas');
       const files = (await fs.readdir(join(root, 'assets'))).filter((file) =>
         /^(aventureiro|guerreiro|estrategista|guardiao|sabio|mestre)-nivel-[1-4]-.*\.webp$/.test(
           file,
         ),
       );
-      assert.equal(files.length, 48, 'Sem cópias duplicadas no build');
+      assert.equal(
+        files.length,
+        24,
+        'Sem cópias duplicadas nem arte legada no build',
+      );
       const found = new Set();
       await context.setOffline(true);
       for (const file of files) {
@@ -317,7 +323,7 @@ try {
         assert.ok(original.endsWith(`/${character}-${stage}`), file);
         found.add(original);
       }
-      assert.equal(found.size, 48);
+      assert.equal(found.size, 24);
       // A galeria abre offline pelo fallback do service worker e decodifica
       // as quatro cartas do detalhe.
       await page.goto(`${site}perfil/classes/guardiao`);

@@ -35,7 +35,9 @@ import { Navigation, type View } from './Navigation';
 import { pillarViews } from './views';
 import { PlayerHeader } from '../modules/profile/PlayerHeader';
 import { AttributesPanel } from '../modules/gamification/AttributesPanel';
-import { AchievementsPanel } from '../modules/gamification/AchievementsPanel';
+import { AchievementsSummary } from '../modules/gamification/achievements/AchievementsSummary';
+import { AchievementUnlockNotice } from '../modules/gamification/achievements/AchievementUnlockNotice';
+import { useAchievementUnlocks } from '../modules/gamification/achievements/presentation';
 import { MetricCard } from '../shared/components/MetricCard';
 import { SectionHeading } from '../shared/components/SectionHeading';
 import { Icon } from '../shared/components/Icon';
@@ -63,7 +65,7 @@ const persistenceLabels: Record<Persistence['kind'], string> = {
 };
 export function App() {
   const today = useToday();
-  const { view, navigate, goalId, classSlug } = useUrlNavigation();
+  const { view, navigate, goalId, classSlug, section } = useUrlNavigation();
   const {
     state,
     setState,
@@ -93,9 +95,14 @@ export function App() {
     achievements,
   } = facts;
   const heading = useRef<HTMLHeadingElement>(null);
+  // Apresentação de desbloqueio: só para conquistas novas geradas por uma ação
+  // do usuário nesta sessão; abrir, importar ou restaurar não anima.
+  const unlocks = useAchievementUnlocks(achievements);
+  const openAchievements = () => navigate('profile', 'conquistas');
   const attributes = realAttributes(dedication);
   const currentMetrics = recordMetrics(state.records, today, dedication);
   function changeRecords(command: RecordCommand): string | null {
+    unlocks.markUserAction();
     try {
       // Aplicado sobre o estado mais recente (inclusive de outra aba); erros de
       // validação lançados pelo comando chegam ao formulário.
@@ -111,6 +118,7 @@ export function App() {
     }
   }
   function changeGoals(command: GoalCommand): string | null {
+    unlocks.markUserAction();
     try {
       setState((previous) => ({
         ...previous,
@@ -133,9 +141,21 @@ export function App() {
   const market = useMarketQuotes(recordProps);
   const activeGoals = dashboardGoals(state.goals, state.records, today);
   useEffect(() => {
-    const frame = requestAnimationFrame(() => heading.current?.focus());
+    const frame = requestAnimationFrame(() => {
+      // Uma seção do Perfil aberta por âncora (#conquistas) recebe o foco.
+      const target = section ? document.getElementById(section) : null;
+      if (!target) return heading.current?.focus();
+      target.focus({ preventScroll: true });
+      const reduce = window.matchMedia?.(
+        '(prefers-reduced-motion: reduce)',
+      ).matches;
+      target.scrollIntoView?.({
+        block: 'start',
+        behavior: reduce ? 'auto' : 'smooth',
+      });
+    });
     return () => cancelAnimationFrame(frame);
-  }, [view, goalId, classSlug, ready]);
+  }, [view, goalId, classSlug, section, ready]);
   if (!ready)
     return (
       <main
@@ -249,7 +269,12 @@ export function App() {
                 activities={activities}
                 today={today}
                 onNavigate={navigate}
-                achievements={<AchievementsPanel achievements={achievements} />}
+                achievements={
+                  <AchievementsSummary
+                    achievements={achievements}
+                    onOpen={openAchievements}
+                  />
+                }
                 radar={
                   <EvolutionPanel
                     activities={activities}
@@ -295,7 +320,10 @@ export function App() {
                     onOpen={() => navigate('goals')}
                     onOpenGoal={(id) => navigate('goals', id)}
                   />
-                  <AchievementsPanel achievements={achievements} />
+                  <AchievementsSummary
+                    achievements={achievements}
+                    onOpen={openAchievements}
+                  />
                 </div>
                 <div className="home-attributes">
                   <AttributesPanel attributes={attributes} />
@@ -349,6 +377,7 @@ export function App() {
                   onChange={setState}
                   onOpenEvolution={() => navigate('stats')}
                   onExploreClasses={() => navigate('classes')}
+                  highlightAchievements={section === 'conquistas'}
                 />
                 <DataBackup
                   readSource={readBackupSource}
@@ -364,6 +393,12 @@ export function App() {
               </div>
             )}
           </div>
+          <AchievementUnlockNotice
+            queue={unlocks.queue}
+            onNext={unlocks.next}
+            onClose={unlocks.dismissAll}
+            {...(view === 'profile' ? {} : { onOpenGallery: openAchievements })}
+          />
           <footer className="mt-9 flex flex-wrap items-center justify-between gap-3 border-t border-white/[0.06] pt-5 text-[11px] text-muted">
             <span>{persistenceLabels[persistence.kind]}</span>
           </footer>

@@ -26,6 +26,7 @@
     "audit:persistence": "node scripts/audit-indexed-storage.mjs && node scripts/audit-storage-pwa.mjs && node scripts/audit-backup.mjs",
     "audit:backup": "node scripts/audit-backup.mjs",
     "audit:pages": "node scripts/audit-pages.mjs",
+    "audit:achievement-assets": "node scripts/check-achievement-assets.mjs",
     "test:standards": "node scripts/standards.test.mjs",
     "test": "npm run test:standards && npm run test --workspaces --if-present",
     "build": "npm run build --workspaces --if-present",

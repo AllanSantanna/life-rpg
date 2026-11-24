@@ -574,7 +574,8 @@ try {
                 .map((rect, index) => rect.top - sections[index].bottom);
             });
             check(
-              gaps.length === 3 && gaps.every((gap) => gap >= 16),
+              // Ficha, nome, conquistas, backup e cópias de segurança.
+              gaps.length === 4 && gaps.every((gap) => gap >= 16),
               'perfil-espacamento',
               width,
               `Vão entre seções do Perfil: ${gaps.join(', ')} px`,

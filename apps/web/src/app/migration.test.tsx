@@ -22,6 +22,7 @@ import {
 import { realMissionHistory } from '../modules/missions/catalog';
 import { createLocalStateStorage } from '../shared/storage/localStateStorage';
 import { emptyRecords } from '../modules/records/types';
+import { achievementState, openProfile } from '../test/achievements';
 afterEach(cleanup);
 function legacy(version = 2) {
   const state = createInitialPlayerState();
@@ -142,9 +143,8 @@ describe('Migração única para evolução real v3', () => {
     expect(
       screen.queryByRole('button', { name: 'Missões' }),
     ).not.toBeInTheDocument();
-    expect(
-      screen.getByRole('heading', { name: 'Em chamas' }).closest('article'),
-    ).toHaveClass('is-locked');
+    openProfile();
+    expect(achievementState('Em chamas')).toBe('locked');
     const saved = localStorage.getItem(PLAYER_STORAGE_KEY);
     expect(writes).toHaveBeenCalledTimes(1);
     app.unmount();
