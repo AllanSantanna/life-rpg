@@ -52,13 +52,26 @@ export function viewFromPath(pathname: string): View {
 }
 function subscribe(onChange: () => void) {
   window.addEventListener('popstate', onChange);
+  window.addEventListener('hashchange', onChange);
   window.addEventListener(navigationEvent, onChange);
   return () => {
     window.removeEventListener('popstate', onChange);
+    window.removeEventListener('hashchange', onChange);
     window.removeEventListener(navigationEvent, onChange);
   };
 }
-/** `detail` identifica a quest (`?quest=`) ou a classe (`/perfil/classes/<classe>`). */
+/** Seções do Perfil acessíveis por âncora, sem rota ou item de menu próprio. */
+export const profileSections = ['conquistas'] as const;
+export type ProfileSection = (typeof profileSections)[number];
+function sectionFromHash(hash: string): ProfileSection | null {
+  const id = decodeURIComponent(hash.replace(/^#/, ''));
+  return profileSections.find((section) => section === id) ?? null;
+}
+
+/**
+ * `detail` identifica a quest (`?quest=`), a classe (`/perfil/classes/<classe>`)
+ * ou uma seção do Perfil (`/perfil#conquistas`).
+ */
 function navigate(view: View, detail?: string) {
   const suffix = !detail
     ? ''
@@ -66,9 +79,16 @@ function navigate(view: View, detail?: string) {
       ? `?quest=${encodeURIComponent(detail)}`
       : view === 'classes'
         ? `/${encodeURIComponent(detail)}`
-        : '';
+        : view === 'profile' && sectionFromHash(detail)
+          ? `#${detail}`
+          : '';
   const path = viewPaths[view] + suffix;
-  if (normalizePath(window.location.pathname) + window.location.search === path)
+  if (
+    normalizePath(window.location.pathname) +
+      window.location.search +
+      window.location.hash ===
+    path
+  )
     return;
   window.history.pushState(
     null,
@@ -83,7 +103,8 @@ function navigate(view: View, detail?: string) {
 export function useUrlNavigation() {
   const location = useSyncExternalStore(
     subscribe,
-    () => window.location.pathname + window.location.search,
+    () =>
+      window.location.pathname + window.location.search + window.location.hash,
   );
   const url = new URL(location, window.location.origin);
   useEffect(() => {
@@ -106,6 +127,10 @@ export function useUrlNavigation() {
     view: viewFromPath(url.pathname),
     classSlug: classFromPath(url.pathname),
     goalId: url.searchParams.get('quest') ?? url.searchParams.get('meta'),
+    section:
+      viewFromPath(url.pathname) === 'profile'
+        ? sectionFromHash(url.hash)
+        : null,
     navigate,
   };
 }
