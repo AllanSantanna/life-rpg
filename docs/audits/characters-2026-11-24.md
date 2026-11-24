@@ -6,8 +6,9 @@ Branch: `feat/dark-fantasy-characters`, derivada de `feat/profile-achievements`
 ## O que mudou
 
 - As 24 cartas (6 classes × 4 estágios) foram extraídas da prancha sem textos
-  ([`characters-sheet.png`](../../apps/web/src/modules/profile/assets/previews/characters-sheet.png)),
-  na mesma ordem da prancha rotulada aprovada. Ficam em
+  ([`characters-sheet.png`](../../apps/web/src/modules/profile/assets/previews/characters-sheet.png),
+  1448 × 1086, segunda versão), na mesma ordem da prancha rotulada aprovada. A
+  quarta linha da prancha (alternativas de Sábio e Mestre) não foi escolhida. Ficam em
   [`assets/cards`](../../apps/web/src/modules/profile/assets/cards/README.md) e servem ao
   retrato (Início e Perfil) e à galeria de classes.
 - A arte pixelada (retratos e cartas) foi movida para `assets/legacy/`, fora do
@@ -17,10 +18,10 @@ Branch: `feat/dark-fantasy-characters`, derivada de `feat/profile-achievements`
 
 ## Estados
 
-17 `ready`, 3 `review` (halo tênue fora da moldura, só sobre fundos claros:
-Aventureiro IV, Sábio III e IV) e 4 `regenerate` (mãos com anatomia incorreta na
-arte original: Estrategista I e III, Sábio I e II). Os quatro seguem integrados até
-a nova arte ser fornecida; não foram repintados.
+20 `ready` e 4 `review` (halo tênue do brilho fora da moldura, só sobre fundos
+claros: Guerreiro, Estrategista, Guardião e Mestre IV; na arte, o Guerreiro IV tem
+moldura dourada). A segunda prancha corrigiu as mãos de Estrategista I e III e
+Sábio I e II, antes marcadas como `regenerate`.
 
 ## Capturas
 
