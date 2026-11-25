@@ -266,9 +266,13 @@ export async function auditMuscleMap({ page, width, capture, check }) {
   );
   if (width < 768) await traceHeader.tap();
   else await traceHeader.click();
+  // Agachamento livre registra Abdutores como estabilizadores (decisão de
+  // 25/11/2026): estado visual próprio, sem índice nem estímulo contabilizado.
   check(
     (await details
-      .getByRole('img', { name: 'Índice estimado: indeterminado' })
+      .getByRole('img', {
+        name: 'Índice estimado: não calculado, participação estabilizadora',
+      })
       .count()) === 1 &&
       (await trace
         .getByText(
@@ -277,7 +281,7 @@ export async function auditMuscleMap({ page, width, capture, check }) {
         .count()) === 1,
     'muscle-indeterminate',
     width,
-    'Abdutores ganharam índice sem exercício relacionado',
+    'Abdutores estabilizadores ganharam índice ou estímulo contabilizado',
   );
   await map.getByRole('tab', { name: 'Recuperação', exact: true }).focus();
   await page.keyboard.press('Home');
