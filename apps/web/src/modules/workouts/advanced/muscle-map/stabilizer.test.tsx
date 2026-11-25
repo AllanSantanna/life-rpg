@@ -186,16 +186,141 @@ describe('participação somente estabilizadora no Esforço relativo', () => {
       expect(path.dataset.tone).toBe('unknown');
   });
 
-  it('não altera a Recuperação estimada', () => {
+  it('a seleção funciona com mouse, toque e teclado no estado estabilizador', () => {
     renderMap([squat('a')]);
+    const [first, second] = regions('core');
+    fireEvent.click(first!);
+    expect(first).toHaveAttribute('aria-pressed', 'true');
+    fireEvent.pointerDown(second!, { pointerType: 'touch' });
+    fireEvent.click(second!);
+    expect(second).toHaveAttribute('aria-pressed', 'true');
+    const lower = regions('lowerBack')[0]!;
+    lower.focus();
+    fireEvent.keyDown(lower, { key: 'Enter' });
+    expect(lower).toHaveAttribute('aria-pressed', 'true');
+    fireEvent.keyDown(first!, { key: ' ' });
+    expect(first).toHaveAttribute('aria-pressed', 'true');
+    expect(
+      screen.getByLabelText('Detalhes do músculo selecionado'),
+    ).toHaveClass('muscle-tone-stabilizer');
+  });
+});
+
+describe('participação somente estabilizadora na Recuperação estimada', () => {
+  function recovery(sessions: WorkoutSession[]) {
+    const view = renderMap(sessions);
     fireEvent.click(screen.getByRole('tab', { name: 'Recuperação' }));
+    return view;
+  }
+
+  it('usa o verde existente, sem cor nova nem percentual', () => {
+    const css = read('./muscle-map.css');
+    expect(css).toMatch(
+      /\.muscle-tone-recovery-stabilizer\s*\{\s*--muscle-color:\s*var\(--color-muscle-ready\);\s*\}/,
+    );
+    recovery([squat('a')]);
     for (const path of [...regions('core'), ...regions('lowerBack')]) {
+      expect(path.dataset.tone).toBe('recovery-stabilizer');
+      expect(path.getAttribute('aria-label')).toMatch(
+        /Estabilizador · sem carga de recuperação calculada$/,
+      );
+      expect(path.getAttribute('aria-label')).not.toMatch(/\d+\s*%/);
+    }
+  });
+
+  it('o painel explica que o valor não foi calculado e que o verde não é medição', () => {
+    recovery([squat('a')]);
+    fireEvent.click(regions('core')[0]!);
+    const details = screen.getByLabelText('Detalhes do músculo selecionado');
+    expect(details).toHaveClass('muscle-tone-recovery-stabilizer');
+    const gauge = within(details).getByRole('img', {
+      name: 'Índice estimado: não calculado, participação estabilizadora',
+    });
+    expect(gauge).toHaveTextContent('—');
+    expect(gauge).toHaveTextContent('Não calculado');
+    expect(gauge).not.toHaveTextContent(/\d+%/);
+    expect(
+      within(details).getByRole('heading', {
+        name: 'Participação estabilizadora',
+      }),
+    ).toBeInTheDocument();
+    expect(details).toHaveTextContent(
+      'Este músculo participou da estabilização, mas não possui carga de recuperação estimada.',
+    );
+    expect(details).toHaveTextContent(
+      'O verde é uma convenção visual e não indica recuperação medida.',
+    );
+  });
+
+  it('a legenda indica o estado com o verde existente e o diferencia da recuperação medida', () => {
+    recovery([squat('a')]);
+    const legend = screen.getByLabelText('Legenda de recuperação estimada');
+    const items = within(legend).getAllByRole('listitem');
+    expect(items.map((li) => li.textContent)).toEqual([
+      'Estimativa alta≥ 90%',
+      'Intermediária70–89%',
+      'Baixa50–69%',
+      'Muito baixa< 50%',
+      'EstabilizadorSem carga calculada · não é recuperação medida',
+      'IndeterminadoSem dados suficientes',
+    ]);
+    expect(
+      items[4]!.querySelector(
+        '.muscle-v2-swatch.muscle-tone-recovery-stabilizer',
+      ),
+    ).not.toBeNull();
+    expect(legend.querySelector('.muscle-tone-stabilizer')).toBeNull();
+  });
+
+  it('estímulo contabilizado mantém a escala normal; sem participação fica cinza', () => {
+    recovery([squat('a'), testSession('b', '2026-11-19', sets(3), 'crunch')]);
+    for (const path of regions('core')) {
+      expect(path.dataset.tone).not.toMatch(/stabilizer/);
+      expect(path.getAttribute('aria-label')).toMatch(/\d+% · /);
+    }
+    for (const path of regions('quadriceps'))
+      expect(path.getAttribute('aria-label')).toMatch(/\d+% · /);
+    for (const path of regions('chest')) {
       expect(path.dataset.tone).toBe('unknown');
-      // Sem estímulo contabilizado: nada de 100% como medição.
       expect(path.getAttribute('aria-label')).toMatch(/Indeterminado$/);
     }
-    const legend = screen.getByLabelText('Legenda de recuperação estimada');
-    expect(legend.querySelector('.muscle-tone-stabilizer')).toBeNull();
+  });
+
+  it('secundário na janela mantém a escala normal (lombar no terra)', () => {
+    recovery([squat('a'), testSession('b', '2026-11-19', sets(3), 'deadlift')]);
+    for (const path of regions('lowerBack'))
+      expect(path.dataset.tone).not.toMatch(/stabilizer/);
+  });
+
+  it('respeita a janela de 14 dias, independente do período do Esforço', () => {
+    // 20 dias atrás: dentro de 30 dias (Esforço), fora dos 14 da Recuperação.
+    const old = [squat('a', '2026-10-31')];
+    const view = renderMap(old, 'week');
+    view.rerender(<MuscleMap sessions={old} today={today} period="month" />);
+    for (const path of regions('core'))
+      expect(path.dataset.tone).toBe('stabilizer');
+    fireEvent.click(screen.getByRole('tab', { name: 'Recuperação' }));
+    for (const path of regions('core'))
+      expect(path.dataset.tone).toBe('unknown');
+  });
+
+  it('atualiza ao editar e excluir o treino', () => {
+    const view = recovery([squat('a')]);
+    for (const path of regions('core'))
+      expect(path.dataset.tone).toBe('recovery-stabilizer');
+    const edited = squat('a');
+    edited.exercises[0]!.sets = edited.exercises[0]!.sets.map((s) => ({
+      ...s,
+      completed: false,
+    }));
+    view.rerender(
+      <MuscleMap sessions={[edited]} today={today} period="week" />,
+    );
+    for (const path of regions('core'))
+      expect(path.dataset.tone).toBe('unknown');
+    view.rerender(<MuscleMap sessions={[]} today={today} period="week" />);
+    for (const path of regions('core'))
+      expect(path.dataset.tone).toBe('unknown');
   });
 });
 
@@ -245,6 +370,34 @@ describe('Abdutores como estabilizadores', () => {
       expect(summaries.abductors.recovery).toBeNull();
     });
 
+  it('regressão: afundo unilateral colore Abdutores nos dois modos e nas duas vistas', () => {
+    const lunge = librarySession('a', 'library:lunge');
+    // O mapeamento registra os Abdutores como estabilizadores do afundo.
+    renderMap([lunge]);
+    const effort = regions('abductors');
+    expect(effort.length).toBeGreaterThanOrEqual(4);
+    for (const path of effort) expect(path.dataset.tone).toBe('stabilizer');
+    fireEvent.click(screen.getByRole('tab', { name: 'Recuperação' }));
+    for (const path of regions('abductors')) {
+      expect(path.dataset.tone).toBe('recovery-stabilizer');
+      expect(path.getAttribute('aria-label')).not.toMatch(/\d+\s*%/);
+    }
+    // Sessão em andamento não entra na projeção: nada é colorido.
+    cleanup();
+    renderMap([{ ...lunge, status: 'in_progress' }]);
+    for (const path of regions('abductors'))
+      expect(path.dataset.tone).toBe('unknown');
+  });
+
+  it('exercício sem Abdutores mapeados não os colore (agachamento livre)', () => {
+    renderMap([squat('a')]);
+    for (const path of regions('abductors'))
+      expect(path.dataset.tone).toBe('unknown');
+    fireEvent.click(screen.getByRole('tab', { name: 'Recuperação' }));
+    for (const path of regions('abductors'))
+      expect(path.dataset.tone).toBe('unknown');
+  });
+
   it('cadeira abdutora (principal) tem prioridade sobre a estabilização', () => {
     renderMap([
       librarySession('a', 'library:bulgarian-squat'),
@@ -275,8 +428,12 @@ describe('cálculos preservados', () => {
         ),
       ).toBe(true);
       expect(stabilizerOnly(summary)).toBe(true);
+      expect(stabilizerOnly(summary, 'recovery')).toBe(true);
       expect(muscleTone(summary, 'effort')).toBe('stabilizer');
-      expect(muscleTone(summary, 'recovery')).toBe('unknown');
+      expect(muscleTone(summary, 'recovery')).toBe('recovery-stabilizer');
+      // O estado visual não altera os valores calculados.
+      expect(summary.recovery).toBeNull();
+      expect(summary.contributions.every((c) => c.residual === 0)).toBe(true);
     }
     // Principal e secundários mantêm os mesmos valores e faixas.
     expect(summaries.quadriceps.units).toBe(4);
@@ -294,5 +451,11 @@ describe('cálculos preservados', () => {
     expect(stabilizerOnly(summaries.chest)).toBe(false);
     expect(stabilizerOnly(undefined)).toBe(false);
     expect(muscleTone(undefined, 'effort')).toBe('unknown');
+    expect(muscleTone(undefined, 'recovery')).toBe('unknown');
+    expect(muscleTone(summaries.chest, 'recovery')).toBe('unknown');
+    // Quadríceps com estímulo: escala normal da Recuperação.
+    expect(muscleTone(summaries.quadriceps, 'recovery')).toBe(
+      metricTone(summaries.quadriceps.recovery, 'recovery'),
+    );
   });
 });
