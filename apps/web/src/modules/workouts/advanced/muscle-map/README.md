@@ -320,7 +320,13 @@ dela não colore o grupo. `muscleTone(summary, mode)` é a única regra visual,
 usada nas duas vistas, na lista de grupos, na legenda e nos detalhes.
 Abdutores só recebem esse estado quando o exercício os registra como
 estabilizadores (hoje: agachamento búlgaro, afundo e subida no banco) em sessão
-concluída; agachamento livre e leg press não os incluem. Recuperação: verde (≥90), amarelo (70–89), laranja (50–69), vermelho (<50). Sem
+concluída; agachamento livre e leg press não os incluem. Lombar, Adutores e
+Abdutores não existem no tipo salvo `Muscle`: só a revisão por ID os identifica,
+e exercícios próprios nunca os registram. Sem participação na janela do modo, o
+painel lista os exercícios revisados que identificam o grupo
+(`reviewedExerciseIds`), em vez de um cinza sem explicação.
+`abductors.test.tsx` verifica as superfícies `ABDUCTOR_*` renderizadas nas duas
+vistas e nos dois modos com os IDs reais do catálogo. Recuperação: verde (≥90), amarelo (70–89), laranja (50–69), vermelho (<50). Sem
 contribuição recente ou grupo não mapeado: cinza/indeterminado. Cada região usa
 gradiente horizontal com sombra lateral (`muscle-v2-shade`, 36% da cor sobre o
 fundo) e textura anatômica em `soft-light`; a legenda usa a mesma classe
