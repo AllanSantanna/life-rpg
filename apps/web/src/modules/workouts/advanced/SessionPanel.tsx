@@ -9,7 +9,9 @@ import {
   localWorkoutTime,
   displaySessionDate,
 } from './sessionTiming';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { StatusDialog } from '../../../shared/components/StatusDialog';
+import type { SaveOutcome } from '../../records/types';
 import { CustomDatePicker } from '../../../shared/components/CustomDatePicker';
 import { CustomSelect } from '../../../shared/components/CustomSelect';
 import { CustomTimePicker } from '../../../shared/components/CustomTimePicker';
@@ -17,6 +19,7 @@ import { Field } from '../../records/RecordUI';
 import { displayDate } from '../../records/dates';
 import { blankSet } from './commands';
 import {
+  consideredSets,
   exerciseHistory,
   exerciseVolume,
   sessionVolume,
@@ -40,12 +43,15 @@ export function SessionPanel({
   selectedId,
   onSelect,
   onCommand,
+  whenSaved,
 }: {
   state: AdvancedWorkoutState;
   today: string;
   selectedId: string | null;
   onSelect: (id: string | null) => void;
   onCommand: AdvancedCommandHandler;
+  /** Confirmação da gravação local; ausente quando o comando é síncrono. */
+  whenSaved?: () => Promise<SaveOutcome>;
 }) {
   const [planId, setPlanId] = useState(suggestedPlan(state)?.id ?? 'free');
   const [date, setDate] = useState(today);
@@ -60,6 +66,22 @@ export function SessionPanel({
   const [markDay, setMarkDay] = useState(true);
   const [active, setActive] = useState(0);
   const [picking, setPicking] = useState(false);
+  // Finalização em duas etapas: revisão antes do comando e confirmação após
+  // a gravação. O snapshot do sucesso sobrevive a mudanças da sessão.
+  const [finishing, setFinishing] = useState<
+    { step: 'review' } | { step: 'success'; name: string; date: string } | null
+  >(null);
+  const [finishBusy, setFinishBusy] = useState(false);
+  const [finishError, setFinishError] = useState<string | null>(null);
+  const finishLock = useRef(false);
+  const finishButton = useRef<HTMLButtonElement>(null);
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
   const session = state.sessions.find((s) => s.id === selectedId);
   const clock = useWorkoutClock(
     !session && time === undefined && date === today,
@@ -117,6 +139,49 @@ export function SessionPanel({
       onSelect(id);
       setActive(0);
     }
+  }
+  function openReview() {
+    if (finishLock.current) return;
+    setFinishError(null);
+    setFinishing({ step: 'review' });
+  }
+  function closeFinish() {
+    if (finishLock.current) return;
+    setFinishing(null);
+    setFinishError(null);
+  }
+  async function finish() {
+    // Trava síncrona: um segundo clique não repete o comando.
+    if (finishLock.current || !session) return;
+    finishLock.current = true;
+    setFinishBusy(true);
+    setFinishError(null);
+    const target = {
+      name: session.planName,
+      date: displaySessionDate(session),
+    };
+    const message = onCommand({
+      type: 'finishSession',
+      id: session.id,
+      markDay,
+    });
+    const outcome: SaveOutcome | 'invalid' = message
+      ? 'invalid'
+      : whenSaved
+        ? await whenSaved()
+        : 'saved';
+    finishLock.current = false;
+    if (!mounted.current) return;
+    setFinishBusy(false);
+    if (outcome === 'saved') setFinishing({ step: 'success', ...target });
+    else
+      setFinishError(
+        outcome === 'invalid'
+          ? message
+          : outcome === 'conflict'
+            ? 'O treino não foi salvo porque os registros foram alterados em outra aba. Siga o aviso de armazenamento para carregar os registros atuais.'
+            : 'Não foi possível confirmar a gravação neste navegador. A conclusão continua apenas nesta sessão; consulte o aviso de armazenamento antes de fechar a página.',
+      );
   }
   function save(value: WorkoutSession) {
     const hasCompletedSet = value.exercises.some((e) =>
@@ -675,9 +740,9 @@ export function SessionPanel({
           <button
             type="button"
             className="record-primary workout-wide"
-            onClick={() =>
-              onCommand({ type: 'finishSession', id: session.id, markDay })
-            }
+            ref={finishButton}
+            aria-haspopup="dialog"
+            onClick={openReview}
           >
             {session.status === 'completed'
               ? 'Confirmar sessão'
@@ -686,6 +751,118 @@ export function SessionPanel({
           </button>
         </>
       )}
+      {finishing?.step === 'review' && session && (
+        <FinishReview
+          key="review"
+          session={session}
+          markDay={markDay}
+          busy={finishBusy}
+          error={finishError}
+          onConfirm={() => void finish()}
+          onClose={closeFinish}
+          returnFocus={() => finishButton.current}
+        />
+      )}
+      {finishing?.step === 'success' && (
+        <StatusDialog
+          key="success"
+          tone="success"
+          title="Treino finalizado!"
+          message="Seu treino foi registrado com sucesso no histórico."
+          summary={[
+            { label: 'Treino', value: finishing.name },
+            { label: 'Data', value: finishing.date },
+          ]}
+          primary={{ label: 'Entendi', onClick: closeFinish }}
+          onClose={closeFinish}
+          returnFocus={() => finishButton.current}
+        />
+      )}
     </div>
+  );
+}
+
+/** Revisão com os dados reais da sessão; não altera nenhum registro. */
+function FinishReview({
+  session,
+  markDay,
+  busy,
+  error,
+  onConfirm,
+  onClose,
+  returnFocus,
+}: {
+  session: WorkoutSession;
+  markDay: boolean;
+  busy: boolean;
+  error: string | null;
+  onConfirm: () => void;
+  onClose: () => void;
+  returnFocus: () => HTMLElement | null;
+}) {
+  const sets = session.exercises.flatMap((e) => e.sets);
+  const performed = session.exercises.filter((e) =>
+    e.sets.some((s) => s.completed),
+  ).length;
+  const valid = session.exercises.reduce(
+    (n, e) => n + consideredSets(e).length,
+    0,
+  );
+  const pending = sets.filter((s) => !s.completed).length;
+  const empty = session.exercises.filter((e) => !e.sets.length).length;
+  return (
+    <StatusDialog
+      tone="review"
+      title="Finalizar treino?"
+      message="Confira os dados registrados antes de concluir."
+      summary={[
+        { label: 'Treino', value: session.planName },
+        { label: 'Data', value: displaySessionDate(session) },
+        {
+          label: 'Exercícios realizados',
+          value: `${performed} de ${session.exercises.length}`,
+        },
+        {
+          label: 'Séries válidas concluídas',
+          value: plural(valid, 'série', 'séries'),
+        },
+        {
+          label: 'Volume das séries válidas',
+          value: `${number(sessionVolume(session))} kg·rep`,
+        },
+        ...(pending
+          ? [
+              {
+                label: 'Séries não concluídas',
+                value: plural(pending, 'série', 'séries'),
+              },
+            ]
+          : []),
+        {
+          label: 'Marcar o dia como treinado',
+          value: markDay ? 'Sim' : 'Não',
+        },
+      ]}
+      error={error}
+      busy={busy}
+      initialFocus="secondary"
+      primary={{
+        label: 'Finalizar treino',
+        busyLabel: 'Finalizando…',
+        onClick: onConfirm,
+      }}
+      secondary={{ label: 'Revisar', onClick: onClose }}
+      onClose={onClose}
+      returnFocus={returnFocus}
+    >
+      {(pending > 0 || empty > 0) && (
+        <p className="status-dialog__notice">
+          {pending > 0
+            ? 'Existem séries que ainda não foram concluídas. Confira antes de finalizar.'
+            : 'Existem exercícios sem séries registradas. Confira antes de finalizar.'}{' '}
+          Nada será apagado ou concluído automaticamente.
+        </p>
+      )}
+    </StatusDialog>
   );
 }

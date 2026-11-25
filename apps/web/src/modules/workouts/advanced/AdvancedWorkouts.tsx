@@ -190,6 +190,7 @@ export function AdvancedWorkouts({
                 selectedId={sessionId}
                 onSelect={setSessionId}
                 onCommand={onCommand}
+                {...(whenSaved ? { whenSaved } : {})}
               />
             )}
             {tab === 'history' && (

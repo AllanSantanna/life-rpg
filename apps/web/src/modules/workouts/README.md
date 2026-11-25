@@ -120,6 +120,16 @@ As fontes de XP, Radar, atributos, quests e classe continuam consultando somente
 os registros simples e as fontes históricas existentes. Ativar a chave, criar
 fichas, preencher séries/RIR ou conquistar recordes não gera esforço ou XP.
 
+**Concluir sessão** abre primeiro a revisão **Finalizar treino?** (`StatusDialog`)
+com dados reais: ficha, data, exercícios realizados, séries válidas concluídas,
+volume válido, séries não concluídas e a opção de marcar o dia. Não há duração:
+a sessão não registra horário de término. Séries pendentes geram um aviso, mas
+nada é apagado ou concluído automaticamente. **Revisar** (ou Escape) fecha sem
+alterar a sessão. **Finalizar treino** executa o comando existente uma única vez
+(“Finalizando…” bloqueia botões e Escape); as validações atuais continuam e seus
+erros aparecem no diálogo. **Treino finalizado!** só aparece após `whenSaved()`
+confirmar a gravação; falha ou conflito de gravação são explicados no diálogo.
+
 Ao concluir, a opção **Marcar o dia como treinado ao concluir** usa o mesmo
 `upsert` por data do registro diário. A operação grava sessão e registro diário
 juntos. Repetir a conclusão, usar várias sessões no mesmo dia ou já ter marcado
