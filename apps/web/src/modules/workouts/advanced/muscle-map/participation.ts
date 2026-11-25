@@ -87,10 +87,16 @@ interface Review {
   stabilizers?: MapGroup[];
   reasons?: Partial<Record<MapGroup, string>>;
 }
+// Decisão de produto (25/11/2026): nos agachamentos bilaterais, glúteo médio e
+// mínimo são estabilizadores (peso 0): só rastreados, sem séries equivalentes.
 const squat = (stabilizers: MapGroup[], adductors = true): Review => ({
   primary: 'quadriceps',
   secondary: adductors ? ['glutes', 'adductors'] : ['glutes'],
-  stabilizers,
+  stabilizers: [...stabilizers, 'abductors'],
+  reasons: {
+    abductors:
+      'Glúteo médio e mínimo estabilizam a pelve e o alinhamento do joelho no plano frontal.',
+  },
 });
 const unilateral: Review = {
   primary: 'quadriceps',
