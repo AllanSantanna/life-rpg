@@ -266,14 +266,23 @@ export async function auditMuscleMap({ page, width, capture, check }) {
   );
   if (width < 768) await traceHeader.tap();
   else await traceHeader.click();
-  // Agachamento livre registra Abdutores como estabilizadores (decisão de
-  // 25/11/2026): estado visual próprio, sem índice nem estímulo contabilizado.
+  // Sem estímulo contabilizado, Abdutores nunca ganham índice. O estado depende
+  // do fixture: estabilizador (agachamento recente, decisão de 25/11/2026) ou
+  // indeterminado. O painel deve coincidir com o tom da região no SVG.
+  const abductorTone = await map
+    .locator('[data-surface^="ABDUCTOR_"]')
+    .first()
+    .getAttribute('data-tone');
   check(
-    (await details
-      .getByRole('img', {
-        name: 'Índice estimado: não calculado, participação estabilizadora',
-      })
-      .count()) === 1 &&
+    ['recovery-stabilizer', 'unknown'].includes(abductorTone) &&
+      (await details
+        .getByRole('img', {
+          name:
+            abductorTone === 'recovery-stabilizer'
+              ? 'Índice estimado: não calculado, participação estabilizadora'
+              : 'Índice estimado: indeterminado',
+        })
+        .count()) === 1 &&
       (await trace
         .getByText(
           'Nenhum estímulo contabilizado para este músculo nos últimos 14 dias.',
@@ -281,7 +290,7 @@ export async function auditMuscleMap({ page, width, capture, check }) {
         .count()) === 1,
     'muscle-indeterminate',
     width,
-    'Abdutores estabilizadores ganharam índice ou estímulo contabilizado',
+    'Abdutores sem estímulo ganharam índice, estímulo ou estado divergente do mapa',
   );
   await map.getByRole('tab', { name: 'Recuperação', exact: true }).focus();
   await page.keyboard.press('Home');
