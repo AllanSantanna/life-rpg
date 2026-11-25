@@ -23,6 +23,9 @@
 .muscle-tone-stabilizer {
   --muscle-color: var(--color-muscle-stabilizer);
 }
+.muscle-tone-recovery-stabilizer {
+  --muscle-color: var(--color-muscle-ready);
+}
 .muscle-tone-moderate {
   --muscle-color: var(--color-workouts);
 }
@@ -538,7 +541,8 @@
   );
 }
 /* Fora da escala percentual: borda tracejada, como o selo do papel. */
-.muscle-v2-swatch.muscle-tone-stabilizer {
+.muscle-v2-swatch.muscle-tone-stabilizer,
+.muscle-v2-swatch.muscle-tone-recovery-stabilizer {
   border-style: dashed;
 }
 .muscle-v2-announcement {

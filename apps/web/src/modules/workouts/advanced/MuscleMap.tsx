@@ -19,6 +19,7 @@ import { MethodHelp } from './muscle-map/MethodHelp';
 import { MuscleDetails, type HistoryPoint } from './muscle-map/MuscleDetails';
 import {
   dailyHistory,
+  isStabilizerTone,
   muscleTone,
   projectMuscles,
   stabilizerStatus,
@@ -189,8 +190,8 @@ export function MuscleMap({
             <p className="muscle-v2-stage-caption">
               {anatomicalLabels[findSurface(selection).group]} ·{' '}
               {summary?.[mode] === null || summary?.[mode] === undefined
-                ? muscleTone(summary, mode) === 'stabilizer'
-                  ? stabilizerStatus
+                ? isStabilizerTone(muscleTone(summary, mode))
+                  ? stabilizerStatus[mode]
                   : 'Indeterminado'
                 : `${summary[mode]}%${mode === 'recovery' ? ' · índice estimado' : ' · esforço relativo'}`}
               <br />

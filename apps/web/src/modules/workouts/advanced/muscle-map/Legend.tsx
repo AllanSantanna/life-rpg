@@ -17,6 +17,11 @@ const stabilizer: [Tone, string] = [
   'stabilizer',
   'Participação não quantificada',
 ];
+// Verde convencional: participação sem carga calculada, não recuperação medida.
+const recoveryStabilizer: [Tone, string] = [
+  'recovery-stabilizer',
+  'Sem carga calculada · não é recuperação medida',
+];
 export function Legend({ mode }: { mode: MapMode }) {
   return (
     <div
@@ -30,7 +35,7 @@ export function Legend({ mode }: { mode: MapMode }) {
         {(mode === 'effort'
           ? // Effort reads from grey (no data) through light to dark red.
             [unknown, stabilizer, ...effortScale]
-          : [...recoveryScale, unknown]
+          : [...recoveryScale, recoveryStabilizer, unknown]
         ).map(([tone, range]) => (
           <li key={tone}>
             <span

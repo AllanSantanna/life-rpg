@@ -8,6 +8,7 @@ import {
   type Selection,
 } from './anatomy';
 import {
+  isStabilizerTone,
   muscleTone,
   stabilizerStatus,
   toneLabels,
@@ -105,8 +106,8 @@ export function AnatomyFigure({
             : 'direita da imagem';
           const status =
             score === null
-              ? tone === 'stabilizer'
-                ? stabilizerStatus
+              ? isStabilizerTone(tone)
+                ? stabilizerStatus[mode]
                 : 'Indeterminado'
               : `${score}% · ${toneLabels[tone]}`;
           return (

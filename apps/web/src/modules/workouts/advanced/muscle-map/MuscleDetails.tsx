@@ -11,6 +11,7 @@ import {
   type Selection,
 } from './anatomy';
 import {
+  isStabilizerTone,
   muscleTone,
   windowMetrics,
   toneLabels,
@@ -42,7 +43,7 @@ export function MuscleDetails({
     mode === 'recovery' ? summary?.recoveryTiming : summary?.lastTiming;
   const lastDate = timing?.date;
   const tone = muscleTone(summary, mode);
-  const stabilizer = tone === 'stabilizer';
+  const stabilizer = isStabilizerTone(tone);
   const metrics = windowMetrics(summary, mode);
   const windowLabel =
     mode === 'effort'
@@ -81,7 +82,7 @@ export function MuscleDetails({
         <div
           className="muscle-v2-gauge"
           role="img"
-          aria-label={`${mode === 'effort' ? 'Esforço relativo' : 'Índice estimado'}: ${value === null ? (stabilizer ? 'não quantificado, participação estabilizadora' : 'indeterminado') : `${value}%`}`}
+          aria-label={`${mode === 'effort' ? 'Esforço relativo' : 'Índice estimado'}: ${value === null ? (stabilizer ? `${mode === 'effort' ? 'não quantificado' : 'não calculado'}, participação estabilizadora` : 'indeterminado') : `${value}%`}`}
         >
           <svg viewBox="0 0 120 120" aria-hidden="true">
             <circle className="muscle-v2-track" cx="60" cy="60" r="51" />
@@ -100,7 +101,11 @@ export function MuscleDetails({
           <div>
             <strong>{value === null ? '—' : `${value}%`}</strong>
             <span>
-              {mode === 'effort' ? 'Esforço relativo' : 'Índice estimado'}
+              {stabilizer && mode === 'recovery'
+                ? 'Não calculado'
+                : mode === 'effort'
+                  ? 'Esforço relativo'
+                  : 'Índice estimado'}
             </span>
           </div>
         </div>
@@ -159,8 +164,9 @@ export function MuscleDetails({
         <div className="muscle-v2-stabilizer-note">
           <h5>Participação estabilizadora</h5>
           <p>
-            Este músculo participou da estabilização durante o exercício, mas
-            não recebeu séries equivalentes no cálculo de esforço.
+            {mode === 'effort'
+              ? 'Este músculo participou da estabilização durante o exercício, mas não recebeu séries equivalentes no cálculo de esforço.'
+              : 'Este músculo participou da estabilização, mas não possui carga de recuperação estimada.'}
           </p>
         </div>
       )}
@@ -235,7 +241,9 @@ export function MuscleDetails({
       {mode === 'recovery' && (
         <p className="record-hint">
           {value === null
-            ? 'Indeterminado: sem estímulo válido nos últimos 14 dias para estimar.'
+            ? stabilizer
+              ? 'Não calculado: nos últimos 14 dias houve apenas participação estabilizadora. O verde é uma convenção visual e não indica recuperação medida.'
+              : 'Indeterminado: sem estímulo válido nos últimos 14 dias para estimar.'
             : 'Janela de 14 dias; atualização a cada minuto enquanto a tela está visível. RIR ausente não equivale a zero.'}{' '}
           {timing &&
             !timing.startedAt &&
