@@ -22,6 +22,8 @@ import {
 export type MapMode = 'effort' | 'recovery';
 export type Tone =
   | 'unknown'
+  | 'stabilizer'
+  | 'recovery-stabilizer'
   | 'low'
   | 'moderate'
   | 'high'
@@ -410,8 +412,47 @@ export function metricTone(value: number | null, mode: MapMode): Tone {
         ? 'tired'
         : 'fatigued';
 }
+/**
+ * Participação somente estabilizadora na janela do modo: Esforço usa o período
+ * escolhido; Recuperação, a janela de recuperação. O grupo foi rastreado como
+ * estabilizador, mas não tem estímulo contabilizado (valor calculado nulo).
+ * Estado apenas visual: `effort` e `recovery` não mudam e nenhum percentual,
+ * série equivalente ou carga residual é criado.
+ */
+export function stabilizerOnly(
+  summary: MuscleSummary | undefined,
+  mode: MapMode = 'effort',
+): boolean {
+  if (!summary || summary[mode] !== null) return false;
+  const scope = mode === 'effort' ? 'inPeriod' : 'inRecoveryWindow';
+  return summary.contributions.some((c) => c[scope] && c.role === 'stabilizer');
+}
+/** Textos da participação estabilizadora por modo: nunca um percentual. */
+export const stabilizerStatus: Record<MapMode, string> = {
+  effort: 'Estabilizador · participação não quantificada',
+  recovery: 'Estabilizador · sem carga de recuperação calculada',
+};
+export const isStabilizerTone = (tone: Tone) =>
+  tone === 'stabilizer' || tone === 'recovery-stabilizer';
+/**
+ * Estado visual único do mapa (vistas, lista, legenda e detalhes):
+ * 1. valor calculado → escala normal do modo;
+ * 2. sem valor, com participação estabilizadora na janela → tom estabilizador
+ *    (#80565a no Esforço; verde convencional na Recuperação);
+ * 3. sem participação → indeterminado.
+ */
+export function muscleTone(
+  summary: MuscleSummary | undefined,
+  mode: MapMode,
+): Tone {
+  if (stabilizerOnly(summary, mode))
+    return mode === 'effort' ? 'stabilizer' : 'recovery-stabilizer';
+  return metricTone(summary?.[mode] ?? null, mode);
+}
 export const toneLabels: Record<Tone, string> = {
   unknown: 'Indeterminado',
+  stabilizer: 'Estabilizador',
+  'recovery-stabilizer': 'Estabilizador',
   low: 'Baixo',
   moderate: 'Moderado',
   high: 'Alto',

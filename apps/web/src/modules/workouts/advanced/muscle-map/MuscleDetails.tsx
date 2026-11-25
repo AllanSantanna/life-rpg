@@ -2,7 +2,14 @@ import { displaySessionDate, elapsedLabel } from '../sessionTiming';
 import { Icon } from '../../../../shared/components/Icon';
 import { displayDate } from '../../../records/dates';
 import { number } from '../calculations';
-import { mapGroupLabels } from './participation';
+import { starterExercises } from '../catalog';
+import { libraryExercises } from '../library';
+import { muscleLabels } from '../types';
+import {
+  mapGroupLabels,
+  reviewedExerciseIds,
+  type MapGroup,
+} from './participation';
 import { ExerciseTrace } from './ExerciseTrace';
 import {
   anatomicalGroups,
@@ -11,12 +18,30 @@ import {
   type Selection,
 } from './anatomy';
 import {
-  metricTone,
+  isStabilizerTone,
+  muscleTone,
   windowMetrics,
   toneLabels,
   type MapMode,
   type MuscleSummary,
 } from './model';
+const catalogNames = new Map(
+  [...starterExercises, ...libraryExercises].map((e) => [e.id, e.name]),
+);
+/**
+ * Rastreabilidade: grupos que só existem no mapa (Lombar, Adutores, Abdutores)
+ * dependem da revisão por ID. Sem participação na janela, o painel diz quais
+ * exercícios os identificam, em vez de um cinza sem explicação.
+ */
+function identificationHint(group: MapGroup) {
+  if (Object.hasOwn(muscleLabels, group)) return null;
+  const names = reviewedExerciseIds(group).flatMap((id) => {
+    const name = catalogNames.get(id);
+    return name ? [name] : [];
+  });
+  if (!names.length) return null;
+  return `Este grupo só é identificado nos exercícios revisados do catálogo: ${new Intl.ListFormat('pt-BR').format(names)}. Exercícios próprios usam apenas os grupos do cadastro e não o registram.`;
+}
 export interface HistoryPoint {
   date: string;
   endDate?: string;
@@ -41,8 +66,13 @@ export function MuscleDetails({
   const timing =
     mode === 'recovery' ? summary?.recoveryTiming : summary?.lastTiming;
   const lastDate = timing?.date;
-  const tone = metricTone(value, mode);
+  const tone = muscleTone(summary, mode);
+  const stabilizer = isStabilizerTone(tone);
   const metrics = windowMetrics(summary, mode);
+  const participated = (summary?.contributions ?? []).some((c) =>
+    mode === 'effort' ? c.inPeriod : c.inRecoveryWindow,
+  );
+  const hint = group && !participated ? identificationHint(group) : null;
   const windowLabel =
     mode === 'effort'
       ? `nos últimos ${days} dias`
@@ -80,7 +110,7 @@ export function MuscleDetails({
         <div
           className="muscle-v2-gauge"
           role="img"
-          aria-label={`${mode === 'effort' ? 'Esforço relativo' : 'Índice estimado'}: ${value === null ? 'indeterminado' : `${value}%`}`}
+          aria-label={`${mode === 'effort' ? 'Esforço relativo' : 'Índice estimado'}: ${value === null ? (stabilizer ? `${mode === 'effort' ? 'não quantificado' : 'não calculado'}, participação estabilizadora` : 'indeterminado') : `${value}%`}`}
         >
           <svg viewBox="0 0 120 120" aria-hidden="true">
             <circle className="muscle-v2-track" cx="60" cy="60" r="51" />
@@ -99,7 +129,11 @@ export function MuscleDetails({
           <div>
             <strong>{value === null ? '—' : `${value}%`}</strong>
             <span>
-              {mode === 'effort' ? 'Esforço relativo' : 'Índice estimado'}
+              {stabilizer && mode === 'recovery'
+                ? 'Não calculado'
+                : mode === 'effort'
+                  ? 'Esforço relativo'
+                  : 'Índice estimado'}
             </span>
           </div>
         </div>
@@ -154,6 +188,16 @@ export function MuscleDetails({
         {toneLabels[tone]}
         {mode === 'recovery' && value !== null ? ' · incerteza elevada' : ''}
       </p>
+      {stabilizer && (
+        <div className="muscle-v2-stabilizer-note">
+          <h5>Participação estabilizadora</h5>
+          <p>
+            {mode === 'effort'
+              ? 'Este músculo participou da estabilização durante o exercício, mas não recebeu séries equivalentes no cálculo de esforço.'
+              : 'Este músculo participou da estabilização, mas não possui carga de recuperação estimada.'}
+          </p>
+        </div>
+      )}
       {group ? (
         <p className="record-hint">
           Dados agregados de {mapGroupLabels[group]}; o histórico não distingue
@@ -161,6 +205,7 @@ export function MuscleDetails({
           {metrics.sets
             ? `${metrics.direct} séries diretas e ${metrics.secondary} secundárias ${windowLabel}.`
             : `Nenhuma série válida ${windowLabel}.`}
+          {hint && ` ${hint}`}
         </p>
       ) : (
         <p className="record-hint">
@@ -225,7 +270,9 @@ export function MuscleDetails({
       {mode === 'recovery' && (
         <p className="record-hint">
           {value === null
-            ? 'Indeterminado: sem estímulo válido nos últimos 14 dias para estimar.'
+            ? stabilizer
+              ? 'Não calculado: nos últimos 14 dias houve apenas participação estabilizadora. O verde é uma convenção visual e não indica recuperação medida.'
+              : 'Indeterminado: sem estímulo válido nos últimos 14 dias para estimar.'
             : 'Janela de 14 dias; atualização a cada minuto enquanto a tela está visível. RIR ausente não equivale a zero.'}{' '}
           {timing &&
             !timing.startedAt &&

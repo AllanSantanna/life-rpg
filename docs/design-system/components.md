@@ -128,7 +128,23 @@ de Treinos e na personalização de Estatísticas. Não crie outro estilo de swi
 - `FinancialConfirmation` usa `<dialog>`, título associado, cancelamento por
   Escape e restauração do foco. É específico de Finanças, não um modal global.
 - Calendário usa diálogo próprio; seletor usa listbox. Formulários de ficha são
-  inline. Não há abstração global de modal ou toast.
+  inline. Não há abstração global de toast.
+- [StatusDialog](../../apps/web/src/shared/components/StatusDialog.tsx): diálogo
+  modal compartilhado para **revisar** uma operação antes de executá-la
+  (`tone="review"`, ícone `clipboard`) e **confirmar** que ela foi concluída
+  (`tone="success"`, ícone `check`). Props: título, mensagem, `summary`
+  (`dl` com rótulo e valor reais), conteúdo opcional (avisos com
+  `.status-dialog__notice`), `error` (`role="alert"`), ação principal com
+  `ActionButton` e secundária com `.filter-button`, `busy` (botões desabilitados,
+  rótulo de andamento, `aria-busy` e Escape bloqueado) e `returnFocus` quando a
+  origem sai da tela. Foco inicial configurável, Escape fecha quando seguro e o
+  foco volta à origem. Abre uma vez por montagem: troque a `key` para outra
+  etapa. Fica no top layer (acima do menu inferior), com rolagem interna, largura
+  máxima de 440 px e animação curta desativada em movimento reduzido. Usado na
+  confirmação da importação e na revisão/confirmação da finalização de treinos.
+  Só anuncie sucesso depois de `whenSaved()` (ver
+  [persistência](../architecture/transactional-persistence.md)); não use para
+  exclusões, que seguem com `ConfirmAction`.
 - Erro: `.record-error` com `role="alert"`. Feedback: `RecordFeedback` com
   `aria-live="polite"`; alguns módulos usam `role="status"`.
   Associe o erro ao campo com `aria-describedby` quando aplicável; uma rejeição

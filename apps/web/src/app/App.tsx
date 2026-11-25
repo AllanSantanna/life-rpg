@@ -82,6 +82,7 @@ export function App() {
     readBackupSource,
     beginBackupImport,
     importBackup,
+    whenSaved,
   } = usePlayerState(today);
   // Remonta formulários locais do Perfil e a lista de cópias após restaurar
   // um backup, para não exibirem valores do estado substituído.
@@ -135,6 +136,7 @@ export function App() {
     records: state.records,
     today,
     onCommand: changeRecords,
+    whenSaved,
   };
   const bitcoin = useBitcoinQuote(recordProps);
   const usd = useUsdQuote(recordProps);

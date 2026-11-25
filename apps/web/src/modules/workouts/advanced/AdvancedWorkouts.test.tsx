@@ -47,6 +47,19 @@ const tab = (name: string) =>
   fireEvent.click(screen.getByRole('tab', { name }));
 const button = (name: string) =>
   fireEvent.click(screen.getByRole('button', { name }));
+/** Finalização em duas etapas: revisão, confirmação e aviso após gravar. */
+async function finish(trigger = 'Concluir sessão') {
+  button(trigger);
+  const review = screen.getByRole('dialog', { name: 'Finalizar treino?' });
+  fireEvent.click(
+    within(review).getByRole('button', { name: 'Finalizar treino' }),
+  );
+  const done = await screen.findByRole('dialog', {
+    name: 'Treino finalizado!',
+  });
+  fireEvent.click(within(done).getByRole('button', { name: 'Entendi' }));
+  expect(screen.queryByRole('dialog')).toBeNull();
+}
 function change(label: string, value: string) {
   fireEvent.change(screen.getByLabelText(label, { exact: true }), {
     target: { value },
@@ -81,14 +94,14 @@ function seeded() {
 }
 
 describe('musculação opcional na aplicação real', () => {
-  it('marca o dia pelo registro simples e corrige uma série sem alterar o XP diário', () => {
+  it('marca o dia pelo registro simples e corrige uma série sem alterar o XP diário', async () => {
     const state = seeded();
     state.records.advancedWorkouts!.plans[0]!.exercises[0]!.sets = 1;
     open(state);
     button('Iniciar Peito');
     change('Carga (kg) · exercício 1, série 1', '20.5');
     fireEvent.click(screen.getByRole('checkbox', { name: 'Concluída' }));
-    button('Concluir sessão');
+    await finish();
     expect(saved().records.workouts).toEqual([{ date: today, trained: true }]);
     expect(
       within(screen.getByRole('form', { name: 'Treinou hoje?' })).getByRole(
@@ -213,7 +226,7 @@ describe('musculação opcional na aplicação real', () => {
     expect(advanced().plans).toHaveLength(1);
   }, 15_000);
 
-  it('registra cargas diferentes, aquecimento e RIR, conclui sem XP duplicado e recupera os dados ao reativar', () => {
+  it('registra cargas diferentes, aquecimento e RIR, conclui sem XP duplicado e recupera os dados ao reativar', async () => {
     const state = seeded();
     state.records.workouts = [{ date: today, trained: true }];
     const baseline = projectCharacter(state, today);
@@ -240,8 +253,8 @@ describe('musculação opcional na aplicação real', () => {
     ).toBeInTheDocument();
     button('Adicionar série');
     button('Remover série 4 de Supino reto');
-    button('Concluir sessão');
-    button('Confirmar sessão');
+    await finish();
+    await finish('Confirmar sessão');
     expect(advanced().sessions[0]!.status).toBe('completed');
     expect(
       advanced().sessions[0]!.exercises[0]!.sets.map((s) => s.rir),
@@ -269,7 +282,7 @@ describe('musculação opcional na aplicação real', () => {
     ).toHaveAttribute('aria-valuenow', '150');
   });
 
-  it('permite concluir sem marcar o dia e mantém sessão em andamento após recarregar', () => {
+  it('permite concluir sem marcar o dia e mantém sessão em andamento após recarregar', async () => {
     const app = open(seeded());
     button('Iniciar Peito');
     change('Carga (kg) · exercício 1, série 1', '0');
@@ -288,7 +301,7 @@ describe('musculação opcional na aplicação real', () => {
         name: 'Marcar o dia como treinado ao concluir',
       }),
     );
-    button('Concluir sessão');
+    await finish();
     expect(saved().records.workouts).toEqual([]);
     expect(advanced().sessions[0]!.status).toBe('completed');
     nav('Início');
@@ -422,7 +435,7 @@ describe('musculação opcional na aplicação real', () => {
       screen.getByText('Nenhuma série válida concluída neste período.'),
     ).toBeInTheDocument();
   });
-  it('guia a divisão A/B/C/D, seleciona vários exercícios e preserva a rotação após recarga', () => {
+  it('guia a divisão A/B/C/D, seleciona vários exercícios e preserva a rotação após recarga', async () => {
     const app = open();
     toggle();
     button('Criar minha primeira ficha');
@@ -464,7 +477,7 @@ describe('musculação opcional na aplicação real', () => {
     change('Carga (kg) · exercício 1, série 1', '20');
     change('Repetições · exercício 1, série 1', '10');
     fireEvent.click(screen.getAllByRole('checkbox', { name: 'Concluída' })[0]!);
-    button('Concluir sessão');
+    await finish();
     tab('Minhas fichas');
     expect(advanced().rotation?.cursor).toBe(1);
     expect(

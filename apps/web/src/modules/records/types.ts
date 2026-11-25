@@ -67,10 +67,17 @@ export type RecordCommand =
   | { type: 'saveReading'; value: ReadingEntry }
   | { type: 'deleteReading'; id: string }
   | { type: 'finishBook'; id: string; date: string; entryId: string };
+/** Resultado da gravação local do estado atual (ver `usePlayerState`). */
+export type SaveOutcome = 'saved' | 'failed' | 'conflict';
 export interface RecordPageProps {
   records: LifeRecords;
   today: string;
   onCommand: (command: RecordCommand) => string | null;
+  /**
+   * Aguarda a confirmação da gravação do estado atual. Ausente em renderizações
+   * isoladas, cujo `onCommand` é síncrono e não tem armazenamento.
+   */
+  whenSaved?: () => Promise<SaveOutcome>;
 }
 export function emptyRecords(): LifeRecords {
   return {

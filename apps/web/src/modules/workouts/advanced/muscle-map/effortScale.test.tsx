@@ -178,6 +178,7 @@ describe('escala de cores do esforço relativo', () => {
     const items = within(legend).getAllByRole('listitem');
     expect(items.map((li) => li.textContent)).toEqual([
       'IndeterminadoSem dados suficientes',
+      'EstabilizadorParticipação não quantificada',
       'Baixo1–24%',
       'Moderado25–49%',
       'Alto50–74%',
@@ -189,7 +190,7 @@ describe('escala de cores do esforço relativo', () => {
           li.querySelector('.muscle-v2-swatch')!.getAttribute('class')!,
         )![1],
     );
-    expect(swatchTones).toEqual(['unknown', ...effortTones]);
+    expect(swatchTones).toEqual(['unknown', 'stabilizer', ...effortTones]);
     const mapTones = new Set(surfaces('frontal').map((p) => p.dataset.tone));
     for (const tone of mapTones) expect(swatchTones).toContain(tone);
   });

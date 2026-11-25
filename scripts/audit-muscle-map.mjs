@@ -112,7 +112,7 @@ export async function auditPalette({ map, width, check, mode }) {
       );
     check(
       order.every((value, i) => i === 0 || value < order[i - 1]) &&
-        legendOrder.join() === 'unknown,low,moderate,high,very-high',
+        legendOrder.join() === 'unknown,stabilizer,low,moderate,high,very-high',
       'muscle-palette-order',
       width,
       `Esforço não vai do cinza ao claro e ao escuro: ${legendOrder}`,
@@ -266,10 +266,23 @@ export async function auditMuscleMap({ page, width, capture, check }) {
   );
   if (width < 768) await traceHeader.tap();
   else await traceHeader.click();
+  // Sem estímulo contabilizado, Abdutores nunca ganham índice. O estado depende
+  // do fixture: estabilizador (agachamento recente, decisão de 25/11/2026) ou
+  // indeterminado. O painel deve coincidir com o tom da região no SVG.
+  const abductorTone = await map
+    .locator('[data-surface^="ABDUCTOR_"]')
+    .first()
+    .getAttribute('data-tone');
   check(
-    (await details
-      .getByRole('img', { name: 'Índice estimado: indeterminado' })
-      .count()) === 1 &&
+    ['recovery-stabilizer', 'unknown'].includes(abductorTone) &&
+      (await details
+        .getByRole('img', {
+          name:
+            abductorTone === 'recovery-stabilizer'
+              ? 'Índice estimado: não calculado, participação estabilizadora'
+              : 'Índice estimado: indeterminado',
+        })
+        .count()) === 1 &&
       (await trace
         .getByText(
           'Nenhum estímulo contabilizado para este músculo nos últimos 14 dias.',
@@ -277,7 +290,7 @@ export async function auditMuscleMap({ page, width, capture, check }) {
         .count()) === 1,
     'muscle-indeterminate',
     width,
-    'Abdutores ganharam índice sem exercício relacionado',
+    'Abdutores sem estímulo ganharam índice, estímulo ou estado divergente do mapa',
   );
   await map.getByRole('tab', { name: 'Recuperação', exact: true }).focus();
   await page.keyboard.press('Home');

@@ -91,5 +91,12 @@ e `--color-muscle-tired` (laranja) são exclusivos da recuperação estimada no 
 O vermelho reutiliza `--color-primary`. O esforço parte do cinza e escurece com a
 intensidade, só com tokens existentes: mistura de `--color-focus` com
 `--color-muted` (Baixo), `--color-workouts`, `--color-primary` e
-`--color-action-end` (Muito alto). Ausência usa `--color-muted`, com texto “Indeterminado”. Nenhuma dessas
+`--color-action-end` (Muito alto). Ausência usa `--color-muted`, com texto “Indeterminado”.
+`--color-muscle-stabilizer` (`#80565a`, vermelho acinzentado) é exclusivo do
+Esforço relativo: grupo que participou somente como estabilizador no período,
+sem estímulo principal ou secundário contabilizado. Fica fora da escala
+percentual, com texto “Estabilizador · participação não quantificada” e amostra
+tracejada na legenda; não é usado na Recuperação. Na Recuperação, o mesmo
+estado reutiliza `--color-muscle-ready` (verde) por convenção, com amostra
+tracejada e texto “sem carga calculada · não é recuperação medida”. Nenhuma dessas
 cores representa diagnóstico. São tokens temáticos, sem overrides de outros módulos.

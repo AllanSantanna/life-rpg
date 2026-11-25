@@ -177,7 +177,15 @@ describe('importação de treinos na interface real', () => {
     interpret('Supino reto:20x10');
     choose('Conflito · exercício 1', 'Acrescentar apenas as novas séries');
     expect(screen.getByText(/0 série\(s\) nova/)).toBeInTheDocument();
+    const before = JSON.stringify(advanced().sessions);
     button('Confirmar importação');
+    // Nenhuma série nova: nada é gravado e não há confirmação de sucesso.
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      /Nenhuma série nova seria importada/,
+    );
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(JSON.stringify(advanced().sessions)).toBe(before);
+    button('Cancelar importação');
     button('Importar treino');
     interpret('Supino reto:20x10');
     choose('Conflito · exercício 1', 'Acrescentar apenas as novas séries');

@@ -87,10 +87,16 @@ interface Review {
   stabilizers?: MapGroup[];
   reasons?: Partial<Record<MapGroup, string>>;
 }
+// Decisão de produto (25/11/2026): nos agachamentos bilaterais, glúteo médio e
+// mínimo são estabilizadores (peso 0): só rastreados, sem séries equivalentes.
 const squat = (stabilizers: MapGroup[], adductors = true): Review => ({
   primary: 'quadriceps',
   secondary: adductors ? ['glutes', 'adductors'] : ['glutes'],
-  stabilizers,
+  stabilizers: [...stabilizers, 'abductors'],
+  reasons: {
+    abductors:
+      'Glúteo médio e mínimo estabilizam a pelve e o alinhamento do joelho no plano frontal.',
+  },
 });
 const unilateral: Review = {
   primary: 'quadriceps',
@@ -190,6 +196,21 @@ export const reviewedParticipation: Readonly<Record<string, Review>> = {
   },
 };
 
+/**
+ * IDs revisados que atribuem algum papel ao grupo. Para grupos que só existem
+ * no mapa (sem `Muscle` correspondente), são os únicos exercícios capazes de
+ * identificá-los: exercícios próprios usam apenas os grupos do cadastro.
+ */
+export function reviewedExerciseIds(group: MapGroup): string[] {
+  return Object.entries(reviewedParticipation)
+    .filter(
+      ([, review]) =>
+        review.primary === group ||
+        review.secondary?.includes(group) ||
+        review.stabilizers?.includes(group),
+    )
+    .map(([id]) => id);
+}
 // Encolhimentos antigos foram salvos como Costas antes do grupo Trapézio.
 const trapeziusReclassified = new Set(['shrug', 'barbell-shrug']);
 function recordedPrimary(exercise: Exercise): Muscle {

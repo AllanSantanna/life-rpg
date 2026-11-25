@@ -5,6 +5,11 @@ import {
 } from '../../../shared/components/Icon';
 import { useId, useRef, useState, type KeyboardEvent } from 'react';
 import { ActionButton } from '../../../shared/components/ActionButton';
+import { StatusDialog } from '../../../shared/components/StatusDialog';
+import { plural } from '../../../shared/lib/plural';
+import type { SaveOutcome } from '../../records/types';
+import { displayDate } from '../../records/dates';
+import type { ImportReceipt } from './importing/receipt';
 import { TextWorkoutImport } from './importing/TextWorkoutImport';
 import { PlansPanel } from './PlansPanel';
 import { SessionPanel } from './SessionPanel';
@@ -50,10 +55,12 @@ export function AdvancedWorkouts({
   state,
   today,
   onCommand,
+  whenSaved,
 }: {
   state: AdvancedWorkoutState;
   today: string;
   onCommand: AdvancedCommandHandler;
+  whenSaved?: () => Promise<SaveOutcome>;
 }) {
   const activeSession = state.sessions.findLast(
     (s) => s.status === 'in_progress',
@@ -65,6 +72,8 @@ export function AdvancedWorkouts({
   const id = useId();
   const [importing, setImporting] = useState(false);
   const importButton = useRef<HTMLButtonElement>(null);
+  // Fica no componente pai para sobreviver ao fechamento da importação.
+  const [imported, setImported] = useState<ImportReceipt | null>(null);
   function open(id: string) {
     setSessionId(id);
     setTab('session');
@@ -118,13 +127,15 @@ export function AdvancedWorkouts({
           today={today}
           selectedId={sessionId}
           onCommand={onCommand}
+          {...(whenSaved ? { whenSaved } : {})}
           onCancel={() => {
             setImporting(false);
             requestAnimationFrame(() => importButton.current?.focus());
           }}
-          onSaved={(sessionId) => {
+          onSaved={(receipt) => {
             setImporting(false);
-            open(sessionId);
+            open(receipt.sessionId);
+            setImported(receipt);
           }}
         />
       ) : (
@@ -179,6 +190,7 @@ export function AdvancedWorkouts({
                 selectedId={sessionId}
                 onSelect={setSessionId}
                 onCommand={onCommand}
+                {...(whenSaved ? { whenSaved } : {})}
               />
             )}
             {tab === 'history' && (
@@ -194,6 +206,49 @@ export function AdvancedWorkouts({
             )}
           </div>
         </>
+      )}
+      {imported && (
+        <StatusDialog
+          tone="success"
+          title="Treino importado!"
+          message="O treino foi importado com sucesso."
+          summary={[
+            { label: 'Treino', value: imported.name },
+            {
+              label: 'Destino',
+              value:
+                imported.target === 'new'
+                  ? 'Nova sessão'
+                  : 'Sessão existente atualizada',
+            },
+            { label: 'Data', value: displayDate(imported.date) },
+            {
+              label: 'Exercícios importados',
+              value: plural(imported.exercises, 'exercício', 'exercícios'),
+            },
+            {
+              label: 'Séries importadas',
+              value: plural(imported.sets, 'série', 'séries'),
+            },
+            ...(imported.pendingSets > 0
+              ? [
+                  {
+                    label: 'Séries planejadas pendentes',
+                    value: plural(imported.pendingSets, 'série', 'séries'),
+                  },
+                ]
+              : []),
+          ]}
+          primary={{ label: 'OK', onClick: () => setImported(null) }}
+          onClose={() => setImported(null)}
+          returnFocus={() => importButton.current}
+        >
+          <p className="status-dialog__notice">
+            {imported.status === 'completed'
+              ? 'A sessão concluída foi atualizada e seus indicadores serão recalculados.'
+              : 'A sessão está em andamento: confira e conclua em Registrar treino.'}
+          </p>
+        </StatusDialog>
       )}
     </section>
   );

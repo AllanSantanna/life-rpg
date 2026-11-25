@@ -20,6 +20,12 @@
     var(--color-muted)
   );
 }
+.muscle-tone-stabilizer {
+  --muscle-color: var(--color-muscle-stabilizer);
+}
+.muscle-tone-recovery-stabilizer {
+  --muscle-color: var(--color-muscle-ready);
+}
 .muscle-tone-moderate {
   --muscle-color: var(--color-workouts);
 }
@@ -413,6 +419,28 @@
   font-weight: 600;
   margin-bottom: var(--space-2);
 }
+/* #80565a sobre a superfície escura não atinge contraste de texto: o rótulo
+   mistura a cor do estado com o primeiro plano; a região mantém a cor exata. */
+.muscle-v2-details.muscle-tone-stabilizer .muscle-v2-status {
+  color: color-mix(in srgb, var(--muscle-color) 40%, var(--color-foreground));
+}
+.muscle-v2-stabilizer-note {
+  margin-block: var(--space-2) var(--space-3);
+  padding: var(--space-3);
+  border: 1px dashed var(--muscle-color);
+  border-radius: var(--control-radius);
+  background: color-mix(in srgb, var(--muscle-color) 14%, transparent);
+}
+.muscle-v2-stabilizer-note h5 {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: var(--space-1);
+}
+.muscle-v2-stabilizer-note p {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--color-muted);
+}
 .muscle-v2-history {
   border-top: 1px solid var(--muscle-edge);
   margin-top: var(--space-4);
@@ -511,6 +539,11 @@
     var(--muscle-color),
     color-mix(in srgb, var(--muscle-color) 30%, var(--color-background))
   );
+}
+/* Fora da escala percentual: borda tracejada, como o selo do papel. */
+.muscle-v2-swatch.muscle-tone-stabilizer,
+.muscle-v2-swatch.muscle-tone-recovery-stabilizer {
+  border-style: dashed;
 }
 .muscle-v2-announcement {
   font-size: 13px;

@@ -15,7 +15,12 @@ import {
 import { displayDate, monthDates } from '../records/dates';
 import { workoutStats } from './calculations';
 import { plural } from '../../shared/lib/plural';
-export function WorkoutsPage({ records, today, onCommand }: RecordPageProps) {
+export function WorkoutsPage({
+  records,
+  today,
+  onCommand,
+  whenSaved,
+}: RecordPageProps) {
   const [date, setDate] = useState(today);
   const [month, setMonth] = useState(today.slice(0, 7));
   const { run, message } = useCommand(onCommand);
@@ -77,6 +82,7 @@ export function WorkoutsPage({ records, today, onCommand }: RecordPageProps) {
           state={advanced}
           today={today}
           onCommand={(command) => run({ type: 'advancedWorkout', command })}
+          {...(whenSaved ? { whenSaved } : {})}
         />
       )}
 

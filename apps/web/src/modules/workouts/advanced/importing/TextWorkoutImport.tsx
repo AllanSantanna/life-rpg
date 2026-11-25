@@ -1,8 +1,9 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { CustomDatePicker } from '../../../../shared/components/CustomDatePicker';
 import { CustomSelect } from '../../../../shared/components/CustomSelect';
 import { Field } from '../../../records/RecordUI';
 import { displayDate } from '../../../records/dates';
+import type { SaveOutcome } from '../../../records/types';
 import type {
   AdvancedCommandHandler,
   AdvancedWorkoutState,
@@ -22,12 +23,14 @@ import './importing.css';
 import { AliasManager } from './AliasManager';
 import { aliasIssue, confirmedAliases, importPlanId } from './aliases';
 import { MetadataReview } from './MetadataReview';
+import { importReceipt, importSaveErrors, type ImportReceipt } from './receipt';
 
 export function TextWorkoutImport({
   state,
   today,
   selectedId,
   onCommand,
+  whenSaved,
   onCancel,
   onSaved,
 }: {
@@ -35,8 +38,11 @@ export function TextWorkoutImport({
   today: string;
   selectedId: string | null;
   onCommand: AdvancedCommandHandler;
+  /** Confirmação da gravação local; ausente quando o comando é síncrono. */
+  whenSaved?: () => Promise<SaveOutcome>;
   onCancel: () => void;
-  onSaved: (id: string) => void;
+  /** Chamado somente depois que a importação foi gravada. */
+  onSaved: (receipt: ImportReceipt) => void;
 }) {
   const [destination, setDestination] = useState(
     selectedId && state.sessions.some((s) => s.id === selectedId)
@@ -56,6 +62,14 @@ export function TextWorkoutImport({
   } | null>(null);
   const [error, setError] = useState('');
   const confirming = useRef(false);
+  const [saving, setSaving] = useState(false);
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
   const previewHeading = useRef<HTMLHeadingElement>(null);
   const target: ImportTarget = destination.startsWith('session:')
     ? { sessionId: destination.slice('session:'.length) }
@@ -126,28 +140,55 @@ export function TextWorkoutImport({
     });
     requestAnimationFrame(() => previewHeading.current?.focus());
   }
-  function confirm() {
+  function release(message: string) {
+    confirming.current = false;
+    if (!mounted.current) return;
+    setSaving(false);
+    setError(message);
+  }
+  async function confirm() {
+    // Trava síncrona: cliques repetidos e importações simultâneas são ignorados.
     if (confirming.current || !preview || invalid) return;
     confirming.current = true;
+    setError('');
+    let receipt: ImportReceipt;
     try {
       const finalTarget =
         preview.dateChoice && preview.dateChoice !== 'selected'
           ? { ...target, date: preview.dateChoice }
           : target;
-      const command = {
-        ...prepareWorkoutImport(preview.base, finalTarget, rows),
+      const prepared = prepareWorkoutImport(preview.base, finalTarget, rows);
+      receipt = importReceipt(prepared, rows);
+      // Nada a gravar (ex.: todos mantidos ou séries já registradas): não há sucesso.
+      if (receipt.sets === 0) {
+        release(
+          'Nenhuma série nova seria importada: os exercícios mantêm os dados existentes ou as séries já estão registradas. Nada foi alterado.',
+        );
+        return;
+      }
+      const message = onCommand({
+        ...prepared,
         aliases: confirmedAliases(preview.base, finalTarget, rows),
         inputOrder,
-      };
-      const message = onCommand(command);
+      });
       if (message) {
-        setError(message);
-        confirming.current = false;
-      } else onSaved(command.value.id);
+        release(message);
+        return;
+      }
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Confira a prévia.');
-      confirming.current = false;
+      release(cause instanceof Error ? cause.message : 'Confira a prévia.');
+      return;
     }
+    setSaving(true);
+    const outcome = whenSaved ? await whenSaved() : 'saved';
+    if (outcome !== 'saved') {
+      release(importSaveErrors[outcome]);
+      return;
+    }
+    // A trava permanece: uma importação concluída não é repetida por outro clique.
+    if (!mounted.current) return;
+    setSaving(false);
+    onSaved(receipt);
   }
   return (
     <section
@@ -156,7 +197,12 @@ export function TextWorkoutImport({
     >
       <div className="strength-heading">
         <h3>Importação Rápida de Treinos</h3>
-        <button type="button" className="filter-button" onClick={onCancel}>
+        <button
+          type="button"
+          className="filter-button"
+          disabled={saving}
+          onClick={onCancel}
+        >
           Cancelar
         </button>
       </div>
@@ -236,6 +282,7 @@ export function TextWorkoutImport({
           autoFocus
           rows={10}
           maxLength={50000}
+          readOnly={saving}
           value={text}
           placeholder={
             'Treino A - Peito\n\nSupino reto\n60x10\n65x8 rir 2\n\nElevação lateral: 12,5kg x 12'
@@ -254,7 +301,7 @@ export function TextWorkoutImport({
       <button
         type="button"
         className="record-primary"
-        disabled={!text.trim()}
+        disabled={!text.trim() || saving}
         onClick={interpret}
       >
         Interpretar treino
@@ -347,7 +394,8 @@ export function TextWorkoutImport({
             <button
               type="button"
               className="record-primary"
-              disabled={invalid}
+              disabled={invalid || saving}
+              aria-busy={saving || undefined}
               aria-describedby={
                 [
                   repeated && 'import-repeated-error',
@@ -357,15 +405,25 @@ export function TextWorkoutImport({
                   .filter(Boolean)
                   .join(' ') || undefined
               }
-              onClick={confirm}
+              onClick={() => void confirm()}
             >
-              Confirmar importação
+              {saving ? 'Importando…' : 'Confirmar importação'}
             </button>
-            <button type="button" className="filter-button" onClick={onCancel}>
+            <button
+              type="button"
+              className="filter-button"
+              disabled={saving}
+              onClick={onCancel}
+            >
               Cancelar importação
             </button>
           </div>
         </>
+      )}
+      {saving && (
+        <p role="status" className="record-hint">
+          Importando e gravando o treino…
+        </p>
       )}
       {error && (
         <p role="alert" className="record-error">

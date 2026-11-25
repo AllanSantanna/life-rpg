@@ -74,6 +74,13 @@ atrasadas de notificações/foco não substituem uma proposta ou commit mais rec
 Quota, aborto, conexão indisponível e falha de coordenação não são anunciados
 como sucesso. A proposta continua na sessão; seu aviso orienta a recuperação.
 
+`whenSaved()` (exposto pelo hook e repassado às páginas em `RecordPageProps`)
+apenas observa esse ciclo: resolve `saved` quando um commit inclui o estado
+atual, `conflict` ou `failed` quando a gravação não acontece. Não grava nem
+repete comandos. Confirmações de sucesso na interface (por exemplo, importar ou
+finalizar um treino) aguardam esse resultado; sem armazenamento (renderização
+isolada em testes), a ausência da função equivale ao comando síncrono.
+
 As transações de escrita solicitam durabilidade `strict`. O teste que aborta
 depois de `put` confirma que sucesso de uma request não é tratado como commit.
 Fechar a aba durante a transação deixa o snapshot anterior ou um commit completo,

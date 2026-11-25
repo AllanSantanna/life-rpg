@@ -90,27 +90,27 @@ Abdutores existem só nesta projeção, para não invalidar dados lidos pela `ma
 
 ### Classificações revisadas
 
-| Exercício                            | Principal   | Secundário                                | Estabilizador             |
-| ------------------------------------ | ----------- | ----------------------------------------- | ------------------------- |
-| Agachamento livre, frontal, goblet   | Quadríceps  | Glúteos, Adutores                         | Abdômen, Lombar           |
-| Agachamento no Smith                 | Quadríceps  | Glúteos, Adutores                         | Lombar                    |
-| Agachamento hack                     | Quadríceps  | Glúteos, Adutores                         | —                         |
-| Agachamento com peso corporal        | Quadríceps  | Glúteos                                   | Abdômen                   |
-| Agachamento búlgaro, Afundo          | Quadríceps  | Glúteos                                   | Abdutores, Adutores       |
-| Subida no banco                      | Quadríceps  | Glúteos                                   | Abdutores                 |
-| Levantamento terra                   | Posteriores | Glúteos, Lombar, Antebraços               | Abdômen, Costas, Trapézio |
-| Terra romeno, Stiff (barra/halteres) | Posteriores | Glúteos, Lombar                           | Abdômen, Antebraços       |
-| Good morning                         | Posteriores | Glúteos, Lombar                           | Abdômen                   |
-| Terra sumô                           | Glúteos     | Posteriores, Quadríceps, Adutores, Lombar | Abdômen, Antebraços       |
-| Extensão lombar                      | Lombar      | Glúteos, Posteriores                      | —                         |
-| Cadeira adutora                      | Adutores    | —                                         | —                         |
-| Cadeira abdutora                     | Abdutores   | Glúteos                                   | —                         |
-| Remada curvada, Remada cavalinho     | Costas      | Bíceps, Antebraços                        | Lombar                    |
-| Remada alta                          | Ombros      | Trapézio                                  | —                         |
-| Caminhada do fazendeiro              | Antebraços  | —                                         | Abdômen, Trapézio         |
-| Prancha com toque nos ombros         | Abdômen     | —                                         | Ombros                    |
-| Flexão de braços                     | Peito       | Tríceps, Ombros                           | Abdômen                   |
-| Elevação de pernas na barra          | Abdômen     | —                                         | Antebraços                |
+| Exercício                            | Principal   | Secundário                                | Estabilizador              |
+| ------------------------------------ | ----------- | ----------------------------------------- | -------------------------- |
+| Agachamento livre, frontal, goblet   | Quadríceps  | Glúteos, Adutores                         | Abdômen, Lombar, Abdutores |
+| Agachamento no Smith                 | Quadríceps  | Glúteos, Adutores                         | Lombar, Abdutores          |
+| Agachamento hack                     | Quadríceps  | Glúteos, Adutores                         | Abdutores                  |
+| Agachamento com peso corporal        | Quadríceps  | Glúteos                                   | Abdômen, Abdutores         |
+| Agachamento búlgaro, Afundo          | Quadríceps  | Glúteos                                   | Abdutores, Adutores        |
+| Subida no banco                      | Quadríceps  | Glúteos                                   | Abdutores                  |
+| Levantamento terra                   | Posteriores | Glúteos, Lombar, Antebraços               | Abdômen, Costas, Trapézio  |
+| Terra romeno, Stiff (barra/halteres) | Posteriores | Glúteos, Lombar                           | Abdômen, Antebraços        |
+| Good morning                         | Posteriores | Glúteos, Lombar                           | Abdômen                    |
+| Terra sumô                           | Glúteos     | Posteriores, Quadríceps, Adutores, Lombar | Abdômen, Antebraços        |
+| Extensão lombar                      | Lombar      | Glúteos, Posteriores                      | —                          |
+| Cadeira adutora                      | Adutores    | —                                         | —                          |
+| Cadeira abdutora                     | Abdutores   | Glúteos                                   | —                          |
+| Remada curvada, Remada cavalinho     | Costas      | Bíceps, Antebraços                        | Lombar                     |
+| Remada alta                          | Ombros      | Trapézio                                  | —                          |
+| Caminhada do fazendeiro              | Antebraços  | —                                         | Abdômen, Trapézio          |
+| Prancha com toque nos ombros         | Abdômen     | —                                         | Ombros                     |
+| Flexão de braços                     | Peito       | Tríceps, Ombros                           | Abdômen                    |
+| Elevação de pernas na barra          | Abdômen     | —                                         | Antebraços                 |
 
 Confirmados sem mudança: supinos, crucifixos, puxadas, desenvolvimentos,
 roscas, tríceps, panturrilhas, elevação pélvica e abdominais. **Leg press não
@@ -299,7 +299,39 @@ Cores: esforço parte do cinza indeterminado e vai do mais claro ao mais escuro,
 com tokens existentes: Baixo 1–24 (`--color-focus` 55% com `--color-muted`, rosa
 acinzentado), Moderado 25–49 (`--color-workouts`), Alto 50–74 (`--color-primary`)
 e Muito alto 75–100 (`--color-action-end`). A legenda de esforço lista o cinza
-primeiro. Recuperação: verde (≥90), amarelo (70–89), laranja (50–69), vermelho (<50). Sem
+primeiro e, em seguida, **Estabilizador · participação não quantificada**
+(`--color-muscle-stabilizer`, `#80565a`, amostra tracejada): grupo cujas únicas
+participações no período escolhido foram estabilizadoras. Não é uma faixa nem um
+percentual; principal ou secundário no período têm prioridade (escala normal) e
+sem participação o grupo continua indeterminado. Ao selecioná-lo, o painel
+mostra “Participação estabilizadora” com a explicação de que não houve séries
+equivalentes; a lista de exercícios estabilizadores permanece. O estado é
+derivado em `muscleTone`/`stabilizerOnly` (`model.ts`) a partir das
+contribuições já rastreadas, sem alterar pesos, faixas, recuperação ou storage.
+Na Recuperação, o mesmo critério (participação estabilizadora na janela de 14
+dias, sem carga contabilizada) usa o verde já existente
+(`--color-muscle-ready`) por convenção visual, com o texto “Estabilizador · sem
+carga de recuperação calculada”, amostra tracejada na legenda (“Sem carga
+calculada · não é recuperação medida”) e o medidor “Não calculado”. O painel
+explica: “Este músculo participou da estabilização, mas não possui carga de
+recuperação estimada.” O verde não é medição: `recovery` continua nulo e nenhuma
+carga residual é criada. Cada modo usa sua própria janela; uma participação fora
+dela não colore o grupo. `muscleTone(summary, mode)` é a única regra visual,
+usada nas duas vistas, na lista de grupos, na legenda e nos detalhes.
+Abdutores só recebem esse estado quando o exercício os registra como
+estabilizadores em sessão concluída: agachamentos bilaterais (livre, frontal,
+goblet, Smith, hack e com peso corporal), agachamento búlgaro, afundo e subida
+no banco. Leg press e elevação pélvica não os incluem. A inclusão nos
+agachamentos bilaterais é **decisão de produto de 25/11/2026** (heurística do
+aplicativo, não medição): glúteo médio e mínimo estabilizam a pelve e o
+alinhamento do joelho no plano frontal. Peso 0, como todo estabilizador: só
+rastreio e cor, sem séries equivalentes nem carga de recuperação. Lombar, Adutores e
+Abdutores não existem no tipo salvo `Muscle`: só a revisão por ID os identifica,
+e exercícios próprios nunca os registram. Sem participação na janela do modo, o
+painel lista os exercícios revisados que identificam o grupo
+(`reviewedExerciseIds`), em vez de um cinza sem explicação.
+`abductors.test.tsx` verifica as superfícies `ABDUCTOR_*` renderizadas nas duas
+vistas e nos dois modos com os IDs reais do catálogo. Recuperação: verde (≥90), amarelo (70–89), laranja (50–69), vermelho (<50). Sem
 contribuição recente ou grupo não mapeado: cinza/indeterminado. Cada região usa
 gradiente horizontal com sombra lateral (`muscle-v2-shade`, 36% da cor sobre o
 fundo) e textura anatômica em `soft-light`; a legenda usa a mesma classe
@@ -345,6 +377,9 @@ percepção de fadiga e recuperação”.
 
 ## Validação e limites visuais
 
+`stabilizer.test.tsx`: cor e token, duas vistas, prioridade de principal e
+secundário, indeterminado sem participação, período, atualização após criar,
+editar e excluir, ausência de percentual e Recuperação inalterada.
 `participation.test.ts`: papéis, estabilizadores sem estímulo, adutores no
 agachamento, unilaterais, cadeiras adutora/abdutora, grupos sem relação,
 rastreio fiel ao histórico, edição/exclusão, ausência de dupla contagem e

@@ -19,8 +19,10 @@ import { MethodHelp } from './muscle-map/MethodHelp';
 import { MuscleDetails, type HistoryPoint } from './muscle-map/MuscleDetails';
 import {
   dailyHistory,
-  metricTone,
+  isStabilizerTone,
+  muscleTone,
   projectMuscles,
+  stabilizerStatus,
   windowMetrics,
   type MapMode,
 } from './muscle-map/model';
@@ -188,7 +190,9 @@ export function MuscleMap({
             <p className="muscle-v2-stage-caption">
               {anatomicalLabels[findSurface(selection).group]} ·{' '}
               {summary?.[mode] === null || summary?.[mode] === undefined
-                ? 'Indeterminado'
+                ? isStabilizerTone(muscleTone(summary, mode))
+                  ? stabilizerStatus[mode]
+                  : 'Indeterminado'
                 : `${summary[mode]}%${mode === 'recovery' ? ' · índice estimado' : ' · esforço relativo'}`}
               <br />
               Selecione uma região no corpo ou na lista abaixo.
@@ -231,7 +235,7 @@ export function MuscleMap({
                     onClick={() => selectGroup(muscle)}
                   >
                     <span
-                      className={`muscle-v2-dot muscle-tone-${metricTone(summaries[muscle][mode], mode)}`}
+                      className={`muscle-v2-dot muscle-tone-${muscleTone(summaries[muscle], mode)}`}
                       aria-hidden="true"
                     />
                     {label}
