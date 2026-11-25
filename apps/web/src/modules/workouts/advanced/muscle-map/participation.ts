@@ -190,6 +190,21 @@ export const reviewedParticipation: Readonly<Record<string, Review>> = {
   },
 };
 
+/**
+ * IDs revisados que atribuem algum papel ao grupo. Para grupos que só existem
+ * no mapa (sem `Muscle` correspondente), são os únicos exercícios capazes de
+ * identificá-los: exercícios próprios usam apenas os grupos do cadastro.
+ */
+export function reviewedExerciseIds(group: MapGroup): string[] {
+  return Object.entries(reviewedParticipation)
+    .filter(
+      ([, review]) =>
+        review.primary === group ||
+        review.secondary?.includes(group) ||
+        review.stabilizers?.includes(group),
+    )
+    .map(([id]) => id);
+}
 // Encolhimentos antigos foram salvos como Costas antes do grupo Trapézio.
 const trapeziusReclassified = new Set(['shrug', 'barbell-shrug']);
 function recordedPrimary(exercise: Exercise): Muscle {

@@ -2,7 +2,14 @@ import { displaySessionDate, elapsedLabel } from '../sessionTiming';
 import { Icon } from '../../../../shared/components/Icon';
 import { displayDate } from '../../../records/dates';
 import { number } from '../calculations';
-import { mapGroupLabels } from './participation';
+import { starterExercises } from '../catalog';
+import { libraryExercises } from '../library';
+import { muscleLabels } from '../types';
+import {
+  mapGroupLabels,
+  reviewedExerciseIds,
+  type MapGroup,
+} from './participation';
 import { ExerciseTrace } from './ExerciseTrace';
 import {
   anatomicalGroups,
@@ -18,6 +25,23 @@ import {
   type MapMode,
   type MuscleSummary,
 } from './model';
+const catalogNames = new Map(
+  [...starterExercises, ...libraryExercises].map((e) => [e.id, e.name]),
+);
+/**
+ * Rastreabilidade: grupos que só existem no mapa (Lombar, Adutores, Abdutores)
+ * dependem da revisão por ID. Sem participação na janela, o painel diz quais
+ * exercícios os identificam, em vez de um cinza sem explicação.
+ */
+function identificationHint(group: MapGroup) {
+  if (Object.hasOwn(muscleLabels, group)) return null;
+  const names = reviewedExerciseIds(group).flatMap((id) => {
+    const name = catalogNames.get(id);
+    return name ? [name] : [];
+  });
+  if (!names.length) return null;
+  return `Este grupo só é identificado nos exercícios revisados do catálogo: ${new Intl.ListFormat('pt-BR').format(names)}. Exercícios próprios usam apenas os grupos do cadastro e não o registram.`;
+}
 export interface HistoryPoint {
   date: string;
   endDate?: string;
@@ -45,6 +69,10 @@ export function MuscleDetails({
   const tone = muscleTone(summary, mode);
   const stabilizer = isStabilizerTone(tone);
   const metrics = windowMetrics(summary, mode);
+  const participated = (summary?.contributions ?? []).some((c) =>
+    mode === 'effort' ? c.inPeriod : c.inRecoveryWindow,
+  );
+  const hint = group && !participated ? identificationHint(group) : null;
   const windowLabel =
     mode === 'effort'
       ? `nos últimos ${days} dias`
@@ -177,6 +205,7 @@ export function MuscleDetails({
           {metrics.sets
             ? `${metrics.direct} séries diretas e ${metrics.secondary} secundárias ${windowLabel}.`
             : `Nenhuma série válida ${windowLabel}.`}
+          {hint && ` ${hint}`}
         </p>
       ) : (
         <p className="record-hint">
