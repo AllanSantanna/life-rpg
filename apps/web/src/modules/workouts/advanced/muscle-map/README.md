@@ -299,7 +299,16 @@ Cores: esforço parte do cinza indeterminado e vai do mais claro ao mais escuro,
 com tokens existentes: Baixo 1–24 (`--color-focus` 55% com `--color-muted`, rosa
 acinzentado), Moderado 25–49 (`--color-workouts`), Alto 50–74 (`--color-primary`)
 e Muito alto 75–100 (`--color-action-end`). A legenda de esforço lista o cinza
-primeiro. Recuperação: verde (≥90), amarelo (70–89), laranja (50–69), vermelho (<50). Sem
+primeiro e, em seguida, **Estabilizador · participação não quantificada**
+(`--color-muscle-stabilizer`, `#80565a`, amostra tracejada): grupo cujas únicas
+participações no período escolhido foram estabilizadoras. Não é uma faixa nem um
+percentual; principal ou secundário no período têm prioridade (escala normal) e
+sem participação o grupo continua indeterminado. Ao selecioná-lo, o painel
+mostra “Participação estabilizadora” com a explicação de que não houve séries
+equivalentes; a lista de exercícios estabilizadores permanece. O estado é
+derivado em `muscleTone`/`stabilizerOnly` (`model.ts`) a partir das
+contribuições já rastreadas, sem alterar pesos, faixas, recuperação ou storage.
+A Recuperação não recebe cor nova. Recuperação: verde (≥90), amarelo (70–89), laranja (50–69), vermelho (<50). Sem
 contribuição recente ou grupo não mapeado: cinza/indeterminado. Cada região usa
 gradiente horizontal com sombra lateral (`muscle-v2-shade`, 36% da cor sobre o
 fundo) e textura anatômica em `soft-light`; a legenda usa a mesma classe
@@ -345,6 +354,9 @@ percepção de fadiga e recuperação”.
 
 ## Validação e limites visuais
 
+`stabilizer.test.tsx`: cor e token, duas vistas, prioridade de principal e
+secundário, indeterminado sem participação, período, atualização após criar,
+editar e excluir, ausência de percentual e Recuperação inalterada.
 `participation.test.ts`: papéis, estabilizadores sem estímulo, adutores no
 agachamento, unilaterais, cadeiras adutora/abdutora, grupos sem relação,
 rastreio fiel ao histórico, edição/exclusão, ausência de dupla contagem e

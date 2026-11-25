@@ -112,7 +112,7 @@ export async function auditPalette({ map, width, check, mode }) {
       );
     check(
       order.every((value, i) => i === 0 || value < order[i - 1]) &&
-        legendOrder.join() === 'unknown,low,moderate,high,very-high',
+        legendOrder.join() === 'unknown,stabilizer,low,moderate,high,very-high',
       'muscle-palette-order',
       width,
       `Esforço não vai do cinza ao claro e ao escuro: ${legendOrder}`,

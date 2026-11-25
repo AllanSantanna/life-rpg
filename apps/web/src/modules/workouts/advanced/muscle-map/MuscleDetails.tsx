@@ -11,7 +11,7 @@ import {
   type Selection,
 } from './anatomy';
 import {
-  metricTone,
+  muscleTone,
   windowMetrics,
   toneLabels,
   type MapMode,
@@ -41,7 +41,8 @@ export function MuscleDetails({
   const timing =
     mode === 'recovery' ? summary?.recoveryTiming : summary?.lastTiming;
   const lastDate = timing?.date;
-  const tone = metricTone(value, mode);
+  const tone = muscleTone(summary, mode);
+  const stabilizer = tone === 'stabilizer';
   const metrics = windowMetrics(summary, mode);
   const windowLabel =
     mode === 'effort'
@@ -80,7 +81,7 @@ export function MuscleDetails({
         <div
           className="muscle-v2-gauge"
           role="img"
-          aria-label={`${mode === 'effort' ? 'Esforço relativo' : 'Índice estimado'}: ${value === null ? 'indeterminado' : `${value}%`}`}
+          aria-label={`${mode === 'effort' ? 'Esforço relativo' : 'Índice estimado'}: ${value === null ? (stabilizer ? 'não quantificado, participação estabilizadora' : 'indeterminado') : `${value}%`}`}
         >
           <svg viewBox="0 0 120 120" aria-hidden="true">
             <circle className="muscle-v2-track" cx="60" cy="60" r="51" />
@@ -154,6 +155,15 @@ export function MuscleDetails({
         {toneLabels[tone]}
         {mode === 'recovery' && value !== null ? ' · incerteza elevada' : ''}
       </p>
+      {stabilizer && (
+        <div className="muscle-v2-stabilizer-note">
+          <h5>Participação estabilizadora</h5>
+          <p>
+            Este músculo participou da estabilização durante o exercício, mas
+            não recebeu séries equivalentes no cálculo de esforço.
+          </p>
+        </div>
+      )}
       {group ? (
         <p className="record-hint">
           Dados agregados de {mapGroupLabels[group]}; o histórico não distingue

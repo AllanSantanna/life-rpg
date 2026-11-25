@@ -8,7 +8,8 @@ import {
   type Selection,
 } from './anatomy';
 import {
-  metricTone,
+  muscleTone,
+  stabilizerStatus,
   toneLabels,
   type MapMode,
   type MuscleSummary,
@@ -65,8 +66,7 @@ export function AnatomyFigure({
           </clipPath>
           {diagram.surfaces.map((surface) => {
             const group = anatomicalGroups[surface.group];
-            const score = group ? (summaries[group]?.[mode] ?? null) : null;
-            const tone = metricTone(score, mode);
+            const tone = muscleTone(group ? summaries[group] : undefined, mode);
             return (
               <linearGradient
                 key={surface.id}
@@ -97,7 +97,7 @@ export function AnatomyFigure({
         {diagram.surfaces.map((surface) => {
           const group = anatomicalGroups[surface.group];
           const score = group ? (summaries[group]?.[mode] ?? null) : null;
-          const tone = metricTone(score, mode);
+          const tone = muscleTone(group ? summaries[group] : undefined, mode);
           const selected = active?.id === surface.id;
           const name = anatomicalLabels[surface.group];
           const side = surface.id.includes('_LEFT')
@@ -105,7 +105,9 @@ export function AnatomyFigure({
             : 'direita da imagem';
           const status =
             score === null
-              ? 'Indeterminado'
+              ? tone === 'stabilizer'
+                ? stabilizerStatus
+                : 'Indeterminado'
               : `${score}% · ${toneLabels[tone]}`;
           return (
             <path

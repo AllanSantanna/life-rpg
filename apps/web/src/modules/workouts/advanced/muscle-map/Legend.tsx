@@ -12,6 +12,11 @@ const recoveryScale: [Tone, string][] = [
   ['fatigued', '< 50%'],
 ];
 const unknown: [Tone, string] = ['unknown', 'Sem dados suficientes'];
+// Fora da escala percentual: participação rastreada, sem séries equivalentes.
+const stabilizer: [Tone, string] = [
+  'stabilizer',
+  'Participação não quantificada',
+];
 export function Legend({ mode }: { mode: MapMode }) {
   return (
     <div
@@ -24,7 +29,7 @@ export function Legend({ mode }: { mode: MapMode }) {
       <ul>
         {(mode === 'effort'
           ? // Effort reads from grey (no data) through light to dark red.
-            [unknown, ...effortScale]
+            [unknown, stabilizer, ...effortScale]
           : [...recoveryScale, unknown]
         ).map(([tone, range]) => (
           <li key={tone}>

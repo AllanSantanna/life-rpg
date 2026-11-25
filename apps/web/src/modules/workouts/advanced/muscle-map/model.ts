@@ -22,6 +22,7 @@ import {
 export type MapMode = 'effort' | 'recovery';
 export type Tone =
   | 'unknown'
+  | 'stabilizer'
   | 'low'
   | 'moderate'
   | 'high'
@@ -410,8 +411,32 @@ export function metricTone(value: number | null, mode: MapMode): Tone {
         ? 'tired'
         : 'fatigued';
 }
+/**
+ * Participação somente estabilizadora na janela do Esforço: o grupo foi
+ * rastreado como estabilizador, mas não tem estímulo principal ou secundário
+ * contabilizado no período. Estado apenas visual: nenhum percentual é criado
+ * e os pesos, as faixas e a recuperação continuam inalterados.
+ */
+export function stabilizerOnly(summary: MuscleSummary | undefined): boolean {
+  return (
+    !!summary &&
+    summary.effort === null &&
+    summary.contributions.some((c) => c.inPeriod && c.role === 'stabilizer')
+  );
+}
+/** Texto da participação estabilizadora: nunca um percentual. */
+export const stabilizerStatus = 'Estabilizador · participação não quantificada';
+/** Tom exibido no mapa. A Recuperação mantém exatamente `metricTone`. */
+export function muscleTone(
+  summary: MuscleSummary | undefined,
+  mode: MapMode,
+): Tone {
+  if (mode === 'effort' && stabilizerOnly(summary)) return 'stabilizer';
+  return metricTone(summary?.[mode] ?? null, mode);
+}
 export const toneLabels: Record<Tone, string> = {
   unknown: 'Indeterminado',
+  stabilizer: 'Estabilizador',
   low: 'Baixo',
   moderate: 'Moderado',
   high: 'Alto',
