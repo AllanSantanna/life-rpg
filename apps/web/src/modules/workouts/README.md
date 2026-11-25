@@ -77,6 +77,9 @@ somente à sessão; a ficha permanente e outras sessões não mudam.
 
 Um comando confirma a sessão inteira pelo armazenamento já existente. Repetir
 esse comando não duplica a importação; uma trava também impede cliques repetidos.
+A janela **Treino importado!** aparece somente depois da gravação confirmada,
+com o resumo real do que foi escrito; erros de gravação são explicados na própria
+tela de importação ([detalhes](../../../../../docs/workout-text-import.md)).
 Se a sessão mudou após interpretar, a confirmação falha e pede nova conferência.
 A importação não alterou o contrato v1, o envelope nem as chaves do armazenamento.
 
