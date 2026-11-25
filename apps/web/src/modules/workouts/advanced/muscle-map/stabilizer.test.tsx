@@ -389,8 +389,17 @@ describe('Abdutores como estabilizadores', () => {
       expect(path.dataset.tone).toBe('unknown');
   });
 
-  it('exercício sem Abdutores mapeados não os colore (agachamento livre)', () => {
+  it('agachamento livre também colore Abdutores como estabilizadores', () => {
     renderMap([squat('a')]);
+    for (const path of regions('abductors'))
+      expect(path.dataset.tone).toBe('stabilizer');
+    fireEvent.click(screen.getByRole('tab', { name: 'Recuperação' }));
+    for (const path of regions('abductors'))
+      expect(path.dataset.tone).toBe('recovery-stabilizer');
+  });
+
+  it('exercício sem Abdutores mapeados não os colore (leg press)', () => {
+    renderMap([testSession('a', '2026-11-18', sets(3), 'legpress')]);
     for (const path of regions('abductors'))
       expect(path.dataset.tone).toBe('unknown');
     fireEvent.click(screen.getByRole('tab', { name: 'Recuperação' }));

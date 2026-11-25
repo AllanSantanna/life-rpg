@@ -7,6 +7,7 @@ import {
 } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MuscleMap } from '../MuscleMap';
+import { starterExercises } from '../catalog';
 import { libraryExercises } from '../library';
 import { testSession, testSet } from '../testFixtures';
 import type { TrainingPeriod } from '../calculations';
@@ -25,7 +26,7 @@ function session(id: string, exerciseId: string, date = '2026-11-18') {
     date,
     Array.from({ length: 3 }, (_, i) => testSet(`s${i}`, 30, 10, 'working', 2)),
   );
-  const exercise = libraryExercises.find((e) => e.id === exerciseId);
+  const exercise = allExercises.find((e) => e.id === exerciseId);
   if (!exercise) throw new Error(`ID inexistente no catálogo: ${exerciseId}`);
   value.exercises[0]!.exercise = structuredClone(exercise);
   return value;
@@ -35,6 +36,16 @@ const stabilizerIds = [
   'library:lunge',
   'library:step-up',
 ] as const;
+// Decisão de 25/11/2026: agachamentos bilaterais também estabilizam com abdutores.
+const bilateralSquatIds = [
+  'squat',
+  'library:front-squat',
+  'library:goblet-squat',
+  'library:smith-squat',
+  'library:hack-squat',
+  'library:bodyweight-squat',
+] as const;
+const allExercises = [...starterExercises, ...libraryExercises];
 
 function show(sessions: WorkoutSession[], period: TrainingPeriod = 'week') {
   const view = render(
@@ -84,19 +95,23 @@ function expectAbductors(tone: string, label: RegExp) {
 describe('Abdutores: participação registrada nos IDs reais do catálogo', () => {
   it('a revisão atribui os papéis esperados', () => {
     const role = (id: string) =>
-      exerciseParticipation(libraryExercises.find((e) => e.id === id)!).find(
+      exerciseParticipation(allExercises.find((e) => e.id === id)!).find(
         (p) => p.group === 'abductors',
       )?.role;
-    for (const id of stabilizerIds) expect(role(id)).toBe('stabilizer');
+    for (const id of [...stabilizerIds, ...bilateralSquatIds])
+      expect(role(id)).toBe('stabilizer');
+    // Leg press e elevação pélvica continuam sem Abdutores.
+    expect(role('legpress')).toBeUndefined();
+    expect(role('hipthrust')).toBeUndefined();
     expect(role('library:abductor')).toBe('primary');
     expect(reviewedExerciseIds('abductors').sort()).toEqual(
-      [...stabilizerIds, 'library:abductor'].sort(),
+      [...bilateralSquatIds, ...stabilizerIds, 'library:abductor'].sort(),
     );
   });
 });
 
 describe('Abdutores estabilizadores no mapa renderizado', () => {
-  for (const id of stabilizerIds)
+  for (const id of [...stabilizerIds, ...bilateralSquatIds])
     it(`${id}: #80565A no Esforço e verde na Recuperação, sem percentual`, () => {
       show([session('a', id)]);
       expectAbductors(
@@ -176,13 +191,13 @@ describe('Cadeira abdutora: estímulo principal contabilizado', () => {
 
 describe('Abdutores sem participação ou fora da janela', () => {
   it('exercício sem Abdutores registrados mantém indeterminado e explica a identificação', () => {
-    show([testSession('a', '2026-11-18', [testSet('s', 80, 8)], 'squat')]);
+    show([testSession('a', '2026-11-18', [testSet('s', 80, 8)], 'legpress')]);
     expectAbductors('unknown', /Indeterminado$/);
     fireEvent.click(abductorPaths()[0]!.path);
     expect(
       screen.getByLabelText('Detalhes do músculo selecionado'),
     ).toHaveTextContent(
-      'Este grupo só é identificado nos exercícios revisados do catálogo: Agachamento búlgaro, Afundo, Subida no banco e Cadeira abdutora.',
+      /Este grupo só é identificado nos exercícios revisados do catálogo: Agachamento.*Agachamento búlgaro, Afundo, Subida no banco e Cadeira abdutora\./,
     );
     mode('Recuperação');
     expectAbductors('unknown', /Indeterminado$/);
