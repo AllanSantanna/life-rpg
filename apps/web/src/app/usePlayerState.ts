@@ -23,6 +23,7 @@ import {
   type RepositoryWrite,
 } from '../shared/storage/transactionalStateStorage';
 import { browserPlayerStorage } from './playerRepository';
+import type { SaveOutcome } from '../modules/records/types';
 import {
   createInitialPlayerState,
   isPlayerState,
@@ -137,6 +138,13 @@ export function usePlayerState(
     first.initial?.needsWrite ? null : (first.initial?.data ?? null),
   );
   const writing = useRef(false);
+  // Quem aguarda a confirmação do estado atual (ver `whenSaved`).
+  const saveWaiters = useRef<((outcome: SaveOutcome) => void)[]>([]);
+  const settleWaiters = useCallback((outcome: SaveOutcome) => {
+    const waiting = saveWaiters.current;
+    saveWaiters.current = [];
+    for (const resolve of waiting) resolve(outcome);
+  }, []);
   const mounted = useRef(true);
   const todayRef = useRef(today);
   todayRef.current = today;
@@ -145,10 +153,16 @@ export function usePlayerState(
     stateRef.current = next;
     setRawState(next);
   }, []);
-  const changePersistence = useCallback((next: Persistence) => {
-    persistenceRef.current = next;
-    setPersistence(next);
-  }, []);
+  const changePersistence = useCallback(
+    (next: Persistence) => {
+      persistenceRef.current = next;
+      setPersistence(next);
+      // Nesses estados nada é gravado até o usuário decidir: não há sucesso.
+      if (next.kind === 'conflict') settleWaiters('conflict');
+      else if (next.kind === 'protected') settleWaiters('failed');
+    },
+    [settleWaiters],
+  );
   const applyLoad = useCallback(
     (loaded: RepositoryLoad<PlayerState>) => {
       if (!mounted.current) return;
@@ -175,8 +189,9 @@ export function usePlayerState(
     [storage, applyLoad],
   );
   const failed = useCallback(() => {
+    settleWaiters('failed');
     if (mounted.current) changePersistence({ kind: 'session' });
-  }, [changePersistence]);
+  }, [changePersistence, settleWaiters]);
   useEffect(() => {
     mounted.current = true;
     if (isPromise(first.load)) void first.load.then(applyLoad, failed);
@@ -233,10 +248,14 @@ export function usePlayerState(
             ? { kind: 'session' }
             : { kind: 'saved' },
         );
+        // Só confirma quem espera quando o commit inclui o estado mais recente;
+        // caso contrário, a próxima escrita (abaixo) decide.
+        if (stateRef.current === proposed) settleWaiters('saved');
         flush.current();
       } else if (result.status === 'conflict')
         changePersistence({ kind: 'conflict' });
       else if (result.status === 'protected') {
+        settleWaiters('failed');
         const next = adopt();
         if (isPromise(next)) void next.catch(failed);
       } else failed();
@@ -463,6 +482,23 @@ export function usePlayerState(
     },
     [storage, assertSettled, adopt, failed],
   );
+  /**
+   * Resolve quando o estado atual (incluindo o comando recém-aplicado) estiver
+   * confirmado no armazenamento, ou com a falha que impediu a gravação.
+   * Somente observa o ciclo de escrita existente: não grava nem repete nada.
+   */
+  const whenSaved = useCallback((): Promise<SaveOutcome> => {
+    const kind = persistenceRef.current.kind;
+    if (kind === 'conflict') return Promise.resolve('conflict');
+    if (kind === 'protected') return Promise.resolve('failed');
+    if (
+      readyRef.current &&
+      !writing.current &&
+      stateRef.current === lastSaved.current
+    )
+      return Promise.resolve('saved');
+    return new Promise((resolve) => saveWaiters.current.push(resolve));
+  }, []);
   const draftRaw = () =>
     JSON.stringify({ version: PLAYER_STORAGE_VERSION, data: stateRef.current });
   const facts = useMemo(() => projectCharacter(state, today), [state, today]);
@@ -476,6 +512,7 @@ export function usePlayerState(
     copies: storage.copies,
     draftRaw,
     storageAvailable: persistence.kind === 'saved',
+    whenSaved,
     facts,
     reloadStored,
     startFreshKeepingCopy,
