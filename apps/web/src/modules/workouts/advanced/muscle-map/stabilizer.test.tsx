@@ -8,6 +8,7 @@ import {
 } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MuscleMap } from '../MuscleMap';
+import { libraryExercises } from '../library';
 import { testSession, testSet } from '../testFixtures';
 import type { WorkoutSession } from '../types';
 import {
@@ -195,6 +196,64 @@ describe('participação somente estabilizadora no Esforço relativo', () => {
     }
     const legend = screen.getByLabelText('Legenda de recuperação estimada');
     expect(legend.querySelector('.muscle-tone-stabilizer')).toBeNull();
+  });
+});
+
+/** Sessão com exercício da biblioteca (snapshot real do catálogo). */
+function librarySession(id: string, exerciseId: string, date = '2026-11-18') {
+  const session = testSession(id, date, sets(3));
+  session.exercises[0]!.exercise = structuredClone(
+    libraryExercises.find((e) => e.id === exerciseId)!,
+  );
+  return session;
+}
+
+describe('Abdutores como estabilizadores', () => {
+  // Mapeamento existente: búlgaro e afundo (abdutores e adutores), subida no banco.
+  for (const exerciseId of [
+    'library:bulgarian-squat',
+    'library:lunge',
+    'library:step-up',
+  ])
+    it(`${exerciseId}: Abdutores estabilizadores nas vistas frontal e traseira`, () => {
+      renderMap([librarySession('a', exerciseId)]);
+      const abductors = regions('abductors');
+      const views = new Set(
+        abductors.map((p) =>
+          p.closest('[role="group"]')!.getAttribute('aria-label'),
+        ),
+      );
+      expect(views).toEqual(
+        new Set([
+          'Mapa muscular · visão frontal',
+          'Mapa muscular · visão traseira',
+        ]),
+      );
+      for (const path of abductors) {
+        expect(path.dataset.tone).toBe('stabilizer');
+        expect(path.getAttribute('aria-label')).toMatch(
+          /Abdutores · .*: Estabilizador · participação não quantificada$/,
+        );
+      }
+      const { summaries } = projectMuscles(
+        [librarySession('a', exerciseId)],
+        Date.now(),
+        'week',
+      );
+      expect(summaries.abductors.units).toBe(0);
+      expect(summaries.abductors.effort).toBeNull();
+      expect(summaries.abductors.recovery).toBeNull();
+    });
+
+  it('cadeira abdutora (principal) tem prioridade sobre a estabilização', () => {
+    renderMap([
+      librarySession('a', 'library:bulgarian-squat'),
+      librarySession('b', 'library:abductor', '2026-11-19'),
+    ]);
+    for (const path of regions('abductors')) {
+      expect(path.dataset.tone).not.toBe('stabilizer');
+      expect(path.getAttribute('aria-label')).toMatch(/\d+% · /);
+    }
   });
 });
 
