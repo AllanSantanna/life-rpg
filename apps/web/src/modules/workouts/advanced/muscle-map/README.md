@@ -90,27 +90,27 @@ Abdutores existem só nesta projeção, para não invalidar dados lidos pela `ma
 
 ### Classificações revisadas
 
-| Exercício                            | Principal   | Secundário                                | Estabilizador             |
-| ------------------------------------ | ----------- | ----------------------------------------- | ------------------------- |
-| Agachamento livre, frontal, goblet   | Quadríceps  | Glúteos, Adutores                         | Abdômen, Lombar           |
-| Agachamento no Smith                 | Quadríceps  | Glúteos, Adutores                         | Lombar                    |
-| Agachamento hack                     | Quadríceps  | Glúteos, Adutores                         | —                         |
-| Agachamento com peso corporal        | Quadríceps  | Glúteos                                   | Abdômen                   |
-| Agachamento búlgaro, Afundo          | Quadríceps  | Glúteos                                   | Abdutores, Adutores       |
-| Subida no banco                      | Quadríceps  | Glúteos                                   | Abdutores                 |
-| Levantamento terra                   | Posteriores | Glúteos, Lombar, Antebraços               | Abdômen, Costas, Trapézio |
-| Terra romeno, Stiff (barra/halteres) | Posteriores | Glúteos, Lombar                           | Abdômen, Antebraços       |
-| Good morning                         | Posteriores | Glúteos, Lombar                           | Abdômen                   |
-| Terra sumô                           | Glúteos     | Posteriores, Quadríceps, Adutores, Lombar | Abdômen, Antebraços       |
-| Extensão lombar                      | Lombar      | Glúteos, Posteriores                      | —                         |
-| Cadeira adutora                      | Adutores    | —                                         | —                         |
-| Cadeira abdutora                     | Abdutores   | Glúteos                                   | —                         |
-| Remada curvada, Remada cavalinho     | Costas      | Bíceps, Antebraços                        | Lombar                    |
-| Remada alta                          | Ombros      | Trapézio                                  | —                         |
-| Caminhada do fazendeiro              | Antebraços  | —                                         | Abdômen, Trapézio         |
-| Prancha com toque nos ombros         | Abdômen     | —                                         | Ombros                    |
-| Flexão de braços                     | Peito       | Tríceps, Ombros                           | Abdômen                   |
-| Elevação de pernas na barra          | Abdômen     | —                                         | Antebraços                |
+| Exercício                            | Principal   | Secundário                                | Estabilizador              |
+| ------------------------------------ | ----------- | ----------------------------------------- | -------------------------- |
+| Agachamento livre, frontal, goblet   | Quadríceps  | Glúteos, Adutores                         | Abdômen, Lombar, Abdutores |
+| Agachamento no Smith                 | Quadríceps  | Glúteos, Adutores                         | Lombar, Abdutores          |
+| Agachamento hack                     | Quadríceps  | Glúteos, Adutores                         | Abdutores                  |
+| Agachamento com peso corporal        | Quadríceps  | Glúteos                                   | Abdômen, Abdutores         |
+| Agachamento búlgaro, Afundo          | Quadríceps  | Glúteos                                   | Abdutores, Adutores        |
+| Subida no banco                      | Quadríceps  | Glúteos                                   | Abdutores                  |
+| Levantamento terra                   | Posteriores | Glúteos, Lombar, Antebraços               | Abdômen, Costas, Trapézio  |
+| Terra romeno, Stiff (barra/halteres) | Posteriores | Glúteos, Lombar                           | Abdômen, Antebraços        |
+| Good morning                         | Posteriores | Glúteos, Lombar                           | Abdômen                    |
+| Terra sumô                           | Glúteos     | Posteriores, Quadríceps, Adutores, Lombar | Abdômen, Antebraços        |
+| Extensão lombar                      | Lombar      | Glúteos, Posteriores                      | —                          |
+| Cadeira adutora                      | Adutores    | —                                         | —                          |
+| Cadeira abdutora                     | Abdutores   | Glúteos                                   | —                          |
+| Remada curvada, Remada cavalinho     | Costas      | Bíceps, Antebraços                        | Lombar                     |
+| Remada alta                          | Ombros      | Trapézio                                  | —                          |
+| Caminhada do fazendeiro              | Antebraços  | —                                         | Abdômen, Trapézio          |
+| Prancha com toque nos ombros         | Abdômen     | —                                         | Ombros                     |
+| Flexão de braços                     | Peito       | Tríceps, Ombros                           | Abdômen                    |
+| Elevação de pernas na barra          | Abdômen     | —                                         | Antebraços                 |
 
 Confirmados sem mudança: supinos, crucifixos, puxadas, desenvolvimentos,
 roscas, tríceps, panturrilhas, elevação pélvica e abdominais. **Leg press não
@@ -319,8 +319,13 @@ carga residual é criada. Cada modo usa sua própria janela; uma participação 
 dela não colore o grupo. `muscleTone(summary, mode)` é a única regra visual,
 usada nas duas vistas, na lista de grupos, na legenda e nos detalhes.
 Abdutores só recebem esse estado quando o exercício os registra como
-estabilizadores (hoje: agachamento búlgaro, afundo e subida no banco) em sessão
-concluída; agachamento livre e leg press não os incluem. Lombar, Adutores e
+estabilizadores em sessão concluída: agachamentos bilaterais (livre, frontal,
+goblet, Smith, hack e com peso corporal), agachamento búlgaro, afundo e subida
+no banco. Leg press e elevação pélvica não os incluem. A inclusão nos
+agachamentos bilaterais é **decisão de produto de 25/11/2026** (heurística do
+aplicativo, não medição): glúteo médio e mínimo estabilizam a pelve e o
+alinhamento do joelho no plano frontal. Peso 0, como todo estabilizador: só
+rastreio e cor, sem séries equivalentes nem carga de recuperação. Lombar, Adutores e
 Abdutores não existem no tipo salvo `Muscle`: só a revisão por ID os identifica,
 e exercícios próprios nunca os registram. Sem participação na janela do modo, o
 painel lista os exercícios revisados que identificam o grupo
