@@ -9,6 +9,8 @@ export interface ImportReceipt {
   name: string;
   date: string;
   status: WorkoutSession['status'];
+  /** Nova sessão criada pela importação ou sessão existente atualizada. */
+  target: 'new' | 'existing';
   /** Exercícios que receberam séries nesta importação. */
   exercises: number;
   /** Séries escritas por esta importação (novas ou substituídas). */
@@ -47,6 +49,7 @@ export function importReceipt(
     name: value.planName,
     date: value.date,
     status: value.status,
+    target: expected ? 'existing' : 'new',
     exercises,
     sets,
     pendingSets: value.exercises

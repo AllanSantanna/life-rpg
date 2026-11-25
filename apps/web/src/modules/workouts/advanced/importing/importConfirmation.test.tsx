@@ -96,6 +96,7 @@ describe('recibo da importação: reflete exatamente o comando', () => {
       name: 'Treino A',
       date: today,
       status: 'in_progress',
+      target: 'new',
       exercises: 1,
       sets: 2,
       pendingSets: 2,
@@ -146,6 +147,7 @@ describe('recibo da importação: reflete exatamente o comando', () => {
     expect(receipt).toMatchObject({
       name: 'Treino A',
       status: 'completed',
+      target: 'existing',
       exercises: 2,
       sets: 4,
       pendingSets: 0,
@@ -299,7 +301,7 @@ describe('diálogo “Treino importado!” no aplicativo', () => {
     // Já gravado quando a confirmação aparece.
     expect(stored().records.advancedWorkouts!.sessions).toHaveLength(2);
     expect(dialog).toHaveAccessibleDescription(
-      'O treino foi adicionado com sucesso à sua biblioteca.',
+      'O treino foi importado com sucesso.',
     );
     const values = Object.fromEntries(
       [...dialog.querySelectorAll('dt')].map((dt) => [
@@ -309,6 +311,7 @@ describe('diálogo “Treino importado!” no aplicativo', () => {
     );
     expect(values).toMatchObject({
       Treino: 'Treino livre',
+      Destino: 'Nova sessão',
       'Exercícios importados': '2 exercícios',
       'Séries importadas': '3 séries',
     });
@@ -386,6 +389,69 @@ describe('diálogo “Treino importado!” no aplicativo', () => {
       'extension',
       'legpress',
     ]);
+  });
+
+  it('interpretar não mostra sucesso nem grava', () => {
+    open();
+    const before = localStorage.getItem(PLAYER_STORAGE_KEY);
+    button('Importar treino');
+    interpret('Supino reto:60x10');
+    expect(
+      screen.getByRole('heading', { name: 'Prévia do treino' }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(localStorage.getItem(PLAYER_STORAGE_KEY)).toBe(before);
+  });
+
+  it('importar para uma sessão existente em andamento também confirma', async () => {
+    const player: PlayerState = createInitialPlayerState();
+    const state = testState();
+    state.sessions = [{ ...state.sessions[0]!, status: 'in_progress' }];
+    player.records.advancedWorkouts = state;
+    localStorage.setItem(
+      PLAYER_STORAGE_KEY,
+      JSON.stringify({ version: PLAYER_STORAGE_VERSION, data: player }),
+    );
+    window.history.replaceState(null, '', '/treinos');
+    render(
+      <StrictMode>
+        <App />
+      </StrictMode>,
+    );
+    button('Importar treino');
+    // A sessão em andamento é o destino padrão.
+    expect(
+      screen.getByRole('combobox', { name: 'Destino da importação' }),
+    ).toHaveTextContent(/em andamento/);
+    interpret('Rosca direta: 20x12, 22x10');
+    const keep = screen.queryByRole('button', {
+      name: /Manter data selecionada/,
+    });
+    if (keep) fireEvent.click(keep);
+    button('Confirmar importação');
+    const dialog = await screen.findByRole('dialog', {
+      name: 'Treino importado!',
+    });
+    const values = Object.fromEntries(
+      [...dialog.querySelectorAll('dt')].map((dt) => [
+        dt.textContent,
+        dt.nextElementSibling!.textContent,
+      ]),
+    );
+    expect(values).toMatchObject({
+      Treino: 'Treino A',
+      Destino: 'Sessão existente atualizada',
+      'Exercícios importados': '1 exercício',
+      'Séries importadas': '2 séries',
+    });
+    const sessions = stored().records.advancedWorkouts!.sessions;
+    expect(sessions).toHaveLength(1);
+    expect(sessions[0]!.exercises.map((e) => e.exercise.id)).toEqual([
+      'bench',
+      'curl',
+    ]);
+    fireEvent.click(within(dialog).getByRole('button', { name: 'OK' }));
+    expect(screen.queryByRole('dialog')).toBeNull();
   });
 
   it('cancelar não mostra confirmação nem altera registros', () => {

@@ -211,9 +211,16 @@ export function AdvancedWorkouts({
         <StatusDialog
           tone="success"
           title="Treino importado!"
-          message="O treino foi adicionado com sucesso à sua biblioteca."
+          message="O treino foi importado com sucesso."
           summary={[
             { label: 'Treino', value: imported.name },
+            {
+              label: 'Destino',
+              value:
+                imported.target === 'new'
+                  ? 'Nova sessão'
+                  : 'Sessão existente atualizada',
+            },
             { label: 'Data', value: displayDate(imported.date) },
             {
               label: 'Exercícios importados',

@@ -89,7 +89,7 @@ describe('StatusDialog', () => {
       <StatusDialog
         tone="success"
         title="Treino importado!"
-        message="O treino foi adicionado com sucesso à sua biblioteca."
+        message="O treino foi importado com sucesso."
         error="Falha ao gravar."
         primary={{ label: 'OK', onClick: () => {} }}
         onClose={() => {}}

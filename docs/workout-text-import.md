@@ -32,8 +32,8 @@
 - Confirmação atômica, bloqueio de cliques repetidos e repetição idempotente do
   mesmo comando. Uma sessão alterada após a prévia exige nova conferência.
 - Durante a gravação, “Importando…” desabilita confirmar, cancelar e
-  interpretar. O diálogo **Treino importado!** (`StatusDialog`) só aparece após
-  `whenSaved()` confirmar o commit local, com nome, data, exercícios e séries
+  interpretar. O diálogo **Treino importado!** (“O treino foi importado com sucesso.”, `StatusDialog`) só aparece após
+  `whenSaved()` confirmar o commit local, com nome, destino (nova sessão ou sessão existente), data, exercícios e séries
   realmente escritos (`receipt.ts`: manter não conta, acrescentar conta só as
   novas) e séries planejadas pendentes, quando houver. Falha ou conflito de
   gravação exibem erro e restauram o botão. Se nenhuma série nova seria gravada,
