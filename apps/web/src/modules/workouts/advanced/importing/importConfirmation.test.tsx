@@ -327,6 +327,67 @@ describe('diálogo “Treino importado!” no aplicativo', () => {
     );
   });
 
+  it('texto copiado do WhatsApp ([hora, data]) é interpretado e importado', async () => {
+    open();
+    button('Importar treino');
+    interpret(
+      [
+        '[15:15, 25/11/2026] Fulano de Tal: Cadeira extensora',
+        '[15:15, 25/11/2026] Fulano de Tal: 12 x 50 kg',
+        '[15:16, 25/11/2026] Fulano de Tal: 6 x 80 kg',
+        '[15:17, 25/11/2026] Fulano de Tal: 9 x 100 kg',
+        '[15:20, 25/11/2026] Fulano de Tal: Leg press',
+        '[15:21, 25/11/2026] Fulano de Tal: 6 x 25 kg',
+        '[15:22, 25/11/2026] Fulano de Tal: 8 x 30 kg',
+      ].join('\n'),
+    );
+    expect(
+      screen.getByText(/2 exercício\(s\) · 5 série\(s\)/),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/Avisos da interpretação/)).toBeNull();
+    // O texto original fica no campo; a prévia não mostra remetente nem horário.
+    expect(
+      (screen.getByLabelText('Texto do treino') as HTMLTextAreaElement).value,
+    ).toContain('Fulano de Tal');
+    expect(
+      screen.queryByText(/Fulano|15:15/, { ignore: 'script, style, textarea' }),
+    ).toBeNull();
+    expect(
+      screen.getByLabelText('Carga (kg) · prévia, exercício 1, série 3'),
+    ).toHaveValue(100);
+    expect(
+      screen.getByLabelText('Repetições · prévia, exercício 2, série 2'),
+    ).toHaveValue(8);
+    // A data do cabeçalho chega aos metadados: a prévia mostra e pede escolha
+    // quando difere da data selecionada (mecanismo existente).
+    expect(
+      screen.getByText(/Data\(s\) no texto: 25\/11\/2026/),
+    ).toBeInTheDocument();
+    const keep = screen.queryByRole('button', {
+      name: /Manter data selecionada/,
+    });
+    if (keep) fireEvent.click(keep);
+    button('Confirmar importação');
+    const dialog = await screen.findByRole('dialog', {
+      name: 'Treino importado!',
+    });
+    const values = Object.fromEntries(
+      [...dialog.querySelectorAll('dt')].map((dt) => [
+        dt.textContent,
+        dt.nextElementSibling!.textContent,
+      ]),
+    );
+    expect(values).toMatchObject({
+      'Exercícios importados': '2 exercícios',
+      'Séries importadas': '5 séries',
+    });
+    const session = stored().records.advancedWorkouts!.sessions.at(-1)!;
+    expect(session.exercises.map((e) => e.exercise.id)).toEqual([
+      'extension',
+      'legpress',
+    ]);
+  });
+
   it('cancelar não mostra confirmação nem altera registros', () => {
     open();
     const before = localStorage.getItem(PLAYER_STORAGE_KEY);

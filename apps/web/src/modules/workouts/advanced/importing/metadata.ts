@@ -8,6 +8,36 @@ export function brazilianDate(value: string): string | null {
   const date = `${match[3]}-${match[2]!.padStart(2, '0')}-${match[1]!.padStart(2, '0')}`;
   return isDate(date) ? date : null;
 }
+const headerDate = '\\d{1,2}\\/\\d{1,2}(?:\\/\\d{2,4})?';
+const headerTime = '\\d{1,2}:\\d{2}(?::\\d{2})?';
+// Só o início da linha: [data, hora] ou [hora, data] (cópia de mensagens) e
+// "data, hora - " (exportação do Android; hífen opcional, como antes). Texto
+// comum com dois-pontos não casa: o cabeçalho exige data e horário no início.
+const bracketHeader = new RegExp(
+  `^\\[\\s*(?:(${headerDate}),?\\s+${headerTime}|${headerTime},?\\s+(${headerDate}))\\s*\\]\\s*`,
+);
+const exportHeader = new RegExp(
+  `^(${headerDate}),?\\s+${headerTime}\\s+(?:-\\s+)?`,
+);
+/**
+ * Separa o cabeçalho externo de uma mensagem do WhatsApp (data, horário e
+ * remetente) do conteúdo, que segue intacto. Usado só na interpretação: o
+ * texto original da importação não é alterado.
+ */
+export function whatsappMessage(
+  raw: string,
+): { date: string; content: string } | null {
+  const line = raw.replace(/[\u200e\u200f\u202a-\u202e]/g, '').trim();
+  const header = bracketHeader.exec(line) ?? exportHeader.exec(line);
+  if (!header) return null;
+  const rest = line.slice(header[0].length);
+  // Remetente: até o primeiro ": " (nomes não contêm dois-pontos).
+  const sender = /^([^:]{1,80}?):(?:\s+|$)/u.exec(rest);
+  return {
+    date: (header[1] ?? header[2])!,
+    content: (sender ? rest.slice(sender[0].length) : rest).trim(),
+  };
+}
 export function extractWorkoutMetadata(text: string, titles: string[] = []) {
   const metadata: WorkoutMetadata = {
     title: null,
@@ -28,13 +58,11 @@ export function extractWorkoutMetadata(text: string, titles: string[] = []) {
       );
   }
   const lines = text.split(/\r?\n/).map((raw, index) => {
-    // Bracketed messages and Android's "date, time - sender: message" export.
-    const whatsapp =
-      /^\[?(\d{1,2}\/\d{1,2}(?:\/\d{2,4})?),?\s+\d{1,2}:\d{2}(?::\d{2})?\]?\s*(?:-\s*)?[^:]+:\s*(.*)$/u.exec(
-        raw.trim(),
-      );
-    const line = (whatsapp?.[2] ?? raw).replace(/[\u200e\u200f]/g, '').trim();
-    if (whatsapp) date(whatsapp[1]!, index);
+    const whatsapp = whatsappMessage(raw);
+    const line = (whatsapp?.content ?? raw)
+      .replace(/[\u200e\u200f]/g, '')
+      .trim();
+    if (whatsapp) date(whatsapp.date, index);
     if (!/[\p{L}\p{N}]/u.test(line)) return '';
     const dateHeader = /^data\s*[:–—-]?\s*(.+)$/i.exec(line);
     if (dateHeader) {
