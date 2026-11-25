@@ -96,5 +96,7 @@ intensidade, só com tokens existentes: mistura de `--color-focus` com
 Esforço relativo: grupo que participou somente como estabilizador no período,
 sem estímulo principal ou secundário contabilizado. Fica fora da escala
 percentual, com texto “Estabilizador · participação não quantificada” e amostra
-tracejada na legenda; não é usado na Recuperação. Nenhuma dessas
+tracejada na legenda; não é usado na Recuperação. Na Recuperação, o mesmo
+estado reutiliza `--color-muscle-ready` (verde) por convenção, com amostra
+tracejada e texto “sem carga calculada · não é recuperação medida”. Nenhuma dessas
 cores representa diagnóstico. São tokens temáticos, sem overrides de outros módulos.

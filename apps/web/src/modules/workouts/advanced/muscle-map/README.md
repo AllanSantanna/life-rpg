@@ -308,7 +308,19 @@ mostra “Participação estabilizadora” com a explicação de que não houve 
 equivalentes; a lista de exercícios estabilizadores permanece. O estado é
 derivado em `muscleTone`/`stabilizerOnly` (`model.ts`) a partir das
 contribuições já rastreadas, sem alterar pesos, faixas, recuperação ou storage.
-A Recuperação não recebe cor nova. Recuperação: verde (≥90), amarelo (70–89), laranja (50–69), vermelho (<50). Sem
+Na Recuperação, o mesmo critério (participação estabilizadora na janela de 14
+dias, sem carga contabilizada) usa o verde já existente
+(`--color-muscle-ready`) por convenção visual, com o texto “Estabilizador · sem
+carga de recuperação calculada”, amostra tracejada na legenda (“Sem carga
+calculada · não é recuperação medida”) e o medidor “Não calculado”. O painel
+explica: “Este músculo participou da estabilização, mas não possui carga de
+recuperação estimada.” O verde não é medição: `recovery` continua nulo e nenhuma
+carga residual é criada. Cada modo usa sua própria janela; uma participação fora
+dela não colore o grupo. `muscleTone(summary, mode)` é a única regra visual,
+usada nas duas vistas, na lista de grupos, na legenda e nos detalhes.
+Abdutores só recebem esse estado quando o exercício os registra como
+estabilizadores (hoje: agachamento búlgaro, afundo e subida no banco) em sessão
+concluída; agachamento livre e leg press não os incluem. Recuperação: verde (≥90), amarelo (70–89), laranja (50–69), vermelho (<50). Sem
 contribuição recente ou grupo não mapeado: cinza/indeterminado. Cada região usa
 gradiente horizontal com sombra lateral (`muscle-v2-shade`, 36% da cor sobre o
 fundo) e textura anatômica em `soft-light`; a legenda usa a mesma classe
