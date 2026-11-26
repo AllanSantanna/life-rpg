@@ -290,7 +290,6 @@ function InvestmentForm({
           <InvestmentFields
             key={category}
             category={category}
-            records={records}
             today={today}
             initial
             quote={quote}
@@ -408,7 +407,6 @@ function OperationForm({
           key={target}
           category={category}
           entry={entry}
-          records={records}
           today={today}
           quote={records.finance?.quotes.at(-1)}
           usdQuote={records.finance?.usdQuotes?.at(-1)}

@@ -1899,6 +1899,12 @@
 .finance-inline-form {
   min-width: 0;
 }
+/* Ações rápidas de receita/despesa: mesmos ActionButton, quebram no celular. */
+.finance-quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
 .disclosure > .disclosure__heading {
   margin: 0;
 }

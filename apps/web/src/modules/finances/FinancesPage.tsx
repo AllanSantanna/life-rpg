@@ -1,9 +1,9 @@
 import { useState } from 'react';
+import { ActionButton } from '../../shared/components/ActionButton';
 import { CustomDatePicker } from '../../shared/components/CustomDatePicker';
 import { Field, RecordFeedback, Summary } from '../records/RecordUI';
 import type { RecordPageProps } from '../records/types';
 import { useCommand } from '../records/useCommand';
-import { CashLedgerPanel } from './CashLedgerPanel';
 import { money, monthlyBalance } from './calculations';
 import { DeleteConfirmation, type PendingDeletion } from './DeleteConfirmation';
 import { FinanceTabs } from './FinanceLayout';
@@ -11,7 +11,12 @@ import { FinancialChart } from './FinancialChart';
 import { FinancialSettings } from './FinancialSettings';
 import { InvestmentsPanel } from './InvestmentsPanel';
 import { financialSummary } from './ledger';
-import { MovementsPanel } from './MovementsPanel';
+import {
+  MovementForm,
+  MovementsPanel,
+  type MovementDraft,
+} from './MovementsPanel';
+import { ValuationsPanel } from './ValuationsPanel';
 import type { MarketTracker } from './useMarketQuotes';
 
 type FinanceArea = 'movements' | 'investments';
@@ -41,6 +46,14 @@ export function FinancesPage({
   const [pendingDeletion, setPendingDeletion] =
     useState<PendingDeletion | null>(null);
   const [managementRevision, setManagementRevision] = useState(0);
+  /** Formulário de receita/despesa aberto; `undefined` quando fechado. */
+  const [movementDraft, setMovementDraft] = useState<MovementDraft>();
+  const [draftRevision, setDraftRevision] = useState(0);
+  const openMovement = (draft: MovementDraft) => {
+    setMovementDraft(draft);
+    // Reabre o formulário com o novo tipo mesmo se outro já estiver aberto.
+    setDraftRevision((n) => n + 1);
+  };
   const { run, message } = useCommand(onCommand);
   const monthly = monthlyBalance(records.movements, month);
   const financial = financialSummary(records, today);
@@ -52,6 +65,7 @@ export function FinancesPage({
     ) {
       // Formulários abertos podem referenciar registros removidos.
       setPendingDeletion(null);
+      setMovementDraft(undefined);
       setManagementRevision((n) => n + 1);
     }
     return error;
@@ -70,24 +84,53 @@ export function FinancesPage({
         </Field>
         <Summary
           values={[
+            {
+              label: 'Saldo disponível',
+              value:
+                financial.cash === null
+                  ? 'Saldo pendente'
+                  : money(financial.cash),
+            },
             { label: 'Receitas do mês', value: money(monthly.income) },
             { label: 'Despesas do mês', value: money(monthly.expense) },
             { label: 'Resultado mensal', value: money(monthly.balance) },
           ]}
         />
+        <div
+          className="finance-quick-actions"
+          role="group"
+          aria-label="Registrar movimentação"
+        >
+          <ActionButton
+            icon="plus"
+            onClick={() => openMovement({ id: null, kind: 'income' })}
+          >
+            Adicionar receita
+          </ActionButton>
+          <ActionButton
+            icon="plus"
+            onClick={() => openMovement({ id: null, kind: 'expense' })}
+          >
+            Adicionar despesa
+          </ActionButton>
+        </div>
+        {movementDraft && (
+          <MovementForm
+            key={draftRevision}
+            records={records}
+            today={today}
+            draft={movementDraft}
+            run={run}
+            onClose={() => setMovementDraft(undefined)}
+          />
+        )}
         <p className="record-hint">
-          Resultado mensal = receitas − despesas. É fluxo do período, separado
-          dos saldos e investimentos.
+          Saldo disponível considera todo o histórico: receitas entram; despesas
+          e aportes saem; resgates voltam. Resultado mensal = receitas −
+          despesas do mês selecionado. Investimentos ficam separados do saldo.
         </p>
         <Summary
           values={[
-            {
-              label: 'Dinheiro disponível',
-              value:
-                financial.cash === null
-                  ? 'Informe os saldos iniciais'
-                  : money(financial.cash),
-            },
             {
               label: 'Valor dos investimentos',
               value: financial.unpriced
@@ -124,12 +167,6 @@ export function FinancesPage({
             posteriores exigem nova avaliação.
           </p>
         )}
-        <CashLedgerPanel
-          key={managementRevision}
-          records={records}
-          today={today}
-          onCommand={manage}
-        />
         <FinancialChart records={records} today={today} />
       </section>
       <FinanceTabs
@@ -145,21 +182,30 @@ export function FinancesPage({
             today={today}
             month={month}
             onMonthChange={setMonth}
+            onEdit={openMovement}
             run={run}
             onDelete={setPendingDeletion}
           />
         ) : (
-          <InvestmentsPanel
-            key={managementRevision}
-            records={records}
-            today={today}
-            onCommand={onCommand}
-            run={run}
-            onDelete={setPendingDeletion}
-            btcStatus={{ error: quoteError, stale: quoteStale }}
-            usdStatus={{ error: usdError, stale: usdStale }}
-            market={market}
-          />
+          <>
+            <InvestmentsPanel
+              key={managementRevision}
+              records={records}
+              today={today}
+              onCommand={onCommand}
+              run={run}
+              onDelete={setPendingDeletion}
+              btcStatus={{ error: quoteError, stale: quoteStale }}
+              usdStatus={{ error: usdError, stale: usdStale }}
+              market={market}
+            />
+            <ValuationsPanel
+              key={`valuations:${managementRevision}`}
+              records={records}
+              today={today}
+              onCommand={onCommand}
+            />
+          </>
         )}
       </FinanceTabs>
       <RecordFeedback message={message} />

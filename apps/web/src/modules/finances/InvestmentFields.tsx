@@ -1,9 +1,7 @@
 import { CustomDatePicker } from '../../shared/components/CustomDatePicker';
 import { CustomSelect } from '../../shared/components/CustomSelect';
 import { isInitialPosition } from './initialPosition';
-import { AccountField } from './CashLedgerPanel';
 import { DateField } from '../records/RecordUI';
-import type { LifeRecords } from '../records/types';
 import { fetchBitcoinQuote } from './bitcoinQuote';
 import { fetchUsdQuote } from './usdQuote';
 import { useEffect, useState } from 'react';
@@ -21,7 +19,6 @@ import type {
 } from './types';
 export function InvestmentFields({
   category,
-  records,
   today,
   entry,
   initial = false,
@@ -31,7 +28,6 @@ export function InvestmentFields({
   lockKind = false,
 }: {
   category: InvestmentCategory;
-  records: LifeRecords;
   today: string;
   entry?: InvestmentEntry | undefined;
   initial?: boolean;
@@ -258,7 +254,11 @@ export function InvestmentFields({
       ) : (
         <>
           <DateField key="operation-date" today={today} value={entry?.date} />
-          <AccountField records={records} value={entry?.accountId} />
+          {/* Sem escolha de conta: aportes e retiradas usam a carteira interna;
+              a edição preserva a conta de operações anteriores. */}
+          {entry?.accountId !== undefined && (
+            <input type="hidden" name="accountId" value={entry.accountId} />
+          )}
         </>
       )}
       {(bitcoin || usd) && (

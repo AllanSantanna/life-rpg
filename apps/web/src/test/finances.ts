@@ -9,9 +9,13 @@ export function financeTab(name: 'Movimentações' | 'Investimentos') {
   if (tab.getAttribute('aria-selected') !== 'true') fireEvent.click(tab);
 }
 
-export function newMovementForm() {
-  financeTab('Movimentações');
-  fireEvent.click(screen.getByRole('button', { name: 'Nova movimentação' }));
+/** Abre o formulário pelas ações rápidas da visão geral (um clique). */
+export function newMovementForm(kind: 'income' | 'expense' = 'expense') {
+  fireEvent.click(
+    screen.getByRole('button', {
+      name: kind === 'income' ? 'Adicionar receita' : 'Adicionar despesa',
+    }),
+  );
   return screen.getByRole('form', { name: 'Nova movimentação' });
 }
 

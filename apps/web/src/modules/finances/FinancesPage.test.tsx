@@ -68,17 +68,8 @@ describe('Finanças pela interface', () => {
       observedAt: Date.now(),
     });
     let app = open();
-    // Contas ficam numa seção recolhível: o usuário a abre antes de cadastrar.
-    fireEvent.click(
-      screen.getByRole('button', {
-        name: 'Contas, transferências e avaliações manuais',
-      }),
-    );
-    let form = screen.getByRole('form', { name: 'Cadastrar saldo inicial' });
-    input(form, 'Saldo inicial (R$)', '1000');
-    input(form, 'Data', '2026-01-01');
-    click(form, 'Cadastrar saldo inicial');
-    form = newInvestmentForm();
+    // Carteira interna: o investimento é registrado sem cadastrar conta antes.
+    let form = newInvestmentForm();
     input(form, 'Nome do investimento', 'Minha reserva BTC');
     input(form, 'Categoria do investimento', 'Bitcoin');
     input(form, 'Tipo de registro do investimento', 'Nova compra ou aporte');

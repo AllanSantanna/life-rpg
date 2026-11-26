@@ -684,20 +684,13 @@ try {
         .click();
       await capture(page, 'quest-form', width);
       await page.goto(base + '/financas');
+      // Carteira única: saldo, receitas/despesas e ações rápidas no topo.
+      await capture(page, 'financas-visao-geral', width);
       await page
-        .getByText('Contas, transferências e avaliações manuais', {
-          exact: true,
-        })
+        .getByRole('button', { name: 'Adicionar receita', exact: true })
         .click();
-      await capture(page, 'financas-contas', width);
-      await page
-        .getByRole('button', {
-          name: 'Excluir conta Conta principal da auditoria',
-          exact: true,
-        })
-        .click();
-      await capture(page, 'financas-dialog', width);
-      await page.keyboard.press('Escape');
+      await capture(page, 'financas-receita', width);
+      await page.getByRole('button', { name: 'Cancelar', exact: true }).click();
       await page
         .getByText('Configurações financeiras', { exact: true })
         .click();
@@ -711,7 +704,7 @@ try {
       await capture(page, 'financas-reset-dialog', width);
       await page.keyboard.press('Escape');
       await page
-        .getByRole('button', { name: 'Nova movimentação', exact: true })
+        .getByRole('button', { name: 'Adicionar despesa', exact: true })
         .click();
       await capture(page, 'financas-movimentacao', width);
       await page.getByRole('button', { name: 'Cancelar', exact: true }).click();

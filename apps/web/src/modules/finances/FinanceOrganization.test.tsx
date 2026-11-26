@@ -210,7 +210,7 @@ describe('Organização da página Finanças', () => {
   it('abre e cancela a nova movimentação sem alterar dados, devolvendo o foco', () => {
     const state = seed();
     render(<App />);
-    const opener = screen.getByRole('button', { name: 'Nova movimentação' });
+    const opener = screen.getByRole('button', { name: 'Adicionar despesa' });
     opener.focus();
     const form = newMovementForm();
     expect(
@@ -258,10 +258,12 @@ describe('Organização da página Finanças', () => {
     expect(history).toHaveTextContent('1 movimentação');
     expect(history).not.toHaveTextContent('Mercado');
     input(history, 'Tipo', 'Despesas');
-    input(history, 'Conta', 'Conta reserva');
+    // Carteira única: não há filtro por conta; registros antigos continuam listados.
+    expect(
+      within(history).queryByRole('combobox', { name: 'Conta' }),
+    ).not.toBeInTheDocument();
     expect(history).toHaveTextContent('Cinema');
-    expect(history).not.toHaveTextContent('Mercado');
-    input(history, 'Conta', 'Todas as contas');
+    expect(history).toHaveTextContent('Mercado');
     input(history, 'Categoria', 'Casa');
     expect(history).toHaveTextContent('Mercado');
     expect(history).not.toHaveTextContent('Cinema');
@@ -314,8 +316,8 @@ describe('Organização da página Finanças', () => {
       }),
     ).toHaveTextContent('Nova compra ou aporte');
     expect(
-      within(form).getByRole('combobox', { name: 'Conta' }),
-    ).toHaveTextContent('Conta corrente');
+      within(form).queryByRole('combobox', { name: 'Conta' }),
+    ).not.toBeInTheDocument();
     input(form, 'Valor da operação (R$)', '100,00');
     const button = within(form).getByRole('button', {
       name: 'Registrar operação',
@@ -329,9 +331,10 @@ describe('Organização da página Finanças', () => {
       kind: 'contribution',
       positionInitial: false,
       amountCents: 10000,
-      accountId: 'principal',
       date: today,
     });
+    // Sem `accountId`: a operação usa a carteira interna (conta `principal`).
+    expect(records.investmentEntries[3]).not.toHaveProperty('accountId');
     expect(records.investments).toHaveLength(3);
     expect(records.movements).toHaveLength(3);
     const after = summary();
@@ -347,20 +350,19 @@ describe('Organização da página Finanças', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('retira da caixinha creditando a conta escolhida e atualiza o saldo manual sem movimentar contas', () => {
+  it('retira da caixinha creditando a carteira e atualiza o saldo manual sem movimentar contas', () => {
     seed();
     render(<App />);
     const before = summary();
     let form = cardAction('Caixinha Caixa Itaú', 'Retirar de Caixa Itaú');
     expect(form).toHaveAccessibleName('Retirar · Caixa Itaú');
     input(form, 'Valor da operação (R$)', '50,00');
-    input(form, 'Conta', 'Conta reserva');
     submit(form);
     expect(stored().investmentEntries[3]).toMatchObject({
       kind: 'withdrawal',
       amountCents: 5000,
-      accountId: 'other',
     });
+    expect(stored().investmentEntries[3]).not.toHaveProperty('accountId');
     expect(summary().cash).toBe(before.cash! + 5000);
     expect(summary().wealth).toBe(before.wealth);
     const entries = stored().investmentEntries;
