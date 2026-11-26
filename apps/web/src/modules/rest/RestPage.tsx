@@ -1,12 +1,10 @@
 import { ConfirmAction } from '../../shared/components/ConfirmAction';
-import { CustomDatePicker } from '../../shared/components/CustomDatePicker';
 import { useCommand } from '../records/useCommand';
-import { formText, formNumber } from '../records/form';
+import { formNumber } from '../records/form';
 import { useState } from 'react';
 import type { RecordPageProps } from '../records/types';
 import {
   Actions,
-  DateField,
   Empty,
   Field,
   RecordForm,
@@ -15,11 +13,11 @@ import {
 } from '../records/RecordUI';
 import { displayDate } from '../records/dates';
 import { sleepStats } from './calculations';
+import { SleepForm } from './SleepForm';
 export function RestPage({ records, today, onCommand }: RecordPageProps) {
   const [editing, setEditing] = useState<string | null>(null);
   const [revision, setRevision] = useState(0);
   const { run, message } = useCommand(onCommand);
-  const entry = records.sleep.find((day) => day.date === editing);
   const stats = sleepStats(records.sleep, today, records.sleepGoalHours);
   const hours = (value: number) =>
     `${value.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} h`;
@@ -42,56 +40,18 @@ export function RestPage({ records, today, onCommand }: RecordPageProps) {
         mês.
       </p>
       <div className="record-columns">
-        <RecordForm
+        <SleepForm
           key={`${editing}:${revision}`}
-          title={editing ? 'Editar sono' : 'Registrar sono'}
-          onSubmit={(data) => {
-            const date = formText(data, 'date');
-            if (
-              editing &&
-              editing !== date &&
-              records.sleep.some((day) => day.date === date)
-            )
-              return 'Já existe um registro na data escolhida. Edite esse registro.';
-            // A data fica fixa durante edição; um novo dia substitui apenas o próprio dia.
-            const error = run({
-              type: 'saveSleep',
-              value: { date, hours: formNumber(data, 'hours') },
-            });
-            if (!error) {
-              setEditing(null);
-              setRevision((value) => value + 1);
-            }
-            return error;
+          records={records}
+          today={today}
+          editing={editing}
+          run={run}
+          onSaved={() => {
+            setEditing(null);
+            setRevision((value) => value + 1);
           }}
-        >
-          {editing ? (
-            <Field label="Data">
-              <CustomDatePicker
-                label="Data"
-                name="date"
-                value={editing}
-                readOnly
-              />
-            </Field>
-          ) : (
-            <DateField today={today} />
-          )}
-          <Field label="Horas dormidas">
-            <input
-              name="hours"
-              inputMode="decimal"
-              required
-              placeholder="Ex.: 7,5"
-              defaultValue={entry?.hours.toString().replace('.', ',')}
-            />
-          </Field>
-          <p className="record-hint">
-            Um registro por data. Salvar no mesmo dia corrige as horas
-            anteriores.
-          </p>
-          <Actions onCancel={editing ? () => setEditing(null) : undefined} />
-        </RecordForm>
+          onCancel={editing ? () => setEditing(null) : undefined}
+        />
         <RecordForm
           title="Meta de sono"
           onSubmit={(data) =>
