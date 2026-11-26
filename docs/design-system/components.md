@@ -204,8 +204,8 @@ escolha de valores.
 para registrar Treino, Sono, Leitura e Finanças sem trocar de página. Fica dentro
 da navegação (`Navigation` recebe o conteúdo como `children`):
 
-- Abaixo de 1024 px: botão circular “+” (56 px, gradiente das ações primárias)
-  centralizado logo acima da barra inferior, posicionado em relação à própria
+- Abaixo de 1024 px: botão circular “+” (48 px, gradiente das ações primárias)
+  ao lado do botão de voz, no grupo `.global-actions` centralizado logo acima da barra inferior, posicionado em relação à própria
   barra (sem medidas por largura de tela). Herda a camada da navegação (30):
   diálogos nativos, ajudas “?” (80) e avisos de conquista (60) ficam acima.
   Some enquanto houver `.workout-sticky-actions` (edição de ficha), para não
@@ -226,6 +226,18 @@ da navegação (`Navigation` recebe o conteúdo como `children`):
 - Apresentação da primeira utilização: balão não modal com “Entendi”, que não
   rouba o foco nem aparece durante treino em andamento. A preferência fica em
   `life-rpg:quick-actions` (localStorage), fora do estado do jogador.
+
+## Comando por voz
+
+[VoiceCommandButton](../../apps/web/src/modules/voice-commands/VoiceCommandButton.tsx)
+fica no grupo `.global-actions`, ao lado do “+” das Ações rápidas, com o mesmo
+tamanho (48 px). No celular é um círculo grafite com borda vermelha discreta e
+ícone `mic`; ouvindo, ganha borda e anel vermelhos (sem brilho intenso). No
+computador é “Comando por voz” abaixo de “Ação rápida”. A janela é um modal
+nativo (`.voice-dialog`) com estados explícitos (solicitando permissão,
+“Ouvindo...”, frase reconhecida, cartão de confirmação com Editar, Cancelar e
+Confirmar). Editar abre os formulários existentes de cada pilar. Regras,
+formatos e limitações: [README do módulo](../../apps/web/src/modules/voice-commands/README.md).
 
 ## Finanças: abas, áreas recolhíveis e formulários sob demanda
 

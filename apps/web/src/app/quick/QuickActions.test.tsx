@@ -682,9 +682,11 @@ describe('estilos das ações rápidas', () => {
   it('posiciona sem depender de uma largura específica de tela', () => {
     // Centralizado pela própria barra fixa, acima dela, com área segura.
     expect(css).toMatch(
-      /\.quick-actions \{[^}]*position: absolute;[^}]*bottom: calc\(100% \+ var\(--space-3\)\);[^}]*left: 50%;[^}]*transform: translateX\(-50%\);/,
+      /\.global-actions \{[^}]*position: absolute;[^}]*bottom: calc\(100% \+ var\(--space-3\)\);[^}]*left: 50%;[^}]*transform: translateX\(-50%\);/,
     );
     expect(css).toMatch(/width: min\(340px, calc\(100vw - 32px\)\)/);
     expect(css).toMatch(/@media \(min-width: 1024px\)/);
+    // “+” com o mesmo tamanho do botão de voz (48 px).
+    expect(css).toMatch(/\.quick-actions \{\s*--quick-size: 48px;/);
   });
 });
