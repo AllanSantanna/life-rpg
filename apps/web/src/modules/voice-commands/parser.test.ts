@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { completeCommand, recordCommandFor } from './commands';
+import { completeCommand, recordCommandFor, validateDraft } from './commands';
 import { parseVoiceCommand } from './parser';
 import { findHours, findMoney } from './patterns';
 import { readNumber, tokenize } from './text';
@@ -129,7 +129,7 @@ describe('Finanças', () => {
     expect(result.draft?.type).toBe('finance.expense');
     expect(result.draft?.amountCents).toBeUndefined();
     expect(result.missing).toContain('amount');
-    expect(completeCommand(result)).toBeNull();
+    expect(completeCommand(result.draft, context())).toBeNull();
   });
 
   it('dois valores diferentes: pede esclarecimento', () => {
@@ -173,7 +173,7 @@ describe('Finanças', () => {
 
   it('gera o comando existente de movimentação na carteira única', () => {
     const result = parse('Gastei dez reais com chocolate ontem');
-    const command = completeCommand(result)!;
+    const command = completeCommand(result.draft, context())!;
     expect(recordCommandFor(command, () => 'id-1')).toEqual({
       type: 'saveMovement',
       value: {
@@ -200,7 +200,7 @@ describe('Descanso', () => {
   ])('“%s”', (text, hours, date) => {
     const result = parse(text);
     expect(result.draft).toMatchObject({ type: 'rest.sleep', hours, date });
-    expect(completeCommand(result)).toEqual({
+    expect(completeCommand(result.draft, context())).toEqual({
       type: 'rest.sleep',
       hours,
       date,
@@ -212,7 +212,9 @@ describe('Descanso', () => {
       sleep: [{ date: today, hours: 6 }],
     });
     expect(result.notes[0]).toMatch(/Já existe registro de 6 h/);
-    expect(recordCommandFor(completeCommand(result)!, () => 'x')).toEqual({
+    expect(
+      recordCommandFor(completeCommand(result.draft, context())!, () => 'x'),
+    ).toEqual({
       type: 'saveSleep',
       value: { date: today, hours: 8 },
     });
@@ -277,7 +279,7 @@ describe('Conhecimento', () => {
   it('sem livros cadastrados: informa e não confirma', () => {
     const result = parse('Li vinte páginas', { books: [] });
     expect(result.errors[0]).toMatch(/Nenhum livro cadastrado/);
-    expect(completeCommand(result)).toBeNull();
+    expect(completeCommand(result.draft, context({ books: [] }))).toBeNull();
   });
 
   it('acima do total do livro é recusado', () => {
@@ -299,7 +301,9 @@ describe('Treinos', () => {
   ])('“%s”', (text, date) => {
     const result = parse(text);
     expect(result.draft).toMatchObject({ type: 'workout.simple', date });
-    expect(recordCommandFor(completeCommand(result)!, () => 'x')).toEqual({
+    expect(
+      recordCommandFor(completeCommand(result.draft, context())!, () => 'x'),
+    ).toEqual({
       type: 'saveWorkout',
       value: { date, trained: true },
     });
@@ -310,7 +314,12 @@ describe('Treinos', () => {
       workouts: [{ date: today, trained: true }],
     });
     expect(result.errors[0]).toMatch(/já está registrado/);
-    expect(completeCommand(result)).toBeNull();
+    expect(
+      completeCommand(
+        result.draft,
+        context({ workouts: [{ date: today, trained: true }] }),
+      ),
+    ).toBeNull();
   });
 
   it('sessão avançada concluída: avisa que o dia conta uma vez', () => {
@@ -359,5 +368,215 @@ describe('prioridade, variações e frases desconhecidas', () => {
 
   it('preserva o texto original', () => {
     expect(parse('Gastei R$ 10 com café!').text).toBe('Gastei R$ 10 com café!');
+  });
+});
+
+describe('revisão: frases naturais e regressão da categoria', () => {
+  it('regressão: “comprei um chocolate de r$ 10”', () => {
+    const result = parse('comprei um chocolate de r$ 10', {
+      categories: { expense: ['Geral'], income: ['Geral'] },
+    });
+    expect(result.draft).toMatchObject({
+      type: 'finance.expense',
+      description: 'Chocolate',
+      amountCents: 1000,
+      date: today,
+    });
+    // Sem categoria compatível existente: pendente, nunca “escolhida”.
+    expect(result.draft?.category).toBeUndefined();
+    expect(result.missing).toEqual(['category']);
+  });
+
+  it.each([
+    ['Comprei um chocolate por dez reais.', 1000, 'Chocolate'],
+    ['Gastei vinte reais no mercado.', 2000, 'Mercado'],
+    ['Acabei de gastar quinze reais.', 1500, undefined],
+    ['Fiz uma compra de trinta reais.', 3000, undefined],
+    ['Comprei um lanche e paguei doze reais.', 1200, 'Lanche'],
+    ['Gastei R$ 10,50 na padaria.', 1050, 'Padaria'],
+    ['Comprei chocolate de dez reais.', 1000, 'Chocolate'],
+    ['Gastei dez conto no chocolate.', 1000, 'Chocolate'],
+    ['Paguei dez reais no chocolate.', 1000, 'Chocolate'],
+  ])('despesa: “%s”', (text, cents, description) => {
+    const result = parse(text);
+    expect(result.draft).toMatchObject({
+      type: 'finance.expense',
+      amountCents: cents,
+    });
+    expect(result.draft?.kindPending).toBeUndefined();
+    expect(result.draft?.description).toBe(description);
+  });
+
+  it.each([
+    ['Recebi duzentos reais.', 20000],
+    ['Ganhei cinquenta reais de um serviço.', 5000],
+    ['Meu salário caiu, três mil reais.', 300000],
+    ['Entraram cem reais na minha conta.', 10000],
+    ['Recebi um pagamento de quinhentos reais.', 50000],
+    ['Ganhei R$ 150 trabalhando.', 15000],
+    ['Recebi cem reais de pagamento.', 10000],
+  ])('receita: “%s”', (text, cents) => {
+    expect(parse(text).draft).toMatchObject({
+      type: 'finance.income',
+      amountCents: cents,
+    });
+  });
+
+  it('salário e conta não viram descrições indevidas', () => {
+    expect(parse('Meu salário caiu, três mil reais.').draft?.description).toBe(
+      'Salário',
+    );
+    expect(
+      parse('Entraram cem reais na minha conta.').draft?.description,
+    ).toBeUndefined();
+  });
+
+  it.each([
+    ['Comprei ações', /investimento/],
+    ['Aportei 500 reais no CDB', /investimento/],
+    ['Recebi uma transferência da minha própria conta', /Transferências/],
+    ['Transferi 200 reais para a poupança', /Transferências/],
+  ])('não registra operação não suportada: “%s”', (text, message) => {
+    const result = parse(text);
+    expect(result.draft).toBeNull();
+    expect(result.errors[0]).toMatch(message);
+  });
+
+  it.each(['Paguei a academia e treinei', 'Gastei 10 reais e dormi 8 horas'])(
+    'duas ações: “%s”',
+    (text) => {
+      const result = parse(text);
+      expect(result.draft).toBeNull();
+      expect(result.ambiguities[0]).toMatch(/mais de uma ação/);
+    },
+  );
+
+  it.each(['Ganhei um livro', 'Entrou um aluno novo', 'Caiu a internet'])(
+    'sem dinheiro, “ganhei/entrou/caiu” não é receita: “%s”',
+    (text) => {
+      expect(parse(text).draft).toBeNull();
+    },
+  );
+
+  it('valor sem verbo: tipo pendente, não presumido', () => {
+    const result = parse('dez reais de chocolate');
+    expect(result.draft?.kindPending).toBe(true);
+    expect(result.missing).toContain('kind');
+  });
+
+  it.each([
+    ['Ontem dormi cinco horas.', 5, '2026-11-12'],
+    ['Dormi seis horas e trinta minutos.', 6.5, today],
+  ])('sono: “%s”', (text, hours, date) => {
+    expect(parse(text).draft).toMatchObject({ hours, date });
+  });
+
+  it.each([
+    ['Li umas vinte páginas.', 20, undefined],
+    ['Li cinco páginas ontem.', 5, undefined],
+    ['Hoje li quinze páginas de As 48 Leis do Poder.', 15, 'leis'],
+    ['Registra dez páginas no meu livro.', 10, undefined],
+  ])('leitura: “%s”', (text, pages, bookId) => {
+    const result = parse(text);
+    expect(result.draft).toMatchObject({ type: 'knowledge.reading', pages });
+    expect(result.draft?.bookId).toBe(bookId);
+  });
+
+  it('livro concluído não recebe leitura: pede um em andamento', () => {
+    const result = parse('li 5 páginas de livro concluído');
+    expect(result.draft?.bookId).toBeUndefined();
+    expect(result.ambiguities[0]).toMatch(/já foi concluído/);
+    expect(result.draft?.bookCandidates).toEqual(['med', 'leis']);
+  });
+
+  it.each(['Acabei de treinar.', 'Treinei hoje de manhã.', 'Fui treinar'])(
+    'treino: “%s”',
+    (text) => {
+      expect(parse(text).draft).toMatchObject({
+        type: 'workout.simple',
+        date: today,
+      });
+    },
+  );
+
+  it.each(['Vou treinar amanhã', 'O treino de ontem foi pesado'])(
+    'não registra treino: “%s”',
+    (text) => {
+      expect(parse(text).draft?.type).not.toBe('workout.simple');
+    },
+  );
+});
+
+describe('validação do rascunho', () => {
+  const ctx = context();
+  it('aponta cada campo pendente', () => {
+    expect(
+      validateDraft(
+        { type: 'finance.expense', date: today, dateSpoken: false },
+        ctx,
+      ).map((issue) => issue.field),
+    ).toEqual(['description', 'amount', 'category']);
+    expect(
+      validateDraft(
+        { type: 'knowledge.reading', date: today, dateSpoken: false, pages: 0 },
+        ctx,
+      ).map((issue) => issue.field),
+    ).toEqual(['book', 'pages']);
+    expect(
+      validateDraft(
+        { type: 'rest.sleep', date: '2026-11-20', dateSpoken: true, hours: 7 },
+        ctx,
+      ).map((issue) => issue.field),
+    ).toEqual(['date']);
+  });
+
+  it('livro concluído e excesso de páginas', () => {
+    expect(
+      validateDraft(
+        {
+          type: 'knowledge.reading',
+          date: today,
+          dateSpoken: false,
+          bookId: 'fim',
+          pages: 1,
+        },
+        ctx,
+      )[0]?.message,
+    ).toMatch(/já foi concluído/);
+    expect(
+      validateDraft(
+        {
+          type: 'knowledge.reading',
+          date: today,
+          dateSpoken: false,
+          bookId: 'med',
+          pages: 281,
+        },
+        ctx,
+      )[0]?.message,
+    ).toMatch(/restam 280/);
+  });
+
+  it('rascunho completo gera o comando existente', () => {
+    const draft = {
+      type: 'finance.expense' as const,
+      date: today,
+      dateSpoken: false,
+      description: 'Chocolate',
+      amountCents: 1000,
+      category: 'Geral',
+    };
+    expect(validateDraft(draft, ctx)).toEqual([]);
+    expect(recordCommandFor(completeCommand(draft, ctx)!, () => 'id')).toEqual({
+      type: 'saveMovement',
+      value: {
+        id: 'id',
+        kind: 'expense',
+        description: 'Chocolate',
+        amountCents: 1000,
+        category: 'Geral',
+        date: today,
+      },
+    });
   });
 });

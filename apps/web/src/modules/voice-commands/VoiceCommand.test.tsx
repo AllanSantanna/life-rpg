@@ -20,6 +20,7 @@ import {
 } from '../../app/playerState';
 import { QUICK_ACTIONS_KEY } from '../../app/quick/quickActionsPreference';
 import { applyRecordCommand } from '../records/commands';
+import { recordReward } from '../records/progression';
 import type { LifeRecords, RecordCommand, SaveOutcome } from '../records/types';
 import type {
   SpeechRecognitionConstructor,
@@ -122,8 +123,9 @@ function speak(text: string) {
   latest().listen();
   latest().say(text);
 }
+/** Ação principal do cartão (“Confirmar” ou “Substituir registro”). */
 const confirmButton = () =>
-  within(voice()).getByRole('button', { name: 'Confirmar' });
+  voice().querySelector<HTMLButtonElement>('.voice-actions .record-primary')!;
 
 describe('botão de microfone', () => {
   it('fica ao lado do “+” e não altera a navegação', () => {
@@ -228,8 +230,68 @@ describe('botão de microfone', () => {
   });
 });
 
-describe('confirmação por pilar', () => {
-  it('despesa: mostra a prévia, nada é salvo antes de confirmar', async () => {
+const card = () => voice().querySelector<HTMLElement>('.voice-card')!;
+const pressed = (group: string) =>
+  within(within(card()).getByRole('group', { name: group }))
+    .queryAllByRole('button', { pressed: true })
+    .map((button) => button.textContent);
+const movementsShown = () => {
+  window.history.replaceState(null, '', '/financas');
+};
+
+describe('regressão: “comprei um chocolate de r$ 10”', () => {
+  it('sem categoria compatível: nada aparece como escolhido e Confirmar explica o que falta', async () => {
+    seed();
+    speak('comprei um chocolate de r$ 10');
+    expect(
+      within(voice()).getByRole('heading', { name: 'Confirmar despesa' }),
+    ).toBeInTheDocument();
+    expect(card()).toHaveTextContent('Finanças · Registrar despesa');
+    expect(card()).toHaveAttribute('data-tone', 'expense');
+    expect(pressed('Tipo de movimentação')).toEqual(['Despesa']);
+    expect(within(card()).getByLabelText('Descrição')).toHaveValue('Chocolate');
+    expect(within(card()).getByLabelText('Valor (R$)')).toHaveValue('R$ 10,00');
+    expect(card()).toHaveTextContent('Hoje');
+    // “Geral” é opção (categoria padrão do app), mas não está escolhida.
+    expect(pressed('Categoria')).toEqual([]);
+    expect(card()).toHaveTextContent(
+      'Preciso confirmar algumas informações: categoria.',
+    );
+    expect(card()).toHaveTextContent('Escolha a categoria.');
+    // Confirmar nunca fica mudo: anuncia a pendência e leva o foco ao campo.
+    fireEvent.click(confirmButton());
+    expect(within(card()).getByRole('alert')).toHaveTextContent('categoria');
+    expect(
+      within(
+        within(card()).getByRole('group', { name: 'Categoria' }),
+      ).getAllByRole('button')[0],
+    ).toHaveFocus();
+    expect(stored().records.movements).toEqual([]);
+    // Escolha direta no cartão, sem abrir outro formulário.
+    fireEvent.click(within(card()).getByRole('button', { name: 'Geral' }));
+    expect(pressed('Categoria')).toEqual(['Geral']);
+    expect(card()).not.toHaveTextContent('Preciso confirmar');
+    fireEvent.click(confirmButton());
+    fireEvent.click(confirmButton());
+    await waitFor(() => expect(feedback()).toBe('Despesa registrada.'));
+    expect(document.querySelector('dialog.voice-dialog')).toBeNull();
+    expect(stored().records.movements).toEqual([
+      expect.objectContaining({
+        kind: 'expense',
+        description: 'Chocolate',
+        amountCents: 1000,
+        category: 'Geral',
+        date: today,
+      }),
+    ]);
+    // Saldo e histórico atualizados pela página de Finanças.
+    cleanup();
+    movementsShown();
+    render(<App />);
+    expect(screen.getAllByText(/-R\$\s10,00/).length).toBeGreaterThan(0);
+  });
+
+  it('com categoria compatível existente: sugere e confirma direto', async () => {
     seed(
       apply(empty(), {
         type: 'saveMovement',
@@ -243,57 +305,71 @@ describe('confirmação por pilar', () => {
         },
       }),
     );
-    speak('Comprei um chocolate por dez reais');
-    expect(
-      within(voice()).getByRole('heading', { name: 'Confirmar despesa' }),
-    ).toBeInTheDocument();
-    expect(voice()).toHaveTextContent('“Comprei um chocolate por dez reais”');
-    const card = voice().querySelector('.voice-card')!;
-    expect(card).toHaveTextContent('Chocolate');
-    expect(card).toHaveTextContent(/R\$\s10,00/);
-    expect(card).toHaveTextContent('Hoje');
-    expect(
-      within(card as HTMLElement).getByRole('button', { name: 'Alimentação' }),
-    ).toHaveAttribute('aria-pressed', 'true');
-    // Reconhecer não é executar.
-    expect(stored().records.movements).toHaveLength(1);
+    speak('comprei um chocolate de r$ 10');
+    expect(pressed('Categoria')).toEqual(['Alimentação']);
+    expect(card()).not.toHaveTextContent('Preciso confirmar');
     fireEvent.click(confirmButton());
     await waitFor(() => expect(feedback()).toBe('Despesa registrada.'));
-    expect(document.querySelector('dialog.voice-dialog')).toBeNull();
+    expect(stored().records.movements).toHaveLength(2);
     expect(stored().records.movements.at(-1)).toMatchObject({
-      kind: 'expense',
-      description: 'Chocolate',
-      amountCents: 1000,
       category: 'Alimentação',
-      date: today,
+      amountCents: 1000,
     });
     expect(stored().records.movements.at(-1)).not.toHaveProperty('accountId');
   });
+});
 
-  it('receita: categoria não inferida exige escolha antes de confirmar', async () => {
+describe('confirmação por pilar', () => {
+  it('receita: tipo verde, edição direta de campos', async () => {
     seed();
-    speak('Recebi duzentos reais de um serviço');
-    expect(
-      within(voice()).getByRole('heading', { name: 'Confirmar receita' }),
-    ).toBeInTheDocument();
-    expect(confirmButton()).toBeDisabled();
-    fireEvent.click(within(voice()).getByRole('button', { name: 'Geral' }));
+    speak('Recebi duzentos reais de pagamento');
+    expect(card()).toHaveAttribute('data-tone', 'income');
+    expect(pressed('Tipo de movimentação')).toEqual(['Receita']);
+    fireEvent.change(within(card()).getByLabelText('Descrição'), {
+      target: { value: 'Pagamento do cliente' },
+    });
+    fireEvent.click(within(card()).getByRole('button', { name: 'Geral' }));
     fireEvent.click(confirmButton());
     await waitFor(() => expect(feedback()).toBe('Receita registrada.'));
     expect(stored().records.movements).toEqual([
       expect.objectContaining({
         kind: 'income',
         amountCents: 20000,
-        description: 'Serviço',
+        description: 'Pagamento do cliente',
         category: 'Geral',
       }),
     ]);
   });
 
+  it('valor sem verbo: o tipo é escolhido no cartão, não presumido', () => {
+    seed();
+    speak('dez reais de chocolate');
+    expect(card()).toHaveAttribute('data-tone', 'pending');
+    expect(pressed('Tipo de movimentação')).toEqual([]);
+    expect(card()).toHaveTextContent('tipo de movimentação');
+    fireEvent.click(within(card()).getByRole('button', { name: 'Despesa' }));
+    expect(pressed('Tipo de movimentação')).toEqual(['Despesa']);
+  });
+
+  it('valor pendente: campo destacado e foco ao confirmar', () => {
+    seed();
+    speak('Gastei dinheiro no mercado');
+    fireEvent.click(within(card()).getByRole('button', { name: 'Geral' }));
+    fireEvent.click(confirmButton());
+    expect(within(card()).getByRole('alert')).toHaveTextContent('valor');
+    expect(within(card()).getByLabelText('Valor (R$)')).toHaveFocus();
+    fireEvent.change(within(card()).getByLabelText('Valor (R$)'), {
+      target: { value: '1250' },
+    });
+    expect(card()).not.toHaveTextContent('Preciso confirmar');
+  });
+
   it('sono: confirma e aparece no Descanso após recarregar', async () => {
     const view = seed();
     speak('Ontem dormi sete horas e meia');
-    expect(voice().querySelector('.voice-card')).toHaveTextContent('Ontem');
+    expect(card()).toHaveTextContent('Descanso · Registrar horas de sono');
+    expect(within(card()).getByLabelText('Horas dormidas')).toHaveValue('7,5');
+    expect(card()).toHaveTextContent('Ontem');
     fireEvent.click(confirmButton());
     await waitFor(() => expect(feedback()).toBe('Sono registrado.'));
     expect(stored().records.sleep).toEqual([
@@ -307,49 +383,109 @@ describe('confirmação por pilar', () => {
     );
   });
 
-  it('sono existente: avisa e substitui sem duplicar', async () => {
+  it('sono existente: pergunta antes de substituir; não duplica', async () => {
     seed(
       apply(empty(), { type: 'saveSleep', value: { date: today, hours: 6 } }),
     );
     speak('dormi oito horas');
-    expect(voice()).toHaveTextContent('Já existe registro de 6 h');
-    fireEvent.click(confirmButton());
+    expect(card()).toHaveTextContent(
+      'Já existe um registro de sono nesta data (6 h). Deseja substituí-lo?',
+    );
+    fireEvent.click(
+      within(voice()).getByRole('button', { name: 'Substituir registro' }),
+    );
     await waitFor(() => expect(feedback()).toBe('Sono registrado.'));
     expect(stored().records.sleep).toEqual([{ date: today, hours: 8 }]);
+  });
+
+  it('sono com horas inválidas: pendência no campo', () => {
+    seed();
+    speak('dormi sete horas');
+    fireEvent.change(within(card()).getByLabelText('Horas dormidas'), {
+      target: { value: '30' },
+    });
+    fireEvent.click(confirmButton());
+    expect(card()).toHaveTextContent('entre 0 e 24');
+    expect(stored().records.sleep).toEqual([]);
   });
 
   it('leitura: identifica o livro e respeita as páginas', async () => {
     seed(withBooks());
     speak('Li vinte páginas de Meditações');
-    const card = voice().querySelector('.voice-card')!;
-    expect(card).toHaveTextContent('Meditações');
-    expect(card).toHaveTextContent('20');
+    expect(card()).toHaveTextContent('Conhecimento · Registrar páginas lidas');
+    expect(card()).toHaveTextContent('Meditações');
+    expect(within(card()).getByLabelText('Páginas lidas')).toHaveValue('20');
     fireEvent.click(confirmButton());
     await waitFor(() => expect(feedback()).toBe('Leitura registrada.'));
     expect(stored().records.readings).toEqual([
       expect.objectContaining({ bookId: 'med', pages: 20, date: today }),
     ]);
     speak('li 281 paginas de meditacoes');
-    expect(voice()).toHaveTextContent('ultrapassa o total');
-    expect(confirmButton()).toBeDisabled();
+    fireEvent.click(confirmButton());
+    expect(card()).toHaveTextContent('ultrapassa o total');
+    expect(stored().records.readings).toHaveLength(1);
   });
 
-  it('treino simples: confirma uma vez; já registrado não confirma', async () => {
-    seed();
-    speak('Treinei hoje');
+  it('leitura com vários livros: escolha direta no cartão; concluído fica fora', async () => {
+    seed(
+      apply(
+        withBooks(),
+        {
+          type: 'saveBook',
+          value: { id: 'leis', title: 'As 48 Leis do Poder', totalPages: 400 },
+        },
+        {
+          type: 'saveBook',
+          value: { id: 'fim', title: 'Livro antigo', totalPages: 10 },
+        },
+        {
+          type: 'saveReading',
+          value: { id: 'r0', bookId: 'fim', pages: 10, date: '2026-11-01' },
+        },
+      ),
+    );
+    speak('Li vinte páginas');
+    const books = within(card()).getByRole('group', { name: 'Livro' });
     expect(
-      within(voice()).getByRole('heading', { name: 'Registrar treino?' }),
+      within(books)
+        .getAllByRole('button')
+        .map((button) => button.textContent),
+    ).toEqual(['Meditações', 'As 48 Leis do Poder']);
+    fireEvent.click(confirmButton());
+    expect(card()).toHaveTextContent('Escolha o livro.');
+    fireEvent.click(
+      within(books).getByRole('button', { name: 'As 48 Leis do Poder' }),
+    );
+    fireEvent.click(confirmButton());
+    await waitFor(() => expect(feedback()).toBe('Leitura registrada.'));
+    expect(stored().records.readings.at(-1)).toMatchObject({
+      bookId: 'leis',
+      pages: 20,
+    });
+  });
+
+  it('treino: confirma uma vez, sem sessão avançada; já registrado explica', async () => {
+    seed();
+    speak('Acabei de treinar');
+    expect(
+      within(voice()).getByRole('heading', { name: 'Confirmar treino' }),
     ).toBeInTheDocument();
-    expect(voice()).toHaveTextContent('Registro simples');
+    expect(card()).toHaveTextContent('Treinos · Registrar treino realizado');
+    expect(card()).toHaveTextContent('Treinou hoje');
+    expect(card()).toHaveTextContent('Registro simples');
+    const before = recordReward(stored().records, [], today);
     fireEvent.click(confirmButton());
     await waitFor(() => expect(feedback()).toBe('Treino registrado.'));
     expect(stored().records.workouts).toEqual([{ date: today, trained: true }]);
-    // Sessões avançadas não são criadas.
     expect(stored().records.advancedWorkouts?.sessions ?? []).toEqual([]);
+    const after = recordReward(stored().records, [], today);
+    expect(after).toBeGreaterThan(before);
     speak('fiz musculação hoje');
-    expect(voice()).toHaveTextContent('já está registrado');
-    expect(confirmButton()).toBeDisabled();
+    fireEvent.click(confirmButton());
+    expect(card()).toHaveTextContent('já está registrado');
     expect(stored().records.workouts).toHaveLength(1);
+    // Nenhum XP a mais.
+    expect(recordReward(stored().records, [], today)).toBe(after);
   });
 });
 
@@ -363,16 +499,12 @@ describe('correção, edição e frases desconhecidas', () => {
     fireEvent.click(
       within(voice()).getByRole('button', { name: 'Interpretar' }),
     );
-    expect(voice().querySelector('.voice-card')).toHaveTextContent(
-      /R\$\s12,00/,
-    );
+    expect(within(card()).getByLabelText('Valor (R$)')).toHaveValue('R$ 12,00');
   });
 
   it('Editar usa o formulário existente, com os valores reconhecidos', async () => {
     seed();
     speak('Gastei dinheiro no mercado');
-    expect(voice()).toHaveTextContent('Falta informar: valor');
-    expect(confirmButton()).toBeDisabled();
     fireEvent.click(within(voice()).getByRole('button', { name: 'Editar' }));
     const form = within(voice()).getByRole('form', {
       name: 'Nova movimentação',
@@ -391,15 +523,30 @@ describe('correção, edição e frases desconhecidas', () => {
     });
   });
 
-  it('frase desconhecida: nada é gravado; oferece falar, corrigir ou Ações rápidas', () => {
+  it('frase desconhecida: oferece pilares, falar, corrigir e Ações rápidas; nada é gravado', () => {
     seed();
     const before = localStorage.getItem(PLAYER_STORAGE_KEY);
     speak('qual é a previsão do tempo');
     expect(voice()).toHaveTextContent('Não consegui identificar a ação.');
+    const options = within(voice()).getByRole('group', {
+      name: 'Escolher o que registrar',
+    });
     expect(
-      within(voice()).getByRole('button', { name: /Falar de novo/ }),
+      within(options)
+        .getAllByRole('button')
+        .map((b) => b.textContent),
+    ).toEqual(['Despesa', 'Receita', 'Sono', 'Leitura', 'Treino']);
+    fireEvent.click(within(options).getByRole('button', { name: 'Sono' }));
+    expect(
+      within(voice()).getByRole('heading', { name: 'Confirmar sono' }),
     ).toBeInTheDocument();
-    expect(within(voice()).getByLabelText('Corrigir a frase')).toBeEnabled();
+    expect(within(card()).getByLabelText('Horas dormidas')).toHaveValue('');
+    fireEvent.change(within(voice()).getByLabelText('Corrigir a frase'), {
+      target: { value: 'previsão do tempo' },
+    });
+    fireEvent.click(
+      within(voice()).getByRole('button', { name: 'Interpretar' }),
+    );
     fireEvent.click(
       within(voice()).getByRole('button', { name: 'Abrir ações rápidas' }),
     );
@@ -407,6 +554,20 @@ describe('correção, edição e frases desconhecidas', () => {
     expect(
       screen.getByRole('dialog', { name: 'Ações rápidas' }),
     ).toBeInTheDocument();
+    expect(localStorage.getItem(PLAYER_STORAGE_KEY)).toBe(before);
+  });
+
+  it.each([
+    ['Comprei ações', /investimento/],
+    ['Recebi uma transferência da minha própria conta', /Transferências/],
+    ['Paguei a academia e treinei', /mais de uma ação/],
+    ['Ganhei um livro', /Não consegui identificar/],
+  ])('não interpreta “%s”', (phrase, message) => {
+    seed();
+    const before = localStorage.getItem(PLAYER_STORAGE_KEY);
+    speak(phrase);
+    expect(voice()).toHaveTextContent(message);
+    expect(voice().querySelector('.voice-card[data-tone]')).toBeNull();
     expect(localStorage.getItem(PLAYER_STORAGE_KEY)).toBe(before);
   });
 
@@ -461,14 +622,16 @@ describe('segurança da gravação', () => {
         await within(voice()).findByText(new RegExp(message)),
       ).toBeInTheDocument();
       expect(feedback()).toBe('');
-      expect(voice()).toHaveTextContent('7 h');
-      // Duplo clique e novo envio não reaplicam o comando.
+      expect(within(voice()).getByLabelText('Horas dormidas')).toHaveValue('7');
+      // Duplo clique e novo envio não reaplicam o comando: só reverificam.
       fireEvent.click(confirmButton());
       fireEvent.click(confirmButton());
       expect(commands).toHaveLength(1);
       result = 'saved';
       fireEvent.click(
-        within(voice()).getByRole('button', { name: 'Tentar novamente' }),
+        await within(voice()).findByRole('button', {
+          name: 'Tentar novamente',
+        }),
       );
       await waitFor(() => expect(feedback()).toBe('Sono registrado.'));
       expect(commands).toHaveLength(1);

@@ -7,14 +7,14 @@ TypeScript. **Nada é gravado sem confirmação explícita.**
 
 ## Arquitetura
 
-| Arquivo                  | Responsabilidade                                                           |
-| ------------------------ | -------------------------------------------------------------------------- |
-| `recognition.ts`         | Fala → texto (`SpeechRecognition` / `webkitSpeechRecognition`)             |
-| `text.ts`, `patterns.ts` | Normalização, números por extenso, valores, horas, páginas e datas         |
-| `parser.ts`              | Frase → rascunho tipado (`ParseResult`), com faltas, ambiguidades e erros  |
-| `commands.ts`            | Contexto de leitura dos registros e conversão para o `RecordCommand` atual |
-| `VoiceCommandButton.tsx` | Botão, estados da escuta e confirmação (`useConfirmedCommand`)             |
-| `VoiceCommandDialog.tsx` | Janela modal: escuta, frase reconhecida, cartão de confirmação e edição    |
+| Arquivo                  | Responsabilidade                                                                                         |
+| ------------------------ | -------------------------------------------------------------------------------------------------------- |
+| `recognition.ts`         | Fala → texto (`SpeechRecognition` / `webkitSpeechRecognition`)                                           |
+| `text.ts`, `patterns.ts` | Normalização, números por extenso, valores, horas, páginas e datas                                       |
+| `parser.ts`              | Frase → rascunho tipado (`ParseResult`), com faltas, ambiguidades e erros                                |
+| `commands.ts`            | Contexto dos registros, validação do rascunho (`validateDraft`) e conversão para o `RecordCommand` atual |
+| `VoiceCommandButton.tsx` | Botão, estados da escuta e confirmação (`useConfirmedCommand`)                                           |
+| `VoiceCommandDialog.tsx` | Janela modal: escuta, frase reconhecida, cartão de confirmação e edição                                  |
 
 O parser é puro: não acessa IndexedDB, não altera estado e não completa dados
 ausentes. A confirmação usa os comandos existentes (`saveMovement`,
@@ -22,6 +22,32 @@ ausentes. A confirmação usa os comandos existentes (`saveMovement`,
 mesmas validações, persistência, XP e Radar. O sucesso só aparece depois de
 `whenSaved()` confirmar a gravação; em falha, os dados ficam na tela, o comando
 não é reaplicado e “Tentar novamente” verifica a gravação outra vez.
+
+## Cartão de confirmação
+
+- Mostra o pilar e a ação reconhecida (ex.: “Finanças · Registrar despesa”),
+  com indicador discreto do tipo: vermelho para despesa, verde para receita,
+  amarelo quando o tipo ainda precisa ser escolhido.
+- Os campos são editáveis no próprio cartão: tipo de movimentação, descrição,
+  valor, categoria, horas, livro, páginas e data. “Editar” abre o formulário
+  completo do pilar (ex.: repetição de receitas e despesas).
+- O cartão exibe exatamente o rascunho que será gravado: nenhuma opção aparece
+  como escolhida sem estar no rascunho. “Geral” é a categoria padrão do
+  aplicativo (a mesma do formulário de movimentações) e aparece como opção, não
+  como valor escolhido.
+- `validateDraft` é a única validação antes de gravar; cada pendência aparece
+  junto ao campo (“Escolha a categoria.”) e no resumo “Preciso confirmar
+  algumas informações”. O comando existente valida de novo ao gravar.
+- **Confirmar sempre responde:** com pendências, anuncia o que falta (alerta
+  acessível) e leva o foco ao primeiro campo pendente; completo, grava. Só fica
+  desabilitado durante a gravação (“Salvando…”).
+- Sono já registrado na data: “Já existe um registro de sono nesta data.
+  Deseja substituí-lo?”, e o botão passa a “Substituir registro”.
+- Treino já registrado na data: a pendência explica que o dia já está
+  registrado; nada é duplicado e nenhum XP é concedido de novo.
+- Frase não entendida: opções Despesa, Receita, Sono, Leitura e Treino (o
+  cartão abre vazio para preencher), falar de novo, corrigir a frase ou abrir as
+  Ações rápidas.
 
 ## Reconhecimento de fala
 
@@ -55,13 +81,13 @@ O interpretador entende somente os formatos abaixo; frases fora deles mostram
 | Páginas  | “vinte páginas”, “20 páginas”, “15 pág”                                                                                                                                                              |
 | Datas    | “hoje”, “ontem”, “anteontem”, “12/11”, “12/11/2026”, “dia 12”, “12 de novembro (de 2026)”; ausente = hoje                                                                                            |
 
-| Pilar        | Exemplos reconhecidos                                                                                                |
-| ------------ | -------------------------------------------------------------------------------------------------------------------- |
-| Despesa      | “Gastei dez reais com chocolate”, “Comprei um chocolate por dez reais”, “Paguei cinquenta reais de internet”         |
-| Receita      | “Recebi duzentos reais”, “Recebi três mil reais de salário”, “Entraram cem reais de um serviço”                      |
-| Descanso     | “Dormi sete horas e meia”, “Ontem dormi seis horas e trinta minutos”, “Registra sete horas e quinze minutos de sono” |
-| Conhecimento | “Li vinte páginas de Meditações”, “Registra dez páginas no livro Meditações”, “Hoje li quinze páginas”               |
-| Treinos      | “Treinei hoje”, “Fiz musculação hoje”, “Hoje eu treinei”, “Treinei ontem”, “malhei dia 10”                           |
+| Pilar        | Exemplos reconhecidos                                                                                                                                                        |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Despesa      | “Comprei um chocolate de R$ 10”, “Gastei dez conto no chocolate”, “Fiz uma compra de trinta reais”, “Comprei um lanche e paguei doze reais”, “Acabei de gastar quinze reais” |
+| Receita      | “Recebi duzentos reais”, “Meu salário caiu, três mil reais”, “Entraram cem reais na minha conta”, “Ganhei R$ 150 trabalhando”                                                |
+| Descanso     | “Dormi sete horas e meia”, “Ontem dormi seis horas e trinta minutos”, “Registra sete horas e quinze minutos de sono”                                                         |
+| Conhecimento | “Li vinte páginas de Meditações”, “Registra dez páginas no meu livro”, “Li umas vinte páginas”, “Li cinco páginas ontem”                                                     |
+| Treinos      | “Treinei hoje”, “Fiz musculação hoje”, “Acabei de treinar”, “Treinei hoje de manhã”, “Treino feito”                                                                          |
 
 ## Regras de interpretação
 
@@ -70,8 +96,15 @@ O interpretador entende somente os formatos abaixo; frases fora deles mostram
   reais” é despesa; leitura exige verbo de leitura (li, leitura) ou páginas.
   “Paguei a academia” é despesa, não treino. Duas ações na mesma frase
   (“dormi sete horas e li vinte páginas”) pedem uma por vez.
-- **“Ganhei”** só é receita com contexto de dinheiro (valor, reais, salário,
-  pix…); “ganhei um livro” não é entendido como receita.
+- **“Ganhei”, “entrou” e “caiu”** só são receita com contexto de dinheiro
+  (valor, reais, salário, pix…); “ganhei um livro” e “caiu a internet” não são.
+- **Valor sem verbo** (“dez reais de chocolate”): o tipo não é presumido; o
+  cartão pede Despesa ou Receita.
+- **Não suportado por voz:** investimentos (ações, aportes, CDB, resgates,
+  bitcoin, caixinha) e transferências entre contas próprias; a mensagem orienta
+  usar Finanças. “Paguei a academia e treinei” tem duas ações e é recusada.
+- **Treino** exige verbo de treino (“treinei”, “acabei de treinar”, “fiz
+  musculação”, “treino feito”); “o treino de ontem foi pesado” não registra.
 - **Mais de um valor diferente** pede esclarecimento. “Três chocolates por dez
   reais” fica R$ 10,00 (não multiplica); só “por dez reais **cada**” mostra
   “3 × R$ 10,00” para confirmação.
@@ -80,7 +113,8 @@ O interpretador entende somente os formatos abaixo; frases fora deles mostram
   Caso contrário, o cartão pede a escolha. Nenhuma categoria é criada.
 - **Livro:** título exato ou parcial, sem acentos. Um único livro em andamento
   é escolhido quando nenhum título é dito; título ambíguo ou ausente com vários
-  livros pede a escolha; sem livros, orienta o cadastro.
+  livros pede a escolha no cartão (só livros em andamento); livro concluído não
+  recebe leitura nova; sem livros, orienta o cadastro.
 - **Bloqueios:** data futura, horas fora de 0–24, páginas zero ou acima do
   restante do livro e treino já registrado na data impedem a confirmação.
 - **Sono existente:** avisa e confirmar substitui as horas do dia (um registro
