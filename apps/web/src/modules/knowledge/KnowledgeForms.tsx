@@ -75,6 +75,8 @@ export function ReadingForm({
   readings,
   reading,
   defaultBookId,
+  defaultPages,
+  defaultDate,
   today,
   run,
   onSaved,
@@ -87,6 +89,8 @@ export function ReadingForm({
   readings: readonly ReadingEntry[];
   reading?: ReadingEntry | undefined;
   defaultBookId?: string | undefined;
+  defaultPages?: number | undefined;
+  defaultDate?: string | undefined;
   today: string;
   run: (command: RecordCommand) => string | null;
   onSaved?: () => void;
@@ -144,10 +148,10 @@ export function ReadingForm({
           min="1"
           step="1"
           required
-          defaultValue={reading?.pages}
+          defaultValue={reading?.pages ?? defaultPages}
         />
       </Field>
-      <DateField today={today} value={reading?.date} />
+      <DateField today={today} value={reading?.date ?? defaultDate} />
       <p className="record-hint">
         Informe as páginas lidas nesta sessão, não a página atual do livro.
         {remaining !== undefined &&

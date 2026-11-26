@@ -17,6 +17,7 @@ export function SleepForm({
   records,
   today,
   editing = null,
+  initial,
   run,
   onSaved,
   onCancel,
@@ -26,12 +27,14 @@ export function SleepForm({
   today: string;
   /** Data em edição (fixa); `null` registra uma nova noite. */
   editing?: string | null;
+  /** Valores iniciais de um novo registro (ex.: comando por voz). */
+  initial?: { date: string; hours?: number | undefined } | undefined;
   run: (command: RecordCommand) => string | null;
   onSaved?: () => void;
   onCancel?: (() => void) | undefined;
   cancelLabel?: string;
 }) {
-  const [date, setDate] = useState(editing ?? today);
+  const [date, setDate] = useState(editing ?? initial?.date ?? today);
   const existing = records.sleep.find((day) => day.date === date);
   return (
     <RecordForm
@@ -64,7 +67,7 @@ export function SleepForm({
             name="date"
             required
             max={today}
-            defaultValue={today}
+            defaultValue={initial?.date ?? today}
             onChange={setDate}
           />
         </Field>
@@ -77,7 +80,13 @@ export function SleepForm({
           inputMode="decimal"
           required
           placeholder="Ex.: 7,5"
-          defaultValue={existing ? hoursText(existing.hours) : undefined}
+          defaultValue={
+            initial?.hours !== undefined && date === initial.date
+              ? hoursText(initial.hours)
+              : existing
+                ? hoursText(existing.hours)
+                : undefined
+          }
         />
       </Field>
       {!editing && existing ? (
