@@ -1,15 +1,24 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { CustomDatePicker } from '../../shared/components/CustomDatePicker';
 import { Icon } from '../../shared/components/Icon';
 import { DEFAULT_CATEGORY } from '../finances/categories';
-import { formatCurrency } from '../finances/monetary';
+import { formatCurrency, unitsToDecimal } from '../finances/monetary';
+import { MoneyInput } from '../finances/MoneyInput';
 import { MovementForm } from '../finances/MovementsPanel';
 import { ReadingForm } from '../knowledge/KnowledgeForms';
 import { formText } from '../records/form';
 import { Actions, DateField, RecordForm } from '../records/RecordUI';
 import type { LifeRecords, RecordCommand } from '../records/types';
 import { SleepForm } from '../rest/SleepForm';
+import type { DraftIssue } from './commands';
 import { dateLabel } from './labels';
-import type { ParseResult, VoiceDraft, VoiceField } from './types';
+import type {
+  ParseContext,
+  ParseResult,
+  VoiceDraft,
+  VoiceField,
+  VoiceIntent,
+} from './types';
 
 export type VoiceStatus =
   | 'idle'
@@ -21,43 +30,71 @@ export type VoiceStatus =
   | 'error'
   | 'unavailable';
 
+/** Alteração feita no cartão; `undefined` limpa o campo. */
+export type DraftPatch = {
+  [Key in keyof VoiceDraft]?: VoiceDraft[Key] | undefined;
+};
+
 const fieldLabels: Record<VoiceField, string> = {
+  kind: 'tipo de movimentação',
   amount: 'valor',
   description: 'descrição',
   category: 'categoria',
   hours: 'horas dormidas',
   pages: 'páginas',
   book: 'livro',
+  date: 'data',
 };
-const titles: Record<VoiceDraft['type'], string> = {
+const titles: Record<VoiceIntent, string> = {
   'finance.expense': 'Confirmar despesa',
   'finance.income': 'Confirmar receita',
   'rest.sleep': 'Confirmar sono',
   'knowledge.reading': 'Confirmar leitura',
-  'workout.simple': 'Registrar treino?',
+  'workout.simple': 'Confirmar treino',
 };
-
-const hoursText = (hours: number) =>
-  `${hours.toLocaleString('pt-BR', { maximumFractionDigits: 2 })} h`;
+/** Pilar e ação reconhecida, exibidos no topo do cartão. */
+const actions: Record<VoiceIntent, { pillar: string; action: string }> = {
+  'finance.expense': { pillar: 'Finanças', action: 'Registrar despesa' },
+  'finance.income': { pillar: 'Finanças', action: 'Registrar receita' },
+  'rest.sleep': { pillar: 'Descanso', action: 'Registrar horas de sono' },
+  'knowledge.reading': {
+    pillar: 'Conhecimento',
+    action: 'Registrar páginas lidas',
+  },
+  'workout.simple': { pillar: 'Treinos', action: 'Registrar treino realizado' },
+};
+const pillarChoices: { type: VoiceIntent; label: string }[] = [
+  { type: 'finance.expense', label: 'Despesa' },
+  { type: 'finance.income', label: 'Receita' },
+  { type: 'rest.sleep', label: 'Sono' },
+  { type: 'knowledge.reading', label: 'Leitura' },
+  { type: 'workout.simple', label: 'Treino' },
+];
+const decimalText = (value: number) =>
+  value.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
 
 /**
  * Janela do comando por voz: modal nativo (top layer), sem disputar camadas
  * com a navegação, as ajudas “?” ou os avisos. Mostra o estado da escuta, a
- * frase reconhecida (editável) e o cartão de confirmação. Nada é gravado
- * aqui: “Confirmar” e os formulários de edição chamam `run`.
+ * frase reconhecida (editável) e o cartão de confirmação, que também permite
+ * corrigir os campos. Nada é gravado aqui: “Confirmar” e os formulários de
+ * edição chamam o dono do estado.
  */
 export function VoiceCommandDialog({
   status,
   records,
-  today,
+  context,
   transcript,
   result,
   draft,
+  issues,
+  attempt,
   error,
   saveError,
   saving,
   canListen,
-  onChoose,
+  onChange,
+  onChoosePillar,
   onListen,
   onCancelListening,
   onInterpret,
@@ -72,23 +109,27 @@ export function VoiceCommandDialog({
 }: {
   status: VoiceStatus;
   records: LifeRecords;
-  today: string;
+  context: ParseContext;
   transcript: string;
   result: ParseResult | null;
-  /** Rascunho com as escolhas feitas no cartão (categoria, livro). */
+  /** Rascunho com as correções feitas no cartão. */
   draft: VoiceDraft | null;
+  /** Pendências atuais do rascunho (`validateDraft`). */
+  issues: readonly DraftIssue[];
+  /** Muda a cada tentativa de confirmar com pendências. */
+  attempt: number;
   error: string;
   saveError: string;
   saving: boolean;
   canListen: boolean;
-  /** Pode confirmar (comando completo, sem impedimentos). */
-  onChoose: (choice: Partial<VoiceDraft>) => void;
+  onChange: (patch: DraftPatch) => void;
+  onChoosePillar: (type: VoiceIntent) => void;
   onListen: () => void;
   onCancelListening: () => void;
   onInterpret: (text: string) => void;
   onEdit: () => void;
   onBackToPreview: () => void;
-  onConfirm: (() => void) | null;
+  onConfirm: () => void;
   onRetrySave: () => void;
   onQuickActions: () => void;
   onClose: () => void;
@@ -110,14 +151,22 @@ export function VoiceCommandDialog({
       else element.removeAttribute('open');
     };
   }, []);
-  // Foco: ação principal de cada estado (sem roubar durante a digitação).
+  // Foco: ação principal de cada estado (o formulário de edição cuida do seu).
   useEffect(() => {
-    // Na edição, o formulário reaproveitado gerencia o próprio foco.
     if (status === 'editing') return;
     dialog.current
       ?.querySelector<HTMLElement>('[data-voice-focus]')
       ?.focus({ preventScroll: true });
   }, [status, result]);
+  // Confirmar com pendências: foco no primeiro campo a corrigir.
+  useEffect(() => {
+    if (!attempt) return;
+    dialog.current
+      ?.querySelector<HTMLElement>(
+        '.voice-field[data-pending] :is(input:not([type="hidden"]), button)',
+      )
+      ?.focus();
+  }, [attempt]);
 
   const busy = saving;
   const editor = (
@@ -147,6 +196,28 @@ export function VoiceCommandDialog({
         </button>
       </div>
     </form>
+  );
+  const saveFeedback = (
+    <>
+      {saving && (
+        <p className="record-hint" role="status">
+          Salvando…
+        </p>
+      )}
+      {saveError && (
+        <div className="record-error" role="alert">
+          <p>{saveError}</p>
+          <button
+            type="button"
+            className="filter-button"
+            disabled={busy}
+            onClick={onRetrySave}
+          >
+            Tentar novamente
+          </button>
+        </div>
+      )}
+    </>
   );
 
   let body: ReactNode;
@@ -184,14 +255,17 @@ export function VoiceCommandDialog({
     );
   else if (status === 'editing' && draft)
     body = (
-      <EditForm
-        draft={draft}
-        records={records}
-        today={today}
-        run={run}
-        onSaved={onFormSaved}
-        onCancel={onBackToPreview}
-      />
+      <>
+        <EditForm
+          draft={draft}
+          records={records}
+          today={context.today}
+          run={run}
+          onSaved={onFormSaved}
+          onCancel={onBackToPreview}
+        />
+        {saveFeedback}
+      </>
     );
   else if (status === 'preview' && result && !draft)
     body = (
@@ -206,6 +280,23 @@ export function VoiceCommandDialog({
                 {item}
               </p>
             ))}
+        </div>
+        <div
+          className="voice-chips"
+          role="group"
+          aria-label="Escolher o que registrar"
+        >
+          <span className="voice-field__label">O que deseja registrar?</span>
+          {pillarChoices.map((choice) => (
+            <button
+              key={choice.type}
+              type="button"
+              className="voice-chip"
+              onClick={() => onChoosePillar(choice.type)}
+            >
+              {choice.label}
+            </button>
+          ))}
         </div>
         <div className="record-actions voice-actions">
           {canListen && (
@@ -230,35 +321,25 @@ export function VoiceCommandDialog({
         {editor}
       </>
     );
-  else if (status === 'preview' && result && draft)
+  else if (status === 'preview' && result && draft) {
+    const existingSleep =
+      draft.type === 'rest.sleep'
+        ? records.sleep.find((day) => day.date === draft.date)
+        : undefined;
     body = (
       <>
         <Heard text={result.text} />
-        <Preview
+        <Card
+          key={result.text}
           draft={draft}
           result={result}
-          records={records}
-          today={today}
-          onChoose={onChoose}
+          context={context}
+          issues={issues}
+          attempt={attempt}
+          existingSleep={existingSleep?.hours}
+          onChange={onChange}
         />
-        {saving && (
-          <p className="record-hint" role="status">
-            Salvando…
-          </p>
-        )}
-        {saveError && (
-          <div className="record-error" role="alert">
-            <p>{saveError}</p>
-            <button
-              type="button"
-              className="filter-button"
-              disabled={busy}
-              onClick={onRetrySave}
-            >
-              Tentar novamente
-            </button>
-          </div>
-        )}
+        {saveFeedback}
         {error && (
           <p className="record-error" role="alert">
             {error}
@@ -275,17 +356,29 @@ export function VoiceCommandDialog({
             type="button"
             className="record-primary"
             data-voice-focus
-            disabled={!onConfirm || busy}
+            data-pending={issues.length > 0 || undefined}
+            disabled={busy}
             aria-busy={busy || undefined}
-            onClick={onConfirm ?? undefined}
+            aria-describedby={issues.length ? `${id}-pending` : undefined}
+            onClick={onConfirm}
           >
-            {busy ? 'Salvando…' : 'Confirmar'}
+            {busy
+              ? 'Salvando…'
+              : existingSleep
+                ? 'Substituir registro'
+                : 'Confirmar'}
           </button>
         </div>
+        {issues.length > 0 && (
+          <p id={`${id}-pending`} className="sr-only">
+            Pendente:{' '}
+            {issues.map((issue) => fieldLabels[issue.field]).join(', ')}.
+          </p>
+        )}
         {editor}
       </>
     );
-  else
+  } else
     body = (
       <>
         {error ? (
@@ -352,24 +445,6 @@ export function VoiceCommandDialog({
           </p>
         )}
         {body}
-        {status === 'editing' && saving && (
-          <p className="record-hint" role="status">
-            Salvando…
-          </p>
-        )}
-        {status === 'editing' && saveError && (
-          <div className="record-error" role="alert">
-            <p>{saveError}</p>
-            <button
-              type="button"
-              className="filter-button"
-              disabled={busy}
-              onClick={onRetrySave}
-            >
-              Tentar novamente
-            </button>
-          </div>
-        )}
         {status !== 'editing' && (
           <p className="voice-privacy">
             O reconhecimento usa o serviço de fala do navegador, que pode
@@ -390,161 +465,362 @@ function Heard({ text }: { text: string }) {
   );
 }
 
-function Preview({
+/**
+ * Cartão de confirmação editável. Os controles mostram exatamente o rascunho
+ * validado: nenhum valor aparece como escolhido sem estar no rascunho.
+ */
+function Card({
   draft,
   result,
-  records,
-  today,
-  onChoose,
+  context,
+  issues,
+  attempt,
+  existingSleep,
+  onChange,
 }: {
   draft: VoiceDraft;
   result: ParseResult;
-  records: LifeRecords;
-  today: string;
-  onChoose: (choice: Partial<VoiceDraft>) => void;
+  context: ParseContext;
+  issues: readonly DraftIssue[];
+  attempt: number;
+  existingSleep: number | undefined;
+  onChange: (patch: DraftPatch) => void;
 }) {
-  const missing = new Set(
-    result.missing.filter((field) => {
-      if (field === 'category') return !draft.category;
-      if (field === 'book') return !draft.bookId;
-      return true;
-    }),
-  );
-  const pending = (field: VoiceField) => (
-    <span className="voice-card__missing">
-      Não informado · use Editar
-      <span className="sr-only"> para informar {fieldLabels[field]}</span>
-    </span>
-  );
-  const rows: { label: string; value: ReactNode }[] = [];
-  if (draft.type === 'finance.expense' || draft.type === 'finance.income') {
-    rows.push(
-      {
-        label: 'Descrição',
-        value: draft.description ?? pending('description'),
-      },
-      {
-        label: 'Valor',
-        value:
-          draft.amountCents !== undefined
-            ? `${formatCurrency(draft.amountCents)}${draft.amountDetail ? ` (${draft.amountDetail})` : ''}`
-            : pending('amount'),
-      },
+  const id = useId();
+  const issueFor = (name: VoiceField) =>
+    issues.find((issue) => issue.field === name);
+  const invalid = (name: VoiceField) =>
+    issueFor(name)
+      ? ({
+          'aria-invalid': true,
+          'aria-describedby': `${id}-${name}-issue`,
+        } as const)
+      : {};
+  const field = (
+    name: VoiceField,
+    label: string,
+    content: ReactNode,
+    labelFor = true,
+  ) => {
+    const issue = issueFor(name);
+    return (
+      <div
+        key={name}
+        className="record-field voice-field"
+        data-field={name}
+        data-pending={issue ? true : undefined}
+      >
+        {labelFor ? (
+          <label className="voice-field__label" htmlFor={`${id}-${name}`}>
+            {label}
+          </label>
+        ) : (
+          <span className="voice-field__label" id={`${id}-${name}-label`}>
+            {label}
+          </span>
+        )}
+        {content}
+        {issue && (
+          <p id={`${id}-${name}-issue`} className="voice-field__issue">
+            {issue.message}
+          </p>
+        )}
+      </div>
     );
+  };
+  const { pillar, action } = actions[draft.type];
+  const finance =
+    draft.type === 'finance.expense' || draft.type === 'finance.income';
+  const tone = draft.kindPending
+    ? 'pending'
+    : draft.type === 'finance.income'
+      ? 'income'
+      : draft.type === 'finance.expense'
+        ? 'expense'
+        : 'neutral';
+  const fields: ReactNode[] = [];
+
+  if (finance) {
     const kind = draft.type === 'finance.income' ? 'income' : 'expense';
-    const options = [
+    const categories = [
       ...new Set([
-        ...records.movements
-          .filter((item) => item.kind === kind)
-          .map((item) => item.category)
-          .reverse(),
+        ...(kind === 'income'
+          ? context.categories.income
+          : context.categories.expense),
         DEFAULT_CATEGORY,
       ]),
-    ].slice(0, 6);
-    rows.push({
-      label: 'Categoria',
-      value: (
-        <Chips
-          label="Escolha a categoria"
-          options={options.map((value) => ({ value, label: value }))}
-          selected={draft.category}
-          onSelect={(category) => onChoose({ category })}
-        />
+    ];
+    fields.push(
+      field(
+        'kind',
+        'Tipo de movimentação',
+        <div
+          className="voice-segment"
+          role="group"
+          aria-labelledby={`${id}-kind-label`}
+        >
+          {(['finance.expense', 'finance.income'] as const).map(
+            (type, index) => (
+              <button
+                key={type}
+                type="button"
+                className="voice-chip"
+                data-kind={type === 'finance.income' ? 'income' : 'expense'}
+                aria-pressed={!draft.kindPending && draft.type === type}
+                {...(index === 0 ? invalid('kind') : {})}
+                onClick={() =>
+                  onChange({
+                    type,
+                    kindPending: undefined,
+                    // Categoria escolhida para o outro tipo deixa de valer.
+                    ...(type !== draft.type ? { category: undefined } : {}),
+                  })
+                }
+              >
+                {type === 'finance.income' ? 'Receita' : 'Despesa'}
+              </button>
+            ),
+          )}
+        </div>,
+        false,
       ),
-    });
-  } else if (draft.type === 'rest.sleep')
-    rows.push({
-      label: 'Horas dormidas',
-      value:
-        draft.hours !== undefined ? hoursText(draft.hours) : pending('hours'),
-    });
-  else if (draft.type === 'knowledge.reading') {
-    const candidates = draft.bookCandidates ?? [];
-    const book = records.books.find((item) => item.id === draft.bookId);
-    rows.push({
-      label: 'Livro',
-      value:
-        candidates.length > 0 ? (
-          <Chips
-            label="Escolha o livro"
-            options={candidates
-              .map((id) => records.books.find((item) => item.id === id))
-              .filter((item) => item !== undefined)
-              .map((item) => ({ value: item.id, label: item.title }))}
-            selected={draft.bookId}
-            onSelect={(bookId) => onChoose({ bookId })}
+      field(
+        'description',
+        'Descrição',
+        <input
+          id={`${id}-description`}
+          {...invalid('description')}
+          value={draft.description ?? ''}
+          maxLength={200}
+          autoComplete="off"
+          onChange={(event) =>
+            onChange({ description: event.target.value || undefined })
+          }
+        />,
+      ),
+      field(
+        'amount',
+        'Valor (R$)',
+        <label className="voice-money">
+          <span className="sr-only">Valor (R$)</span>
+          <MoneyInput
+            name="voiceAmount"
+            defaultValue={
+              draft.amountCents ? unitsToDecimal(draft.amountCents, 2) : ''
+            }
+            onValueChange={(cents) =>
+              onChange({ amountCents: cents && cents > 0 ? cents : undefined })
+            }
           />
-        ) : (
-          (book?.title ?? pending('book'))
-        ),
-    });
-    rows.push({
-      label: 'Páginas',
-      value: draft.pages !== undefined ? String(draft.pages) : pending('pages'),
-    });
-  } else rows.push({ label: 'Tipo', value: 'Registro simples' });
-  rows.push({ label: 'Data', value: dateLabel(draft.date, today) });
-  const messages = [...result.errors, ...result.ambiguities];
-  return (
-    <div className="voice-card">
-      <dl className="voice-card__fields">
-        {rows.map((row) => (
-          <div key={row.label}>
-            <dt>{row.label}</dt>
-            <dd>{row.value}</dd>
+        </label>,
+        false,
+      ),
+    );
+    if (draft.amountDetail)
+      fields.push(
+        <p key="detail" className="record-hint">
+          Cálculo reconhecido: {draft.amountDetail} ={' '}
+          {formatCurrency(draft.amountCents ?? 0)}.
+        </p>,
+      );
+    fields.push(
+      field(
+        'category',
+        'Categoria',
+        <div
+          className="voice-chips"
+          role="group"
+          aria-labelledby={`${id}-category-label`}
+        >
+          {categories.map((category, index) => (
+            <button
+              key={category}
+              type="button"
+              className="voice-chip"
+              aria-pressed={draft.category === category}
+              {...(index === 0 ? invalid('category') : {})}
+              onClick={() => onChange({ category })}
+            >
+              {category}
+            </button>
+          ))}
+        </div>,
+        false,
+      ),
+    );
+  } else if (draft.type === 'rest.sleep')
+    fields.push(
+      field(
+        'hours',
+        'Horas dormidas',
+        <NumberField
+          id={`${id}-hours`}
+          invalid={invalid('hours')}
+          value={draft.hours}
+          decimal
+          onChange={(hours) => onChange({ hours })}
+        />,
+      ),
+    );
+  else if (draft.type === 'knowledge.reading') {
+    const active = context.books.filter((book) => !book.completed);
+    const book = context.books.find((item) => item.id === draft.bookId);
+    fields.push(
+      field(
+        'book',
+        'Livro',
+        active.length > 1 || !book ? (
+          <div
+            className="voice-chips"
+            role="group"
+            aria-labelledby={`${id}-book-label`}
+          >
+            {active.map((item, index) => (
+              <button
+                key={item.id}
+                type="button"
+                className="voice-chip"
+                aria-pressed={draft.bookId === item.id}
+                {...(index === 0 ? invalid('book') : {})}
+                onClick={() => onChange({ bookId: item.id })}
+              >
+                {item.title}
+              </button>
+            ))}
           </div>
-        ))}
-      </dl>
-      {missing.size > 0 && (
-        <p className="record-hint">
-          Falta informar:{' '}
-          {[...missing].map((field) => fieldLabels[field]).join(', ')}.
+        ) : (
+          <strong className="voice-field__value">{book.title}</strong>
+        ),
+        false,
+      ),
+      field(
+        'pages',
+        'Páginas lidas',
+        <NumberField
+          id={`${id}-pages`}
+          invalid={invalid('pages')}
+          value={draft.pages}
+          onChange={(pages) => onChange({ pages })}
+        />,
+      ),
+    );
+    if (book && !book.completed)
+      fields.push(
+        <p key="remaining" className="record-hint">
+          Restam {book.remaining} páginas em “{book.title}”.
+        </p>,
+      );
+  } else
+    fields.push(
+      <div key="record" className="voice-field">
+        <span className="voice-field__label">Registro</span>
+        <strong className="voice-field__value">
+          Treinou{' '}
+          {dateLabel(draft.date, context.today).toLocaleLowerCase('pt-BR')}
+        </strong>
+      </div>,
+      <div key="simple" className="voice-field">
+        <span className="voice-field__label">Tipo</span>
+        <strong className="voice-field__value">Registro simples</strong>
+      </div>,
+    );
+  fields.push(
+    field(
+      'date',
+      'Data',
+      <div className="voice-date">
+        <span className="voice-date__control">
+          <CustomDatePicker
+            label="Data"
+            value={draft.date}
+            max={context.today}
+            required
+            onChange={(date) => onChange({ date })}
+          />
+        </span>
+        <span className="voice-date__label">
+          {dateLabel(draft.date, context.today)}
+        </span>
+      </div>,
+      false,
+    ),
+  );
+
+  const parsedNotes = [
+    ...result.ambiguities,
+    ...result.notes.filter((note) => !/Já existe registro/.test(note)),
+  ];
+  return (
+    <div className="voice-card" data-tone={tone}>
+      <p className="voice-card__pillar">
+        <span className="voice-card__dot" aria-hidden="true" />
+        <span>
+          {pillar} · {action}
+        </span>
+      </p>
+      {issues.length > 0 && (
+        <p
+          key={attempt}
+          className="voice-card__pending"
+          role={attempt ? 'alert' : 'status'}
+        >
+          Preciso confirmar algumas informações:{' '}
+          {issues.map((issue) => fieldLabels[issue.field]).join(', ')}.
         </p>
       )}
-      {messages.map((message) => (
-        <p key={message} className="record-error">
-          {message}
-        </p>
-      ))}
-      {result.notes.map((note) => (
+      {parsedNotes.map((note) => (
         <p key={note} className="record-hint">
           {note}
         </p>
       ))}
+      {existingSleep !== undefined && (
+        <p className="voice-card__warning" role="status">
+          Já existe um registro de sono nesta data ({decimalText(existingSleep)}{' '}
+          h). Deseja substituí-lo?
+        </p>
+      )}
+      <div className="voice-card__fields">{fields}</div>
     </div>
   );
 }
 
-function Chips({
-  label,
-  options,
-  selected,
-  onSelect,
+/** Campo numérico do cartão; texto inválido deixa o valor pendente. */
+function NumberField({
+  id,
+  invalid,
+  value,
+  decimal = false,
+  onChange,
 }: {
-  label: string;
-  options: { value: string; label: string }[];
-  selected: string | undefined;
-  onSelect: (value: string) => void;
+  id: string;
+  invalid: object;
+  value: number | undefined;
+  decimal?: boolean;
+  onChange: (value: number | undefined) => void;
 }) {
+  const [text, setText] = useState(
+    value === undefined ? '' : decimal ? decimalText(value) : String(value),
+  );
   return (
-    <div className="voice-chips" role="group" aria-label={label}>
-      {!selected && <span className="voice-card__missing">{label}:</span>}
-      {options.map((option) => (
-        <button
-          key={option.value}
-          type="button"
-          className="voice-chip"
-          aria-pressed={selected === option.value}
-          onClick={() => onSelect(option.value)}
-        >
-          {option.label}
-        </button>
-      ))}
-    </div>
+    <input
+      id={id}
+      {...invalid}
+      value={text}
+      inputMode={decimal ? 'decimal' : 'numeric'}
+      autoComplete="off"
+      placeholder={decimal ? 'Ex.: 7,5' : 'Ex.: 20'}
+      onChange={(event) => {
+        const raw = event.target.value;
+        setText(raw);
+        const normalized = raw.trim().replace(',', '.');
+        const pattern = decimal ? /^\d+(?:\.\d{1,2})?$/ : /^\d+$/;
+        onChange(pattern.test(normalized) ? Number(normalized) : undefined);
+      }}
+    />
   );
 }
 
-/** Edição com os formulários e validações existentes de cada pilar. */
+/** Edição completa com os formulários e validações existentes de cada pilar. */
 function EditForm({
   draft,
   records,

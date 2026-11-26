@@ -30,6 +30,8 @@ export interface VoiceDraft {
   /** Data dita na frase (`false` quando assumiu hoje). */
   dateSpoken: boolean;
   amountCents?: number;
+  /** Despesa ou receita ainda não informada na frase. */
+  kindPending?: boolean;
   /** Explicação de um valor composto, ex.: “3 × R$ 10,00”. */
   amountDetail?: string;
   description?: string;
@@ -44,7 +46,14 @@ export interface VoiceDraft {
 }
 
 export type VoiceField =
-  'amount' | 'description' | 'category' | 'hours' | 'pages' | 'book';
+  | 'kind'
+  | 'amount'
+  | 'description'
+  | 'category'
+  | 'hours'
+  | 'pages'
+  | 'book'
+  | 'date';
 
 export interface ParseResult {
   /** Texto original, sem alterações. */

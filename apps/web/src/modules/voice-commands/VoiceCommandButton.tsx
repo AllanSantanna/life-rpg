@@ -3,7 +3,12 @@ import { Icon } from '../../shared/components/Icon';
 import { newId } from '../records/form';
 import type { LifeRecords, RecordCommand, SaveOutcome } from '../records/types';
 import { useConfirmedCommand } from '../records/useConfirmedCommand';
-import { completeCommand, recordCommandFor, voiceContext } from './commands';
+import {
+  completeCommand,
+  recordCommandFor,
+  validateDraft,
+  voiceContext,
+} from './commands';
 import { parseVoiceCommand } from './parser';
 import {
   listenOnce,
@@ -11,8 +16,21 @@ import {
   speechRecognitionConstructor,
   type SpeechRecognitionConstructor,
 } from './recognition';
-import type { ParseResult, VoiceDraft } from './types';
-import { VoiceCommandDialog, type VoiceStatus } from './VoiceCommandDialog';
+import type { ParseResult, VoiceDraft, VoiceIntent } from './types';
+import {
+  VoiceCommandDialog,
+  type DraftPatch,
+  type VoiceStatus,
+} from './VoiceCommandDialog';
+
+/** Rascunho com as correções do cartão; `undefined` remove o campo. */
+function applyPatch(draft: VoiceDraft, patch: DraftPatch): VoiceDraft {
+  const next: Record<string, unknown> = { ...draft };
+  for (const [key, value] of Object.entries(patch))
+    if (value === undefined) delete next[key];
+    else next[key] = value;
+  return next as unknown as VoiceDraft;
+}
 import './voiceCommands.css';
 
 /** Mensagem de sucesso conforme o comando efetivamente gravado. */
@@ -73,11 +91,15 @@ export function VoiceCommandButton({
   const [status, setStatus] = useState<VoiceStatus>('idle');
   const [transcript, setTranscript] = useState('');
   const [result, setResult] = useState<ParseResult | null>(null);
-  const [choice, setChoice] = useState<Partial<VoiceDraft>>({});
+  const [choice, setChoice] = useState<DraftPatch>({});
+  /** Tentativas de confirmar com pendências (leva o foco ao campo). */
+  const [attempt, setAttempt] = useState(0);
   const [error, setError] = useState('');
   const [toast, setToast] = useState('');
   const save = useConfirmedCommand(onCommand, whenSaved);
-  const draft = result?.draft ? { ...result.draft, ...choice } : null;
+  const draft = result?.draft ? applyPatch(result.draft, choice) : null;
+  const context = voiceContext(records, today);
+  const issues = draft ? validateDraft(draft, context) : [];
   const listening = status === 'requesting' || status === 'listening';
 
   function stopListening() {
@@ -109,6 +131,7 @@ export function VoiceCommandButton({
     setStatus('processing');
     setTranscript(text);
     setChoice({});
+    setAttempt(0);
     setError('');
     save.reset();
     const { records: current, today: day } = latest.current;
@@ -177,9 +200,18 @@ export function VoiceCommandButton({
   function run(command: RecordCommand) {
     return save.run(command, successMessage(command));
   }
-  const command = result && draft ? completeCommand(result, draft) : null;
+  const command = completeCommand(draft, context);
+  /**
+   * Confirmar sempre responde: com pendências, anuncia o que falta e leva o
+   * foco ao primeiro campo; completo, grava pelo comando existente.
+   */
   function confirm() {
-    if (!command || save.saving) return;
+    if (save.saving) return;
+    if (save.isPending()) return void finishSave();
+    if (!command) {
+      setAttempt((n) => n + 1);
+      return;
+    }
     const failure = run(recordCommandFor(command, newId));
     if (failure) {
       setError(failure);
@@ -218,17 +250,41 @@ export function VoiceCommandButton({
         <VoiceCommandDialog
           status={status}
           records={records}
-          today={today}
           transcript={transcript}
           result={result}
           draft={draft}
+          context={context}
+          issues={issues}
+          attempt={attempt}
           error={error}
           saveError={save.error}
           saving={save.saving}
           canListen={Recognition !== null}
-          onChoose={(next) =>
-            setChoice((previous) => ({ ...previous, ...next }))
-          }
+          onChange={(patch) => {
+            setError('');
+            setChoice((previous) => ({ ...previous, ...patch }));
+          }}
+          onChoosePillar={(type: VoiceIntent) => {
+            // Frase não entendida: o usuário escolhe o registro; nada é presumido.
+            setResult((previous) =>
+              previous
+                ? {
+                    ...previous,
+                    draft: {
+                      type,
+                      date: latest.current.today,
+                      dateSpoken: false,
+                    },
+                    missing: [],
+                    ambiguities: [],
+                    errors: [],
+                    notes: [],
+                  }
+                : previous,
+            );
+            setChoice({});
+            setAttempt(0);
+          }}
           onListen={listen}
           onCancelListening={cancelCurrentListening}
           onInterpret={interpret}
@@ -237,7 +293,7 @@ export function VoiceCommandButton({
             setStatus('editing');
           }}
           onBackToPreview={() => setStatus('preview')}
-          onConfirm={command && !save.isPending() ? confirm : null}
+          onConfirm={confirm}
           onRetrySave={() => void finishSave()}
           onQuickActions={() => {
             // O foco vai para o menu de Ações rápidas, não volta ao microfone.

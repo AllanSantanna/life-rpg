@@ -31,6 +31,11 @@ const expenseVerbs = new Set([
   'compramos',
   'paguei',
   'pagamos',
+  'pagar',
+  'gastar',
+  'comprar',
+  'compra',
+  'compras',
   'despesa',
 ]);
 const incomeVerbs = new Set([
@@ -43,6 +48,42 @@ const incomeVerbs = new Set([
   'receita',
   'vendi',
   'faturei',
+  'caiu',
+]);
+/** Verbos de receita que também têm sentido não financeiro (“ganhei um livro”). */
+const weakIncome = new Set([
+  'ganhei',
+  'ganhamos',
+  'entrou',
+  'entraram',
+  'caiu',
+]);
+/** Investimentos e transferências têm fluxo próprio em Finanças. */
+const investmentWords = new Set([
+  'acao',
+  'acoes',
+  'bitcoin',
+  'btc',
+  'fii',
+  'fiis',
+  'cdb',
+  'tesouro',
+  'investi',
+  'investimento',
+  'investimentos',
+  'aporte',
+  'aportei',
+  'resgate',
+  'resgatei',
+  'caixinha',
+  'dolar',
+  'dolares',
+]);
+const transferWords = new Set([
+  'transferencia',
+  'transferi',
+  'transferir',
+  'transferido',
 ]);
 /** “Ganhei” só é financeiro com contexto de dinheiro. */
 const moneyContext = new Set([
@@ -66,6 +107,8 @@ const readingVerbs = new Set([
   'lidos',
 ]);
 const workoutVerbs = new Set(['treinei', 'treinamos', 'malhei', 'malhamos']);
+/** “acabei de treinar”, “fui treinar”. */
+const workoutInfinitives = new Set(['treinar', 'malhar']);
 const workoutObjects = new Set([
   'musculacao',
   'treino',
@@ -92,6 +135,15 @@ const fillers = new Set([
   'uma',
   'nova',
   'novo',
+  'fiz',
+  'acabei',
+  'agora',
+  'umas',
+  'uns',
+  'conta',
+  'manha',
+  'tarde',
+  'noite',
 ]);
 const connectors = new Set([
   'com',
@@ -263,12 +315,20 @@ export function parseVoiceCommand(
   const incomeAt = has(tokens, incomeVerbs);
   const moneyWords = has(tokens, moneyContext) !== -1;
   const financeVerb = expenseAt !== -1 || incomeAt !== -1;
+  // “Ganhei um livro”, “entrou um aluno”: sem dinheiro, não é receita.
   const incomeOnlyGanhei =
     incomeAt !== -1 &&
     expenseAt === -1 &&
-    /^ganh/.test(tokens[incomeAt]!.norm) &&
+    weakIncome.has(tokens[incomeAt]!.norm) &&
     !tagged.length &&
     !moneyWords;
+  const investment = has(tokens, investmentWords) !== -1;
+  const transfer =
+    has(tokens, transferWords) !== -1 ||
+    tokens.some(
+      (token, index) =>
+        token.norm === 'propria' && tokens[index + 1]?.norm === 'conta',
+    );
   const finance =
     (financeVerb &&
       !incomeOnlyGanhei &&
@@ -281,9 +341,30 @@ export function parseVoiceCommand(
   const reading = has(tokens, readingVerbs) !== -1 || pages.length > 0;
   const workout =
     has(tokens, workoutVerbs) !== -1 ||
-    (tokens.some((token) => /^(fiz|fui|treino)$/.test(token.norm)) &&
+    tokens.some(
+      (token, index) =>
+        workoutInfinitives.has(token.norm) &&
+        (tokens[index - 1]?.norm === 'fui' ||
+          (tokens[index - 1]?.norm === 'de' &&
+            tokens[index - 2]?.norm === 'acabei')),
+    ) ||
+    // “fiz musculação”, “fui à academia”, “treino feito”: verbo + atividade.
+    (tokens.some((token) => /^(fiz|fui)$/.test(token.norm)) &&
       has(tokens, workoutObjects) !== -1 &&
-      !financeVerb);
+      !financeVerb) ||
+    tokens.some(
+      (token, index) =>
+        token.norm === 'treino' &&
+        /^(feito|concluido|realizado)$/.test(tokens[index + 1]?.norm ?? ''),
+    );
+  if ((finance || incomeOnlyGanhei) && (investment || transfer)) {
+    result.errors.push(
+      investment
+        ? 'Operações de investimento (aportes, compras de ações e resgates) não são registradas por voz. Use Finanças › Investimentos.'
+        : 'Transferências entre contas próprias não são receitas nem despesas. Use Finanças para registrá-las.',
+    );
+    return result;
+  }
   // “Comprei um livro”: livro sem verbo de leitura nem páginas não é leitura.
   const pillars = [
     finance && 'finance',
@@ -291,7 +372,7 @@ export function parseVoiceCommand(
     reading &&
       !(finance && !pages.length && has(tokens, readingVerbs) === -1) &&
       'reading',
-    workout && !finance && 'workout',
+    workout && 'workout',
   ].filter((item): item is string => Boolean(item));
   // Valor em dinheiro com sono/leitura/treino explícito: duas ações.
   if (pillars.length > 1) {
@@ -325,6 +406,11 @@ export function parseVoiceCommand(
           ? 'finance.income'
           : 'finance.expense';
     const draft: VoiceDraft = { type, ...base };
+    // Valor sem verbo (“dez reais de chocolate”): o tipo não é presumido.
+    if (!financeVerb) {
+      draft.kindPending = true;
+      missing('kind');
+    }
     const verbAt = type === 'finance.expense' ? expenseAt : incomeAt;
     let amountSpan: Span | undefined;
     if (tagged.length > 1) {
@@ -369,7 +455,8 @@ export function parseVoiceCommand(
     const description = phrase(
       tokens,
       (index) =>
-        index !== verbAt &&
+        !expenseVerbs.has(tokens[index]!.norm) &&
+        !incomeVerbs.has(tokens[index]!.norm) &&
         !(amountSpan && overlaps(amountSpan, index)) &&
         !money.some((item) => item.tagged && overlaps(item, index)) &&
         !used(index) &&
@@ -458,8 +545,16 @@ export function parseVoiceCommand(
     const active = context.books.filter((book) => !book.completed);
     // “do livro” sozinho, sem livro correspondente, não é título.
     if (titleText && !(spoken === 'livro' && !partial.length)) {
-      if (partial.length === 1) draft.bookId = partial[0]!.id;
-      else {
+      const match = partial.length === 1 ? partial[0]! : undefined;
+      if (match && !match.completed) draft.bookId = match.id;
+      else if (match) {
+        // Livro concluído não recebe leitura nova: escolha entre os ativos.
+        draft.bookSpoken = titleText;
+        draft.bookCandidates = active.map((book) => book.id);
+        result.ambiguities.push(
+          `O livro “${match.title}” já foi concluído. Escolha um livro em andamento.`,
+        );
+      } else {
         draft.bookSpoken = titleText;
         draft.bookCandidates = (partial.length ? partial : active).map(
           (book) => book.id,
