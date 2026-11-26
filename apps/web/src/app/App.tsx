@@ -33,6 +33,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useUrlNavigation } from './useUrlNavigation';
 import { Navigation, type View } from './Navigation';
 import { QuickActions } from './quick/QuickActions';
+import { VoiceCommandButton } from '../modules/voice-commands/VoiceCommandButton';
 import { pillarViews } from './views';
 import { PlayerHeader } from '../modules/profile/PlayerHeader';
 import { AttributesPanel } from '../modules/gamification/AttributesPanel';
@@ -93,6 +94,8 @@ export function App() {
     sessionId: string;
     nonce: number;
   }>();
+  /** Pedido do comando por voz para abrir o menu de Ações rápidas. */
+  const [quickRequest, setQuickRequest] = useState(0);
   // Fora de Treinos o pedido perde efeito: voltar à página não reabre a sessão.
   useEffect(() => {
     if (view !== 'workouts') setSessionFocus(undefined);
@@ -207,20 +210,30 @@ export function App() {
         Pular para o conteúdo
       </a>
       <Navigation current={view} onNavigate={navigate}>
-        <QuickActions
-          records={state.records}
-          today={today}
-          onCommand={changeRecords}
-          whenSaved={whenSaved}
-          onNavigate={navigate}
-          onOpenSession={(sessionId) => {
-            setSessionFocus((previous) => ({
-              sessionId,
-              nonce: (previous?.nonce ?? 0) + 1,
-            }));
-            navigate('workouts');
-          }}
-        />
+        <div className="global-actions">
+          <QuickActions
+            records={state.records}
+            today={today}
+            onCommand={changeRecords}
+            whenSaved={whenSaved}
+            onNavigate={navigate}
+            openRequest={quickRequest}
+            onOpenSession={(sessionId) => {
+              setSessionFocus((previous) => ({
+                sessionId,
+                nonce: (previous?.nonce ?? 0) + 1,
+              }));
+              navigate('workouts');
+            }}
+          />
+          <VoiceCommandButton
+            records={state.records}
+            today={today}
+            onCommand={changeRecords}
+            whenSaved={whenSaved}
+            onOpenQuickActions={() => setQuickRequest((n) => n + 1)}
+          />
+        </div>
       </Navigation>
       <div className="min-w-0 lg:ml-60">
         <header className="topbar flex items-center justify-between gap-4 border-b border-white/[0.06] px-5 py-4 sm:px-8 lg:px-10">

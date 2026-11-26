@@ -6,15 +6,22 @@
  * layer), popovers de ajuda (80) e avisos de conquista (60) ficam acima dele.
  * No computador vira o botão “+ Ação rápida” da navegação lateral.
  */
-.quick-actions {
-  --quick-size: 56px;
+.global-actions {
   --quick-ease: cubic-bezier(0.22, 1, 0.36, 1);
   position: absolute;
   bottom: calc(100% + var(--space-3));
   left: 50%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  transform: translateX(-50%);
+}
+/* Os painéis, o balão e a confirmação se posicionam pelo grupo de botões
+   (centralizado), não pelo botão. */
+.quick-actions {
+  --quick-size: 48px;
   width: var(--quick-size);
   height: var(--quick-size);
-  transform: translateX(-50%);
 }
 .quick-actions__trigger {
   display: grid;
@@ -247,23 +254,28 @@
 /* Fluxos com barra de ações fixa própria (edição de ficha): o botão sai do
    caminho para não cobrir “Salvar”. */
 @media (max-width: 1023px) {
-  .app-shell:has(.workout-sticky-actions) .quick-actions {
+  .app-shell:has(.workout-sticky-actions) .global-actions {
     display: none;
   }
 }
 
 @media (min-width: 1024px) {
-  .quick-actions {
+  .global-actions {
     position: relative;
     bottom: auto;
     left: auto;
-    width: 100%;
-    height: auto;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-2);
     margin-top: var(--space-4);
     padding-top: var(--space-4);
     border-top: 1px solid
       color-mix(in srgb, var(--color-foreground) 7%, transparent);
     transform: none;
+  }
+  .quick-actions {
+    width: 100%;
+    height: auto;
   }
   .quick-actions__trigger {
     display: flex;
