@@ -24,13 +24,13 @@
   --color-focus: #fca5a5;
   --color-error: #ffaaaa;
   --color-warning: #eab308;
-  --color-chart-1: #dc2626;
-  --color-chart-2: #eab308;
-  --color-chart-3: #22c55e;
-  --color-chart-4: #3b82f6;
-  --color-chart-5: #f97316;
-  --color-chart-6: #a855f7;
-  --color-chart-7: #ec4899;
+  --color-chart-1: #d94b55;
+  --color-chart-2: #e78a45;
+  --color-chart-3: #a3b85c;
+  --color-chart-4: #35b779;
+  --color-chart-5: #e8b84a;
+  --color-chart-6: #4fa3a5;
+  --color-chart-7: #9b75c9;
   --color-muscle-ready: #22c55e;
   --color-muscle-recovering: #eab308;
   --color-muscle-tired: #f97316;
@@ -2308,7 +2308,34 @@
 .finance-budget__item[data-level='exceeded'] .finance-budget__level {
   color: var(--color-error);
 }
-/* Distribuição dos investimentos: pizza preenchida e legenda interativa. */
+/* Distribuição dos investimentos: pizza preenchida e legenda interativa.
+   Cada tom define --slice-color (como --muscle-color no Mapa Muscular); a
+   fatia, o marcador, a borda da legenda e o brilho usam essa mesma cor. */
+.distribution-pie {
+  --pie-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --pie-duration: 220ms;
+}
+.distribution-pie [data-tone='0'] {
+  --slice-color: var(--color-chart-1);
+}
+.distribution-pie [data-tone='1'] {
+  --slice-color: var(--color-chart-2);
+}
+.distribution-pie [data-tone='2'] {
+  --slice-color: var(--color-chart-3);
+}
+.distribution-pie [data-tone='3'] {
+  --slice-color: var(--color-chart-4);
+}
+.distribution-pie [data-tone='4'] {
+  --slice-color: var(--color-chart-5);
+}
+.distribution-pie [data-tone='5'] {
+  --slice-color: var(--color-chart-6);
+}
+.distribution-pie [data-tone='6'] {
+  --slice-color: var(--color-chart-7);
+}
 .distribution-pie__body {
   display: grid;
   grid-template-columns: minmax(0, 260px) minmax(0, 1fr);
@@ -2318,6 +2345,8 @@
 }
 .distribution-pie__figure {
   min-width: 0;
+  /* Espaço para o brilho e a leve expansão não serem cortados. */
+  padding: var(--space-2);
 }
 .distribution-pie__svg {
   display: block;
@@ -2327,44 +2356,44 @@
   margin-inline: auto;
   overflow: visible;
 }
-/* Cores cheias como no mapa muscular; a seleção é indicada pelo contorno. */
+/* Camada base: setores com separação na cor da superfície. Os não destacados
+   escurecem pouco, para continuar legíveis. */
 .distribution-pie__slice {
+  fill: var(--slice-color);
   stroke: var(--color-surface);
   stroke-width: 1.5;
   cursor: pointer;
-  transition: stroke-width 0.15s ease;
+  filter: brightness(0.86) saturate(0.95);
+  transition: filter var(--pie-duration) var(--pie-ease);
 }
 .distribution-pie__slice.is-active {
-  stroke: var(--color-foreground);
-  stroke-width: 2.5;
+  filter: brightness(1) saturate(1);
 }
-.distribution-pie [data-tone='0'] {
-  fill: var(--color-chart-1);
-  background: var(--color-chart-1);
+/* Camada de destaque: cópia de cada setor, por cima, só com opacidade,
+   escala a partir do centro e brilho externo da própria cor. */
+.distribution-pie__highlights {
+  pointer-events: none;
 }
-.distribution-pie [data-tone='1'] {
-  fill: var(--color-chart-2);
-  background: var(--color-chart-2);
+.distribution-pie__glow {
+  fill: var(--slice-color);
+  stroke: color-mix(in srgb, var(--slice-color) 70%, var(--color-foreground));
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  opacity: 0;
+  transform-box: view-box;
+  transform-origin: 100px 100px;
+  transform: scale(1);
+  filter: brightness(1) drop-shadow(0 0 0 transparent);
+  transition:
+    opacity var(--pie-duration) var(--pie-ease),
+    transform var(--pie-duration) var(--pie-ease),
+    filter var(--pie-duration) var(--pie-ease);
 }
-.distribution-pie [data-tone='2'] {
-  fill: var(--color-chart-3);
-  background: var(--color-chart-3);
-}
-.distribution-pie [data-tone='3'] {
-  fill: var(--color-chart-4);
-  background: var(--color-chart-4);
-}
-.distribution-pie [data-tone='4'] {
-  fill: var(--color-chart-5);
-  background: var(--color-chart-5);
-}
-.distribution-pie [data-tone='5'] {
-  fill: var(--color-chart-6);
-  background: var(--color-chart-6);
-}
-.distribution-pie [data-tone='6'] {
-  fill: var(--color-chart-7);
-  background: var(--color-chart-7);
+.distribution-pie__glow[data-on] {
+  opacity: 1;
+  transform: scale(1.035);
+  filter: brightness(1.06)
+    drop-shadow(0 0 5px color-mix(in srgb, var(--slice-color) 45%, transparent));
 }
 .distribution-pie__side {
   display: grid;
@@ -2372,10 +2401,22 @@
   min-width: 0;
 }
 .distribution-pie__detail {
+  margin: 0;
+  padding-left: var(--space-3);
+  border-left: 3px solid var(--slice-color);
+  color: var(--color-muted);
+  transition: border-color var(--pie-duration) var(--pie-ease);
+}
+.distribution-pie__detail-content {
   display: grid;
   gap: var(--space-1);
-  margin: 0;
-  color: var(--color-muted);
+  animation: pie-detail-in 180ms var(--pie-ease);
+}
+@keyframes pie-detail-in {
+  from {
+    opacity: 0.35;
+    transform: translateY(2px);
+  }
 }
 .distribution-pie__detail strong {
   color: var(--color-foreground);
@@ -2399,15 +2440,27 @@
   padding: var(--space-2) var(--space-3);
   border: 1px solid transparent;
   border-radius: var(--control-radius);
-  color: var(--color-muted);
+  color: #c4c4cc;
   font-size: 13px;
   text-align: left;
+  transition:
+    background-color var(--pie-duration) var(--pie-ease),
+    border-color var(--pie-duration) var(--pie-ease),
+    box-shadow var(--pie-duration) var(--pie-ease),
+    color var(--pie-duration) var(--pie-ease);
 }
-.distribution-pie__legend button:hover,
-.distribution-pie__legend button[aria-pressed='true'] {
-  border-color: rgb(255 255 255 / 0.1);
-  background: rgb(255 255 255 / 0.04);
+/* Pré-visualização (hover): realce leve, sem substituir a seleção. */
+.distribution-pie__legend button[data-shown] {
+  border-color: color-mix(in srgb, var(--slice-color) 30%, transparent);
+  background: rgb(255 255 255 / 0.03);
   color: var(--color-foreground);
+}
+/* Selecionado: grafite, borda e brilho discreto na cor da categoria. */
+.distribution-pie__legend button[aria-pressed='true'] {
+  border-color: color-mix(in srgb, var(--slice-color) 55%, transparent);
+  background: color-mix(in srgb, var(--slice-color) 8%, #1c1a1b);
+  color: var(--color-foreground);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--slice-color) 16%, transparent);
 }
 .distribution-pie__legend button:focus-visible {
   outline: 2px solid var(--color-focus);
@@ -2417,6 +2470,8 @@
   width: 12px;
   height: 12px;
   border-radius: 50%;
+  background: var(--slice-color);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--slice-color) 22%, transparent);
 }
 .distribution-pie__name {
   display: inline-flex;
@@ -2446,9 +2501,20 @@
     white-space: normal;
   }
 }
+/* Movimento reduzido: sem transições, expansão ou deslocamento; o destaque
+   continua por cor, brilho, borda e contraste. */
 @media (prefers-reduced-motion: reduce) {
-  .distribution-pie__slice {
+  .distribution-pie__slice,
+  .distribution-pie__glow,
+  .distribution-pie__detail,
+  .distribution-pie__legend button {
     transition: none;
+  }
+  .distribution-pie__glow[data-on] {
+    transform: none;
+  }
+  .distribution-pie__detail-content {
+    animation: none;
   }
 }
 /* Investimentos: escolha do tipo de gráfico e barras por categoria. */

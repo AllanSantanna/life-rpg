@@ -29,22 +29,25 @@ texto (“Atenção: 80% ou mais do limite”). Dentro do limite a barra usa
 ## Gráfico de distribuição
 
 A pizza da aba Investimentos usa uma cor fixa por categoria, na ordem de
-`investmentCategories`, sempre acompanhada de nome, valor e percentual na
-legenda (a cor não é o único meio de identificação). A paleta segue a
-intensidade das cores do mapa muscular (`--color-muscle-*` e
-`--color-primary`), completada com azul, roxo e rosa do mesmo nível de
-saturação. Setores são separados por um contorno da cor da superfície; o
-selecionado recebe contorno claro, sem reduzir a opacidade dos demais.
+`investmentCategories` (independente da ordem dos valores), sempre
+acompanhada de nome, valor e percentual na legenda. A paleta deriva da
+linguagem do Mapa Muscular (verde, âmbar, laranja e vermelho) em tons menos
+saturados, completada por oliva, petróleo e ametista; nenhuma categoria usa
+cinza. Cada tom define `--slice-color` (como `--muscle-color` no mapa): a
+fatia, o marcador, a borda e o brilho da seleção usam a mesma variável.
 
-| Token             | Valor     | Categoria            |
-| ----------------- | --------- | -------------------- |
-| `--color-chart-1` | `#dc2626` | Ações                |
-| `--color-chart-2` | `#eab308` | Fundos imobiliários  |
-| `--color-chart-3` | `#22c55e` | Renda fixa           |
-| `--color-chart-4` | `#3b82f6` | Caixinhas bancárias  |
-| `--color-chart-5` | `#f97316` | Bitcoin              |
-| `--color-chart-6` | `#a855f7` | Dólar (USD)          |
-| `--color-chart-7` | `#ec4899` | Outros investimentos |
+| Token             | Valor     | Categoria             |
+| ----------------- | --------- | --------------------- |
+| `--color-chart-1` | `#d94b55` | Ações (rubi)          |
+| `--color-chart-2` | `#e78a45` | Fundos imobiliários   |
+| `--color-chart-3` | `#a3b85c` | Renda fixa (oliva)    |
+| `--color-chart-4` | `#35b779` | Caixinhas bancárias   |
+| `--color-chart-5` | `#e8b84a` | Bitcoin (dourado)     |
+| `--color-chart-6` | `#4fa3a5` | Dólar (USD, petróleo) |
+| `--color-chart-7` | `#9b75c9` | Outros (ametista)     |
+
+As categorias são fixas; uma categoria nova deve receber o próximo token
+(`--color-chart-8`), nunca uma cor aleatória.
 
 ## Pilares
 

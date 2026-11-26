@@ -97,27 +97,38 @@ function Notes({ rows }: { rows: CategoryBreakdown[] }) {
 const tone = (category: CategoryBreakdown['category']) =>
   investmentCategories.indexOf(category);
 
+type Category = CategoryBreakdown['category'];
+/** Toque seleciona sem passar por hover (não há ponteiro “sobre” no toque). */
+const previewable = (event: PointerEvent) => event.pointerType !== 'touch';
+
 /**
  * Distribuição do valor atual por categoria em pizza (setores até o centro).
  * Base única: o mesmo valor por investimento usado em “Valor dos
  * investimentos” (`investmentValue`); custo e saldo da Carteira não entram.
  * Percentuais em décimos pelo método dos maiores restos (somam 100,0%).
- * Mouse e toque nos setores ou a legenda (teclado) escolhem a categoria
- * exibida no detalhe; nenhum texto é desenhado sobre os setores.
+ *
+ * Seleção (clique, toque ou teclado na legenda) e pré-visualização (hover do
+ * mouse) são estados separados: ao tirar o mouse, volta a categoria
+ * selecionada. O destaque fica numa camada sobreposta com uma cópia de cada
+ * setor; só opacidade, escala e brilho mudam (transições CSS), sem
+ * reconstruir o gráfico. Nenhum texto é desenhado sobre os setores.
  */
 function Distribution({ rows }: { rows: CategoryBreakdown[] }) {
   const id = useId();
   const values = rows.map((row) => Math.max(0, row.value));
   const tenths = percentTenths(values);
   const slices = pieSlices(values);
-  const largest = slices[0]?.index ?? 0;
-  const [selected, setSelected] = useState<CategoryBreakdown['category']>();
-  const activeIndex = Math.max(
-    0,
-    rows.findIndex((row) => row.category === selected),
-  );
-  const active = selected ? activeIndex : largest;
-  const current = rows[active];
+  const [selected, setSelected] = useState<Category>();
+  const [hovered, setHovered] = useState<Category>();
+  const indexOf = (category: Category | undefined) =>
+    category === undefined
+      ? -1
+      : rows.findIndex((row) => row.category === category);
+  // Seleção inicial: a maior fatia. Categorias que saem da lista voltam a ela.
+  const chosen =
+    indexOf(selected) >= 0 ? indexOf(selected) : (slices[0]?.index ?? 0);
+  const shown = indexOf(hovered) >= 0 ? indexOf(hovered) : chosen;
+  const current = rows[shown];
   const total = values.reduce((sum, value) => sum + value, 0);
   const legend = useRef<HTMLUListElement>(null);
   const choose = (index: number) => setSelected(rows[index]?.category);
@@ -143,6 +154,12 @@ function Distribution({ rows }: { rows: CategoryBreakdown[] }) {
       legend.current?.querySelectorAll<HTMLButtonElement>('button');
     buttons?.[next]?.focus();
   }
+  const shape = (slice: (typeof slices)[number], props: object) =>
+    slice.path ? (
+      <path d={slice.path} {...props} />
+    ) : (
+      <circle cx="100" cy="100" r="96" {...props} />
+    );
   return (
     <div className="panel record-section investment-chart distribution-pie">
       <h3 id={`${id}-title`}>Distribuição dos investimentos</h3>
@@ -161,28 +178,46 @@ function Distribution({ rows }: { rows: CategoryBreakdown[] }) {
               aria-describedby={`${id}-summary`}
               className="distribution-pie__svg"
               data-slices={slices.length}
+              onPointerLeave={() => setHovered(undefined)}
             >
-              {slices.map((slice) => {
-                const row = rows[slice.index]!;
-                const shared = {
-                  className: `distribution-pie__slice${slice.index === active ? ' is-active' : ''}`,
-                  'data-tone': tone(row.category),
-                  'data-category': row.category,
-                  onPointerEnter: () => choose(slice.index),
-                  onClick: () => choose(slice.index),
-                };
-                return slice.path ? (
-                  <path key={row.category} d={slice.path} {...shared} />
-                ) : (
-                  <circle
-                    key={row.category}
-                    cx="100"
-                    cy="100"
-                    r="96"
-                    {...shared}
-                  />
-                );
-              })}
+              <g className="distribution-pie__base">
+                {slices.map((slice) => {
+                  const row = rows[slice.index]!;
+                  return (
+                    <g key={row.category}>
+                      {shape(slice, {
+                        className: `distribution-pie__slice${slice.index === shown ? ' is-active' : ''}`,
+                        'data-tone': tone(row.category),
+                        'data-category': row.category,
+                        'data-selected': slice.index === chosen || undefined,
+                        onPointerEnter: (event: PointerEvent) => {
+                          if (previewable(event)) setHovered(row.category);
+                        },
+                        onClick: () => {
+                          setHovered(undefined);
+                          choose(slice.index);
+                        },
+                      })}
+                    </g>
+                  );
+                })}
+              </g>
+              {/* Camada de destaque: cópias fixas dos setores, por cima. */}
+              <g className="distribution-pie__highlights" aria-hidden="true">
+                {slices.map((slice) => {
+                  const row = rows[slice.index]!;
+                  return (
+                    <g key={row.category}>
+                      {shape(slice, {
+                        className: 'distribution-pie__glow',
+                        'data-tone': tone(row.category),
+                        'data-glow': row.category,
+                        'data-on': slice.index === shown || undefined,
+                      })}
+                    </g>
+                  );
+                })}
+              </g>
             </svg>
             <p id={`${id}-summary`} className="sr-only">
               {rows
@@ -196,13 +231,23 @@ function Distribution({ rows }: { rows: CategoryBreakdown[] }) {
           </div>
           <div className="distribution-pie__side">
             {current && (
-              <p className="distribution-pie__detail" aria-live="polite">
-                <strong>
-                  {categoryLabel(current.category)}
-                  {current.reference && ' *'}
-                </strong>
-                <span>
-                  {money(values[active]!)} · {formatTenths(tenths[active]!)}
+              <p
+                className="distribution-pie__detail"
+                data-tone={tone(current.category)}
+                aria-live="polite"
+              >
+                {/* Nova montagem por categoria: entrada curta, sem atraso. */}
+                <span
+                  key={current.category}
+                  className="distribution-pie__detail-content"
+                >
+                  <strong>
+                    {categoryLabel(current.category)}
+                    {current.reference && ' *'}
+                  </strong>
+                  <span>
+                    {money(values[shown]!)} · {formatTenths(tenths[shown]!)}
+                  </span>
                 </span>
               </p>
             )}
@@ -210,14 +255,24 @@ function Distribution({ rows }: { rows: CategoryBreakdown[] }) {
               ref={legend}
               className="distribution-pie__legend"
               aria-label="Categorias da distribuição"
+              onPointerLeave={() => setHovered(undefined)}
             >
               {rows.map((row, index) => (
                 <li key={row.category}>
                   <button
                     type="button"
-                    aria-pressed={index === active}
-                    tabIndex={index === active ? 0 : -1}
-                    onClick={() => choose(index)}
+                    data-tone={tone(row.category)}
+                    data-shown={index === shown || undefined}
+                    aria-pressed={index === chosen}
+                    tabIndex={index === chosen ? 0 : -1}
+                    onPointerEnter={(event) => {
+                      if (previewable(event.nativeEvent))
+                        setHovered(row.category);
+                    }}
+                    onClick={() => {
+                      setHovered(undefined);
+                      choose(index);
+                    }}
                     onFocus={() => choose(index)}
                     onKeyDown={(event) => onLegendKey(event, index)}
                   >
