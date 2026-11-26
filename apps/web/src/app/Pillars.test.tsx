@@ -83,15 +83,9 @@ describe('Fluxos reais dos quatro pilares', () => {
         (item: { description: string }) => item.description === 'Mercado',
       ).amountCents,
     ).toBe(9025);
-    selectDate(
-      screen.getByRole('combobox', { name: 'Mês financeiro' }),
-      '2026-10',
-    );
+    selectDate(screen.getByRole('combobox', { name: 'Período' }), '2026-10');
     expect(movementHistory()).toHaveTextContent('Nenhuma movimentação');
-    selectDate(
-      screen.getByRole('combobox', { name: 'Mês financeiro' }),
-      '2026-11',
-    );
+    selectDate(screen.getByRole('combobox', { name: 'Período' }), '2026-11');
     fireEvent.click(screen.getByRole('button', { name: 'Excluir Mercado' }));
     expect(stored().records.movements).toHaveLength(2);
     confirmDeletion();

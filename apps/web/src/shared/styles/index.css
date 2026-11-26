@@ -1961,6 +1961,91 @@
 .finance-more {
   margin-top: var(--space-3);
 }
+/* Histórico da Carteira: tipo sempre visível; demais filtros recolhidos. */
+.finance-filters--compact {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+.finance-segmented {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+  flex: 1 1 280px;
+  max-width: 420px;
+}
+.finance-advanced-filters {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+.finance-advanced-filters .record-field {
+  margin-top: var(--space-2);
+}
+/* Investimentos: escolha do tipo de gráfico e barras por categoria. */
+.investment-charts {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.investment-charts__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.investment-charts__head h2 {
+  margin: 0;
+}
+.investment-bars {
+  display: grid;
+  gap: var(--space-4);
+  margin-top: var(--space-3);
+}
+.investment-bars__label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+.investment-bars__label > span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.investment-bars__label > strong {
+  color: var(--color-finances);
+}
+.investment-bars__detail {
+  margin: var(--space-1) 0 0;
+  color: var(--color-muted);
+  font-size: var(--text-control);
+}
+.investment-bars__track {
+  height: 8px;
+  margin-top: var(--space-2);
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--color-background);
+}
+.investment-bars__fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-finances);
+}
+.investment-bars__fill--cost {
+  background: var(--color-muted);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .investment-bars__fill {
+    transition: width 0.3s ease;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   .disclosure__chevron {
     transition: none;

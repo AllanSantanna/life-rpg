@@ -4,7 +4,7 @@ import { fireEvent, screen, within } from '@testing-library/react';
  * Navegação da página Finanças nos testes de interface. Os formulários e
  * históricos abrem sob demanda; estes atalhos reproduzem os cliques do usuário.
  */
-export function financeTab(name: 'Movimentações' | 'Investimentos') {
+export function financeTab(name: 'Carteira' | 'Investimentos') {
   const tab = screen.getByRole('tab', { name });
   if (tab.getAttribute('aria-selected') !== 'true') fireEvent.click(tab);
 }
@@ -31,8 +31,9 @@ function expand(name: string) {
   return screen.getByRole('region', { name });
 }
 
+/** Histórico da Carteira: recolhido por padrão; o helper o abre. */
 export function movementHistory() {
-  financeTab('Movimentações');
+  financeTab('Carteira');
   return expand('Histórico de movimentações');
 }
 
@@ -43,7 +44,7 @@ export function investmentHistory() {
 
 export function wallet() {
   financeTab('Investimentos');
-  return screen.getByRole('region', { name: 'Carteira cadastrada' });
+  return screen.getByRole('region', { name: 'Meus investimentos' });
 }
 
 /** Cartão da carteira: `Caixinha Nome` ou `Investimento Nome`. */

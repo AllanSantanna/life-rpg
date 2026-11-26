@@ -708,17 +708,40 @@ try {
         .click();
       await capture(page, 'financas-movimentacao', width);
       await page.getByRole('button', { name: 'Cancelar', exact: true }).click();
+      // Histórico recolhido por padrão: abre, mostra filtros avançados e fecha.
       await page
         .getByRole('button', {
           name: 'Histórico de movimentações',
           exact: true,
         })
         .click();
+      await page
+        .getByRole('button', { name: 'Filtros avançados', exact: true })
+        .click();
+      await page
+        .getByRole('region', { name: 'Histórico de movimentações' })
+        .scrollIntoViewIfNeeded();
       await capture(page, 'financas-historico', width);
+      await page
+        .getByRole('button', { name: 'Filtros avançados', exact: true })
+        .click();
       await page
         .getByRole('tab', { name: 'Investimentos', exact: true })
         .click();
       await capture(page, 'financas-investimentos', width);
+      for (const [name, slug] of [
+        ['Distribuição', 'financas-grafico-distribuicao'],
+        ['Custo × valor', 'financas-grafico-custo'],
+        ['Evolução', null],
+      ]) {
+        await page.getByRole('button', { name, exact: true }).click();
+        if (slug) {
+          await page
+            .getByRole('region', { name: 'Gráficos de investimentos' })
+            .scrollIntoViewIfNeeded();
+          await capture(page, slug, width);
+        }
+      }
       await page
         .getByRole('button', {
           name: 'Mais ações de Caixinha de auditoria com nome extenso',

@@ -9,6 +9,7 @@ import { DeleteConfirmation, type PendingDeletion } from './DeleteConfirmation';
 import { FinanceTabs } from './FinanceLayout';
 import { FinancialChart } from './FinancialChart';
 import { FinancialSettings } from './FinancialSettings';
+import { InvestmentCharts } from './InvestmentCharts';
 import { InvestmentsPanel } from './InvestmentsPanel';
 import { financialSummary } from './ledger';
 import {
@@ -19,9 +20,10 @@ import {
 import { ValuationsPanel } from './ValuationsPanel';
 import type { MarketTracker } from './useMarketQuotes';
 
-type FinanceArea = 'movements' | 'investments';
+/** Duas áreas: a carteira única (padrão) e o patrimônio investido. */
+type FinanceArea = 'wallet' | 'investments';
 const areas = [
-  { id: 'movements', label: 'Movimentações' },
+  { id: 'wallet', label: 'Carteira' },
   { id: 'investments', label: 'Investimentos' },
 ] as const;
 
@@ -42,7 +44,7 @@ export function FinancesPage({
   usdStale?: boolean;
 }) {
   const [month, setMonth] = useState(today.slice(0, 7));
-  const [area, setArea] = useState<FinanceArea>('movements');
+  const [area, setArea] = useState<FinanceArea>('wallet');
   const [pendingDeletion, setPendingDeletion] =
     useState<PendingDeletion | null>(null);
   const [managementRevision, setManagementRevision] = useState(0);
@@ -70,12 +72,12 @@ export function FinancesPage({
     }
     return error;
   };
-  return (
-    <div className="pillar-page" data-area="Finanças">
+  const wallet = (
+    <div className="finance-area">
       <section className="finance-overview" aria-label="Visão geral financeira">
-        <Field label="Mês financeiro">
+        <Field label="Período">
           <CustomDatePicker
-            label="Mês financeiro"
+            label="Período"
             mode="month"
             value={month}
             max={today.slice(0, 7)}
@@ -96,6 +98,11 @@ export function FinancesPage({
             { label: 'Resultado mensal', value: money(monthly.balance) },
           ]}
         />
+        <p className="record-hint">
+          O período define receitas, despesas, resultado mensal e o histórico. O
+          saldo disponível acumula todo o histórico (aportes saem, resgates
+          voltam); o gráfico usa seu próprio intervalo.
+        </p>
         <div
           className="finance-quick-actions"
           role="group"
@@ -124,11 +131,24 @@ export function FinancesPage({
             onClose={() => setMovementDraft(undefined)}
           />
         )}
-        <p className="record-hint">
-          Saldo disponível considera todo o histórico: receitas entram; despesas
-          e aportes saem; resgates voltam. Resultado mensal = receitas −
-          despesas do mês selecionado. Investimentos ficam separados do saldo.
-        </p>
+      </section>
+      <FinancialChart records={records} today={today} defaultView="cash" />
+      <MovementsPanel
+        key={managementRevision}
+        records={records}
+        month={month}
+        onEdit={openMovement}
+        run={run}
+        onDelete={setPendingDeletion}
+      />
+    </div>
+  );
+  const investments = (
+    <div className="finance-area">
+      <section
+        className="finance-overview"
+        aria-label="Visão geral dos investimentos"
+      >
         <Summary
           values={[
             {
@@ -160,6 +180,10 @@ export function FinancesPage({
             },
           ]}
         />
+        <p className="record-hint">
+          Patrimônio total = saldo disponível + valor dos investimentos. Aportes
+          já saíram do saldo, então nada é contado duas vezes.
+        </p>
         {!financial.known && (
           <p className="record-hint">
             Há investimentos sem avaliação atual: o total usa o custo de
@@ -167,46 +191,36 @@ export function FinancesPage({
             posteriores exigem nova avaliação.
           </p>
         )}
-        <FinancialChart records={records} today={today} />
       </section>
+      <InvestmentsPanel
+        key={managementRevision}
+        records={records}
+        today={today}
+        onCommand={onCommand}
+        run={run}
+        onDelete={setPendingDeletion}
+        btcStatus={{ error: quoteError, stale: quoteStale }}
+        usdStatus={{ error: usdError, stale: usdStale }}
+        market={market}
+        charts={<InvestmentCharts records={records} today={today} />}
+      />
+      <ValuationsPanel
+        key={`valuations:${managementRevision}`}
+        records={records}
+        today={today}
+        onCommand={onCommand}
+      />
+    </div>
+  );
+  return (
+    <div className="pillar-page" data-area="Finanças">
       <FinanceTabs
-        label="Gerenciamento financeiro"
+        label="Áreas de Finanças"
         tabs={areas}
         active={area}
         onChange={setArea}
       >
-        {area === 'movements' ? (
-          <MovementsPanel
-            key={managementRevision}
-            records={records}
-            today={today}
-            month={month}
-            onMonthChange={setMonth}
-            onEdit={openMovement}
-            run={run}
-            onDelete={setPendingDeletion}
-          />
-        ) : (
-          <>
-            <InvestmentsPanel
-              key={managementRevision}
-              records={records}
-              today={today}
-              onCommand={onCommand}
-              run={run}
-              onDelete={setPendingDeletion}
-              btcStatus={{ error: quoteError, stale: quoteStale }}
-              usdStatus={{ error: usdError, stale: usdStale }}
-              market={market}
-            />
-            <ValuationsPanel
-              key={`valuations:${managementRevision}`}
-              records={records}
-              today={today}
-              onCommand={onCommand}
-            />
-          </>
-        )}
+        {area === 'wallet' ? wallet : investments}
       </FinanceTabs>
       <RecordFeedback message={message} />
       {pendingDeletion && (

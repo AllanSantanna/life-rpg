@@ -1,5 +1,4 @@
 import { useRef, useState } from 'react';
-import { CustomDatePicker } from '../../shared/components/CustomDatePicker';
 import { CustomSelect } from '../../shared/components/CustomSelect';
 import { plural } from '../../shared/lib/plural';
 import { displayDate } from '../records/dates';
@@ -121,57 +120,26 @@ export function MovementForm({
   );
 }
 
-/** Histórico de receitas e despesas; reutiliza os comandos de movimentação. */
+const kindFilters = [
+  { value: ALL, label: 'Todas' },
+  { value: 'income', label: 'Receitas' },
+  { value: 'expense', label: 'Despesas' },
+] as const;
+
+/**
+ * Histórico de receitas e despesas na aba Carteira, recolhido por padrão. O período é
+ * o mesmo mês dos indicadores mensais; tipo fica à vista e categoria em
+ * “Filtros avançados”. Reutiliza os comandos de movimentação.
+ */
 export function MovementsPanel({
   records,
-  today,
   month,
-  onMonthChange,
   onEdit,
   run,
   onDelete,
-}: Pick<RecordPageProps, 'records' | 'today'> & {
+}: Pick<RecordPageProps, 'records'> & {
   month: string;
-  onMonthChange: (month: string) => void;
   onEdit: (draft: MovementDraft) => void;
-  run: (command: RecordCommand) => string | null;
-  onDelete: (pending: PendingDeletion) => void;
-}) {
-  return (
-    <div className="finance-area">
-      <p className="record-hint">
-        Receitas aumentam e despesas diminuem o saldo disponível.
-      </p>
-      <Disclosure title="Histórico de movimentações">
-        <MovementHistory
-          records={records}
-          today={today}
-          month={month}
-          onMonthChange={onMonthChange}
-          onEdit={(id) => {
-            const item = records.movements.find((value) => value.id === id);
-            if (item) onEdit({ id, kind: item.kind });
-          }}
-          run={run}
-          onDelete={onDelete}
-        />
-      </Disclosure>
-    </div>
-  );
-}
-
-function MovementHistory({
-  records,
-  today,
-  month,
-  onMonthChange,
-  onEdit,
-  run,
-  onDelete,
-}: Pick<RecordPageProps, 'records' | 'today'> & {
-  month: string;
-  onMonthChange: (month: string) => void;
-  onEdit: (id: string) => void;
   run: (command: RecordCommand) => string | null;
   onDelete: (pending: PendingDeletion) => void;
 }) {
@@ -180,61 +148,73 @@ function MovementHistory({
     accountId: ALL,
     category: ALL,
   });
-  const [limit, setLimit] = useState(HISTORY_PAGE_SIZE);
+  // A paginação recomeça ao trocar de mês ou de filtro.
+  const [page, setPage] = useState({ month, limit: HISTORY_PAGE_SIZE });
+  const limit = page.month === month ? page.limit : HISTORY_PAGE_SIZE;
   const update = (next: Partial<Omit<MovementFilters, 'month'>>) => {
     setFilters((value) => ({ ...value, ...next }));
-    setLimit(HISTORY_PAGE_SIZE);
+    setPage({ month, limit: HISTORY_PAGE_SIZE });
   };
   const items = filterMovements(records.movements, { ...filters, month });
+  const edit = (id: string) => {
+    const item = records.movements.find((value) => value.id === id);
+    if (item) onEdit({ id, kind: item.kind });
+  };
   return (
-    <>
+    // Começa recolhido; o usuário abre quando quiser. Filtros e paginação ficam
+    // neste componente e sobrevivem ao recolher/expandir.
+    <Disclosure
+      title="Histórico de movimentações"
+      className="panel record-section finance-history"
+    >
       <div
-        className="finance-filters"
+        className="finance-filters finance-filters--compact"
         role="group"
         aria-label="Filtros de movimentações"
       >
-        <Field label="Mês do histórico">
-          <CustomDatePicker
-            label="Mês do histórico"
-            mode="month"
-            value={month}
-            max={today.slice(0, 7)}
-            onChange={(value) => {
-              onMonthChange(value);
-              setLimit(HISTORY_PAGE_SIZE);
-            }}
-          />
-        </Field>
-        <Field label="Tipo">
-          <CustomSelect
-            label="Tipo"
-            value={filters.kind}
-            onChange={(kind) => update({ kind })}
-            options={[
-              { value: ALL, label: 'Receitas e despesas' },
-              { value: 'income', label: 'Receitas' },
-              { value: 'expense', label: 'Despesas' },
-            ]}
-          />
-        </Field>
-        <Field label="Categoria">
-          <CustomSelect
-            label="Categoria"
-            value={filters.category}
-            onChange={(category) => update({ category })}
-            options={[
-              { value: ALL, label: 'Todas as categorias' },
-              ...movementCategories(records.movements).map((category) => ({
-                value: category,
-                label: category,
-              })),
-            ]}
-          />
-        </Field>
+        <div
+          className="finance-segmented"
+          role="group"
+          aria-label="Tipo de movimentação do histórico"
+        >
+          {kindFilters.map((option) => (
+            <button
+              type="button"
+              key={option.value}
+              className={`filter-button${filters.kind === option.value ? ' active' : ''}`}
+              aria-pressed={filters.kind === option.value}
+              onClick={() => update({ kind: option.value })}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+        <Disclosure
+          title="Filtros avançados"
+          level={3}
+          variant="text"
+          className="finance-advanced-filters"
+        >
+          <Field label="Categoria">
+            <CustomSelect
+              label="Categoria"
+              value={filters.category}
+              onChange={(category) => update({ category })}
+              options={[
+                { value: ALL, label: 'Todas as categorias' },
+                ...movementCategories(records.movements).map((category) => ({
+                  value: category,
+                  label: category,
+                })),
+              ]}
+            />
+          </Field>
+        </Disclosure>
       </div>
       <p className="record-hint" aria-live="polite">
         {plural(items.length, 'movimentação', 'movimentações')} em{' '}
-        {displayMonth(month)}.
+        {displayMonth(month)}
+        {filters.category !== ALL ? ` · categoria ${filters.category}` : ''}.
       </p>
       <ul className="record-list">
         {items.slice(0, limit).map((item) => (
@@ -250,7 +230,7 @@ function MovementHistory({
             <div className="record-actions">
               <button
                 type="button"
-                onClick={() => onEdit(item.id)}
+                onClick={() => edit(item.id)}
                 aria-label={`Editar ${item.description}`}
               >
                 Editar
@@ -277,19 +257,19 @@ function MovementHistory({
         <Empty>
           {records.movements.some((item) => item.date.startsWith(`${month}-`))
             ? 'Nenhuma movimentação com os filtros selecionados.'
-            : 'Nenhuma movimentação neste mês.'}
+            : 'Nenhuma movimentação neste mês. Use “Adicionar receita” ou “Adicionar despesa”.'}
         </Empty>
       )}
       {items.length > limit && (
         <button
           type="button"
           className="filter-button finance-more"
-          onClick={() => setLimit((value) => value + HISTORY_PAGE_SIZE)}
+          onClick={() => setPage({ month, limit: limit + HISTORY_PAGE_SIZE })}
         >
           Mostrar mais movimentações
         </button>
       )}
-    </>
+    </Disclosure>
   );
 }
 

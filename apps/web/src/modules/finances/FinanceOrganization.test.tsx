@@ -31,6 +31,7 @@ import {
   PLAYER_STORAGE_KEY,
 } from '../../app/playerState';
 import { financialSummary, investmentValue, valuationBasis } from './ledger';
+import { money } from './calculations';
 import { emptyLedger } from './types';
 
 afterEach(cleanup);
@@ -164,43 +165,95 @@ function submit(form: HTMLElement, name = 'Registrar operação') {
 }
 
 describe('Organização da página Finanças', () => {
-  it('mantém a visão geral, abre áreas por abas e não exibe formulários nem históricos abertos', async () => {
+  it('abre na Carteira, alterna entre as duas abas por teclado e mantém gráficos visíveis', async () => {
     const state = seed();
     render(<App />);
+    const tabs = screen.getAllByRole('tab');
+    expect(tabs.map((tab) => tab.textContent)).toEqual([
+      'Carteira',
+      'Investimentos',
+    ]);
+    const wallet = screen.getByRole('tab', { name: 'Carteira' });
+    expect(wallet).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tabpanel')).toHaveAccessibleName('Carteira');
+    const overview = screen.getByRole('region', {
+      name: 'Visão geral financeira',
+    });
+    const expected = financialSummary(stored(), today);
+    for (const [label, value] of [
+      ['Saldo disponível', money(expected.cash!)],
+      ['Receitas do mês', money(300000)],
+      ['Despesas do mês', money(25000)],
+      ['Resultado mensal', money(275000)],
+    ] as const)
+      expect(
+        within(overview).getByText(label).nextElementSibling?.textContent,
+      ).toBe(value);
+    // Gráfico visível; histórico começa recolhido; nenhum formulário aberto.
+    const chart = screen.getByRole('region', { name: 'Evolução financeira' });
     expect(
-      screen.getByRole('region', { name: 'Visão geral financeira' }),
-    ).toHaveTextContent('Dinheiro disponível');
-    expect(
-      screen.getByRole('region', { name: 'Evolução financeira' }),
-    ).toBeInTheDocument();
-    const movements = screen.getByRole('tab', { name: 'Movimentações' });
-    expect(movements).toHaveAttribute('aria-selected', 'true');
-    expect(screen.queryAllByRole('form')).toHaveLength(
-      // Somente os formulários de contas, recolhidos em “Contas...”.
-      screen.queryAllByRole('form').filter((item) => item.closest('details'))
-        .length,
-    );
-    const history = screen.getByRole('button', {
+      within(chart).getByRole('button', { name: 'Saldo disponível' }),
+    ).toHaveAttribute('aria-pressed', 'true');
+    expect(within(chart).queryByText(/Dinheiro disponível/)).toBeNull();
+    const historyToggle = screen.getByRole('button', {
       name: 'Histórico de movimentações',
     });
-    expect(history).toHaveAttribute('aria-expanded', 'false');
+    expect(historyToggle).toHaveAttribute('aria-expanded', 'false');
     expect(screen.queryByText('Mercado')).not.toBeInTheDocument();
-    movements.focus();
-    fireEvent.keyDown(movements, { key: 'ArrowRight' });
+    expect(movementHistory()).toHaveTextContent('Mercado');
+    expect(historyToggle).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.queryAllByRole('form')).toHaveLength(0);
+    expect(
+      screen.queryByRole('region', { name: 'Visão geral dos investimentos' }),
+    ).not.toBeInTheDocument();
+    wallet.focus();
+    fireEvent.keyDown(wallet, { key: 'ArrowRight' });
     const investments = screen.getByRole('tab', { name: 'Investimentos' });
     expect(investments).toHaveAttribute('aria-selected', 'true');
+    expect(wallet).toHaveAttribute('aria-selected', 'false');
     expect(investments).toHaveFocus();
     expect(screen.getByRole('tabpanel')).toHaveAccessibleName('Investimentos');
+    const assets = screen.getByRole('region', {
+      name: 'Visão geral dos investimentos',
+    });
+    for (const label of [
+      'Valor dos investimentos',
+      'Patrimônio financeiro total',
+      'Custo de aquisição atual',
+      'Total aportado conhecido',
+      'Resgates e retiradas',
+    ])
+      expect(within(assets).getByText(label)).toBeInTheDocument();
+    // Patrimônio = saldo + investimentos, sem somar o saldo duas vezes.
+    expect(
+      within(assets).getByText('Patrimônio financeiro total').nextElementSibling
+        ?.textContent,
+    ).toBe(money(expected.cash! + expected.investments));
+    const wealth = screen.getByRole('region', { name: 'Evolução financeira' });
+    expect(
+      within(wealth).getByRole('button', { name: 'Patrimônio total' }),
+    ).toHaveAttribute('aria-pressed', 'true');
+    expect(
+      screen.getByRole('region', { name: 'Investimentos por categoria' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('region', { name: 'Meus investimentos' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Avaliações manuais' }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('Mercado')).not.toBeInTheDocument();
     expect(
       screen.queryByRole('form', { name: 'Cadastrar investimento' }),
     ).not.toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'Histórico de investimentos' }),
-    ).toHaveAttribute('aria-expanded', 'false');
     fireEvent.keyDown(investments, { key: 'Home' });
-    expect(movements).toHaveFocus();
-    fireEvent.keyDown(movements, { key: 'End' });
+    expect(wallet).toHaveFocus();
+    expect(wallet).toHaveAttribute('aria-selected', 'true');
+    fireEvent.keyDown(wallet, { key: 'End' });
     expect(investments).toHaveFocus();
+    // Nenhum controle de carteira/conta em nenhuma das abas.
+    for (const name of [/conta/i, /carteira/i, /saldo inicial/i])
+      expect(screen.queryByRole('button', { name })).toBeNull();
     await act(async () => {
       await Promise.resolve();
     });
@@ -248,37 +301,80 @@ describe('Organização da página Finanças', () => {
     ).toHaveTextContent('R$ 3.150,00');
   });
 
-  it('expande, filtra e recolhe o histórico de movimentações sem modificar registros', () => {
+  it('filtra o histórico por tipo, filtros avançados e período sem modificar registros', () => {
     const state = seed();
     render(<App />);
     const history = movementHistory();
     expect(history).toHaveTextContent('3 movimentações');
-    expect(history).toHaveTextContent('Mercado');
-    input(history, 'Tipo', 'Receitas');
+    const kind = (name: string) =>
+      within(
+        within(history).getByRole('group', {
+          name: 'Tipo de movimentação do histórico',
+        }),
+      ).getByRole('button', { name });
+    expect(kind('Todas')).toHaveAttribute('aria-pressed', 'true');
+    fireEvent.click(kind('Receitas'));
+    expect(kind('Receitas')).toHaveAttribute('aria-pressed', 'true');
     expect(history).toHaveTextContent('1 movimentação');
     expect(history).not.toHaveTextContent('Mercado');
-    input(history, 'Tipo', 'Despesas');
+    fireEvent.click(kind('Despesas'));
     // Carteira única: não há filtro por conta; registros antigos continuam listados.
     expect(
       within(history).queryByRole('combobox', { name: 'Conta' }),
     ).not.toBeInTheDocument();
     expect(history).toHaveTextContent('Cinema');
     expect(history).toHaveTextContent('Mercado');
+    // Categoria fica recolhida em “Filtros avançados”.
+    expect(
+      within(history).queryByRole('combobox', { name: 'Categoria' }),
+    ).toBeNull();
+    const advanced = within(history).getByRole('button', {
+      name: 'Filtros avançados',
+    });
+    expect(advanced).toHaveAttribute('aria-expanded', 'false');
+    fireEvent.click(advanced);
+    expect(advanced).toHaveAttribute('aria-expanded', 'true');
     input(history, 'Categoria', 'Casa');
     expect(history).toHaveTextContent('Mercado');
     expect(history).not.toHaveTextContent('Cinema');
-    input(history, 'Mês do histórico', '2026-10');
-    expect(history).toHaveTextContent('Nenhuma movimentação neste mês.');
-    expect(
-      screen.getByRole('combobox', { name: 'Mês financeiro' }),
-    ).toHaveTextContent('10/2026');
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Histórico de movimentações' }),
-    );
-    expect(
-      screen.getByRole('button', { name: 'Histórico de movimentações' }),
-    ).toHaveAttribute('aria-expanded', 'false');
+    fireEvent.click(advanced);
+    expect(advanced).toHaveAttribute('aria-expanded', 'false');
+    // O filtro continua aplicado e indicado depois de recolher.
+    expect(history).toHaveTextContent('categoria Casa');
+    expect(history).not.toHaveTextContent('Cinema');
+    // O histórico (aberto acima pelo helper) recolhe e reabre sem perder filtros.
+    const toggle = screen.getByRole('button', {
+      name: 'Histórico de movimentações',
+    });
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
     expect(screen.queryByText('Mercado')).not.toBeInTheDocument();
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    const reopened = movementHistory();
+    expect(reopened).toHaveTextContent('categoria Casa');
+    expect(reopened).toHaveTextContent('Mercado');
+    expect(reopened).not.toHaveTextContent('Cinema');
+    // O período controla indicadores mensais e histórico; o saldo não muda.
+    const cash = within(
+      screen.getByRole('region', { name: 'Visão geral financeira' }),
+    ).getByText('Saldo disponível').nextElementSibling?.textContent;
+    selectDate(screen.getByRole('combobox', { name: 'Período' }), '2026-10');
+    expect(movementHistory()).toHaveTextContent(
+      'Nenhuma movimentação neste mês.',
+    );
+    const overview = screen.getByRole('region', {
+      name: 'Visão geral financeira',
+    });
+    expect(
+      within(overview).getByText('Receitas do mês').nextElementSibling
+        ?.textContent,
+    ).toBe(money(0));
+    expect(
+      within(overview).getByText('Saldo disponível').nextElementSibling
+        ?.textContent,
+    ).toBe(cash);
     expect(stored()).toEqual(state.records);
   });
 
@@ -616,7 +712,7 @@ describe('Organização da página Finanças', () => {
     render(<App />);
     financeTab('Investimentos');
     const cards = within(
-      screen.getByRole('region', { name: 'Carteira cadastrada' }),
+      screen.getByRole('region', { name: 'Meus investimentos' }),
     ).getAllByRole('group');
     expect(cards).toHaveLength(7);
     for (const card of cards) {
