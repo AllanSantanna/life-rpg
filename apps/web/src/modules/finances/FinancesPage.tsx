@@ -18,6 +18,8 @@ import {
   type MovementDraft,
 } from './MovementsPanel';
 import { ValuationsPanel } from './ValuationsPanel';
+import { BudgetPanel } from './BudgetPanel';
+import { RecurrencesPanel } from './RecurrencesPanel';
 import type { MarketTracker } from './useMarketQuotes';
 
 /** Duas áreas: a carteira única (padrão) e o patrimônio investido. */
@@ -99,9 +101,10 @@ export function FinancesPage({
           ]}
         />
         <p className="record-hint">
-          O período define receitas, despesas, resultado mensal e o histórico. O
-          saldo disponível acumula todo o histórico (aportes saem, resgates
-          voltam); o gráfico usa seu próprio intervalo.
+          O período define receitas, despesas, resultado mensal, orçamento e o
+          histórico. O saldo disponível acumula todo o histórico (aportes
+          vinculados saem, retiradas vinculadas voltam); o gráfico usa seu
+          próprio intervalo.
         </p>
         <div
           className="finance-quick-actions"
@@ -133,6 +136,21 @@ export function FinancesPage({
         )}
       </section>
       <FinancialChart records={records} today={today} defaultView="cash" />
+      <RecurrencesPanel
+        key={`recurrences:${managementRevision}`}
+        records={records}
+        today={today}
+        run={run}
+        onDelete={setPendingDeletion}
+      />
+      <BudgetPanel
+        key={`budget:${managementRevision}`}
+        records={records}
+        today={today}
+        month={month}
+        run={run}
+        onDelete={setPendingDeletion}
+      />
       <MovementsPanel
         key={managementRevision}
         records={records}
@@ -182,7 +200,8 @@ export function FinancesPage({
         />
         <p className="record-hint">
           Patrimônio total = saldo disponível + valor dos investimentos. Aportes
-          já saíram do saldo, então nada é contado duas vezes.
+          vinculados à Carteira já saíram do saldo, então nada é contado duas
+          vezes; aportes com dinheiro externo aumentam o patrimônio.
         </p>
         {!financial.known && (
           <p className="record-hint">

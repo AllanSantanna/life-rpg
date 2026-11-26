@@ -20,6 +20,12 @@ como variáveis CSS e utilitários Tailwind (`bg-background`, `text-muted`, etc.
 `--color-error: #ffaaaa` centraliza a cor já usada em `record-error`, inclusive
 nas rejeições de formulário do perfil e das configurações financeiras.
 
+`--color-warning: #eab308` indica estado de atenção (não erro): usado no
+orçamento mensal de Finanças a partir de 80% do limite, sempre acompanhado de
+texto (“Atenção: 80% ou mais do limite”). Dentro do limite a barra usa
+`--color-finances`; a partir de 100%, `--color-primary` e o texto em
+`--color-error`.
+
 ## Pilares
 
 `data-area` atribui `--area-color`; reutilize esse mecanismo em cartões,

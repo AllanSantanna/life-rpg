@@ -23,6 +23,7 @@
   --color-on-primary: #fff;
   --color-focus: #fca5a5;
   --color-error: #ffaaaa;
+  --color-warning: #eab308;
   --color-muscle-ready: #22c55e;
   --color-muscle-recovering: #eab308;
   --color-muscle-tired: #f97316;
@@ -1981,6 +1982,120 @@
 }
 .finance-advanced-filters .record-field {
   margin-top: var(--space-2);
+}
+/* Tipo do histórico com “Internas”: quatro opções, duas por linha no celular. */
+.finance-segmented--four {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  max-width: 520px;
+}
+@media (max-width: 479px) {
+  .finance-segmented--four {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+/* Pesquisa rápida acima do histórico da Carteira. */
+.finance-history-area {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.finance-search {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-2);
+}
+.finance-search .record-field {
+  flex: 1 1 240px;
+  min-width: 0;
+}
+.finance-search input[type='search']::-webkit-search-cancel-button {
+  display: none;
+}
+/* Categoria com atalhos das recentes. */
+.finance-category {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+}
+.finance-category__recent {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.finance-category__title {
+  color: var(--color-muted);
+  font-size: 12px;
+}
+.finance-category__recent .filter-button {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.finance-repeat {
+  display: grid;
+  gap: var(--space-3);
+  margin-block: var(--space-3);
+}
+/* Cabeçalho de seção com título e ação principal (quebra no celular). */
+.finance-section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.finance-section-head h2 {
+  margin: 0;
+}
+.finance-upcoming__list li[data-overdue] p {
+  color: var(--color-error);
+}
+.finance-recurrence-rules {
+  margin-top: var(--space-3);
+}
+/* Orçamento mensal: barra com nível de atenção e texto equivalente. */
+.finance-budget__list {
+  display: grid;
+  gap: var(--space-4);
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.finance-budget__item {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+}
+.finance-budget__head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-1) var(--space-3);
+  overflow-wrap: anywhere;
+}
+.finance-budget__head span,
+.finance-budget__status {
+  color: var(--color-muted);
+  font-size: 13px;
+}
+.finance-budget__status {
+  margin: 0;
+}
+.finance-budget__item [role='progressbar'] > div {
+  background: var(--color-finances);
+}
+.finance-budget__item[data-level='attention'] [role='progressbar'] > div {
+  background: var(--color-warning);
+}
+.finance-budget__item[data-level='exceeded'] [role='progressbar'] > div {
+  background: var(--color-primary);
+}
+.finance-budget__item[data-level='attention'] .finance-budget__level {
+  color: var(--color-warning);
+}
+.finance-budget__item[data-level='exceeded'] .finance-budget__level {
+  color: var(--color-error);
 }
 /* Investimentos: escolha do tipo de gráfico e barras por categoria. */
 .investment-charts {
