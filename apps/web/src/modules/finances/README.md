@@ -931,10 +931,20 @@ setor. A base é o mesmo valor por investimento de **Valor dos investimentos**
 entram. Percentual = valor da categoria ÷ total distribuído, em décimos pelo
 método dos maiores restos, somando exatamente 100,0%.
 
-Cores fixas por categoria (`--color-chart-1` a `--color-chart-7`). Mouse e
-toque nos setores ou a legenda (botões com `aria-pressed`, setas, Home e End)
-escolhem a categoria do detalhe (nome, valor e percentual, `aria-live`); o SVG
-tem nome e um resumo textual para leitores de tela. Estados: sem investimentos
+Cores fixas por categoria (`--color-chart-1` a `--color-chart-7`, ver
+[cores](../../../../../docs/design-system/colors.md#gráfico-de-distribuição)).
+Clique, toque ou teclado na legenda (botões com `aria-pressed`, setas, Home e
+End) **selecionam**; o hover do mouse apenas **pré-visualiza** (`data-shown`) e,
+ao sair, volta a seleção. O destaque fica numa camada sobreposta com uma cópia
+fixa de cada setor (`.distribution-pie__glow`): só opacidade, expansão de 3,5%
+a partir do centro, luminosidade e `drop-shadow` na própria cor mudam, com
+transições CSS de 220 ms (`cubic-bezier(0.22, 1, 0.36, 1)`). Assim a troca é
+um cruzamento suave, sem reconstruir o gráfico nem usar temporizadores. A
+legenda selecionada ganha fundo grafite, borda e brilho leves na cor da
+categoria; o detalhe (nome, valor e percentual, `aria-live`) entra em 180 ms.
+Com movimento reduzido não há transições nem expansão; o destaque por cor,
+brilho e borda permanece. O SVG tem nome e um resumo textual para leitores de
+tela. Estados: sem investimentos
 (mensagem existente), sem valores para distribuir (posições sem custo nem
 cotação, listadas como “Valor pendente”) e referência pelo custo (`*`).
 

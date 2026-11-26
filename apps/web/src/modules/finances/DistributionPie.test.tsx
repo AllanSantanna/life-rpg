@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import {
   cleanup,
   fireEvent,
@@ -12,7 +13,7 @@ import { money } from './calculations';
 import { InvestmentCharts } from './InvestmentCharts';
 import { valuationBasis } from './ledger';
 import { formatTenths, percentTenths, pieSlices } from './pieChart';
-import type { InvestmentCategory } from './types';
+import { investmentCategories, type InvestmentCategory } from './types';
 
 /** Distribuição em pizza. Dados sintéticos; nenhum dado real. */
 afterEach(cleanup);
@@ -226,5 +227,180 @@ describe('gráfico de distribuição na aba Investimentos', () => {
       screen.getByText(/Ainda não há valores registrados para distribuir/),
     ).toBeInTheDocument();
     expect(document.querySelector('.distribution-pie__slice')).toBeNull();
+  });
+});
+
+// Arquivo-fonte lido do disco: no Vitest, CSS importado chega vazio.
+// Caminho em variável: o Vite reescreve `new URL('literal', import.meta.url)`.
+const read = (path: string) =>
+  readFileSync(
+    decodeURIComponent(new URL(path, import.meta.url).pathname),
+    'utf8',
+  );
+const css = read('../../shared/styles/index.css');
+const rule = (selector: string) => {
+  const start = css.indexOf(`${selector} {`);
+  expect(start, selector).toBeGreaterThanOrEqual(0);
+  return css.slice(start, css.indexOf('}', start));
+};
+const detailText = () =>
+  plain(document.querySelector('.distribution-pie__detail')!.textContent!);
+const legendButton = (category: string) =>
+  within(screen.getByRole('list', { name: 'Categorias da distribuição' }))
+    .getAllByRole('button')
+    .find((item) => item.textContent?.includes(category))!;
+
+describe('acabamento visual e interação da pizza', () => {
+  it('cada categoria tem cor estável, igual na fatia e no marcador', () => {
+    let records = portfolio();
+    const { rerender } = show(records);
+    const tones = () =>
+      Object.fromEntries(
+        [...chart().querySelectorAll('.distribution-pie__slice')].map(
+          (slice) => [
+            slice.getAttribute('data-category'),
+            slice.getAttribute('data-tone'),
+          ],
+        ),
+      );
+    const before = tones();
+    for (const [category, value] of Object.entries(before)) {
+      expect(value).toBe(
+        String(investmentCategories.indexOf(category as InvestmentCategory)),
+      );
+      expect(
+        legendButton(
+          category === 'Ações' ? 'Ações' : category.split(' ')[0]!,
+        ).querySelector('.distribution-pie__swatch'),
+      ).toHaveAttribute('data-tone', value!);
+    }
+    // Um aporte muda a ordem da legenda, não as cores.
+    records = apply(records, {
+      type: 'saveInvestmentEntry',
+      value: {
+        id: 'cx-big',
+        investmentId: 'cx',
+        kind: 'contribution',
+        amountCents: 900000,
+        date: '2026-11-05',
+        walletLinked: false,
+      },
+    });
+    rerender(<InvestmentCharts records={records} today={today} />);
+    expect(legend()[0]).toContain('Caixinhas bancárias');
+    expect(tones()).toEqual(before);
+  });
+
+  it('a fatia, o marcador e o brilho usam a mesma variável de cor', () => {
+    expect(css).toMatch(/--color-chart-4:\s*#35b779;/);
+    investmentCategories.forEach((_, index) =>
+      expect(rule(`.distribution-pie [data-tone='${index}']`)).toContain(
+        `--slice-color: var(--color-chart-${index + 1})`,
+      ),
+    );
+    expect(rule('.distribution-pie__slice')).toContain(
+      'fill: var(--slice-color)',
+    );
+    expect(rule('.distribution-pie__swatch')).toContain(
+      'background: var(--slice-color)',
+    );
+    expect(rule('.distribution-pie__glow[data-on]')).toMatch(
+      /drop-shadow\([^)]*var\(--slice-color\)/,
+    );
+    // Transição suave com a curva definida.
+    expect(rule('.distribution-pie')).toContain(
+      'cubic-bezier(0.22, 1, 0.36, 1)',
+    );
+    expect(rule('.distribution-pie')).toMatch(
+      /--pie-duration: (18|19|2[0-4])0ms/,
+    );
+  });
+
+  it('respeita a redução de movimento sem desligar o destaque', () => {
+    const start = css.indexOf(
+      '@media (prefers-reduced-motion: reduce) {\n  .distribution-pie__slice',
+    );
+    expect(start).toBeGreaterThan(0);
+    const block = css.slice(start, css.indexOf('\n}\n', start));
+    expect(block).toContain('transition: none');
+    expect(block).toMatch(
+      /\.distribution-pie__glow\[data-on\] \{\s*transform: none/,
+    );
+    expect(block).toContain('animation: none');
+    expect(block).not.toMatch(/opacity|filter/);
+  });
+
+  it('clique e toque selecionam; a anterior perde o destaque', () => {
+    show(portfolio());
+    const glow = (category: string) =>
+      chart().querySelector(`[data-glow="${category}"]`)!;
+    expect(glow('Renda fixa')).toHaveAttribute('data-on');
+    fireEvent.click(chart().querySelector('[data-category="Ações"]')!);
+    expect(glow('Ações')).toHaveAttribute('data-on');
+    expect(glow('Renda fixa')).not.toHaveAttribute('data-on');
+    expect(chart().querySelectorAll('[data-on]')).toHaveLength(1);
+    expect(legendButton('Ações')).toHaveAttribute('aria-pressed', 'true');
+    expect(legendButton('Renda fixa')).toHaveAttribute('aria-pressed', 'false');
+    expect(detailText()).toContain(`Ações *${plain(money(180000))} · 36%`);
+    // Toque não passa por hover: seleciona direto.
+    const touch = chart().querySelector(
+      '[data-category="Caixinhas bancárias"]',
+    )!;
+    fireEvent.pointerEnter(touch, { pointerType: 'touch' });
+    fireEvent.click(touch);
+    expect(legendButton('Caixinhas')).toHaveAttribute('aria-pressed', 'true');
+    // A pizza continua preenchida: setores partem do centro.
+    for (const path of chart().querySelectorAll('path'))
+      expect(path.getAttribute('d')).toMatch(/^M 100 100 L/);
+  });
+
+  it('hover pré-visualiza sem substituir a seleção', () => {
+    show(portfolio());
+    fireEvent.click(legendButton('Ações'));
+    const slice = chart().querySelector(
+      '[data-category="Caixinhas bancárias"]',
+    )!;
+    fireEvent.pointerEnter(slice, { pointerType: 'mouse' });
+    expect(detailText()).toContain('Caixinhas bancárias');
+    expect(legendButton('Caixinhas')).toHaveAttribute('data-shown');
+    expect(legendButton('Ações')).toHaveAttribute('aria-pressed', 'true');
+    fireEvent.pointerLeave(chart());
+    expect(detailText()).toContain('Ações');
+    expect(legendButton('Caixinhas')).not.toHaveAttribute('data-shown');
+    // Hover pela legenda também só pré-visualiza.
+    fireEvent.pointerEnter(legendButton('Renda fixa'), {
+      pointerType: 'mouse',
+    });
+    expect(detailText()).toContain('Renda fixa');
+    fireEvent.pointerLeave(
+      screen.getByRole('list', { name: 'Categorias da distribuição' }),
+    );
+    expect(detailText()).toContain('Ações');
+  });
+
+  it('troca rápida e teclado mantêm um único destaque e dados intactos', () => {
+    const records = portfolio();
+    const snapshot = JSON.stringify(records);
+    show(records);
+    for (const category of [
+      'Ações',
+      'Caixinhas bancárias',
+      'Renda fixa',
+      'Ações',
+    ])
+      fireEvent.click(chart().querySelector(`[data-category="${category}"]`)!);
+    expect(chart().querySelectorAll('[data-on]')).toHaveLength(1);
+    expect(detailText()).toContain('Ações');
+    const pressed = legendButton('Ações');
+    pressed.focus();
+    fireEvent.keyDown(pressed, { key: 'ArrowDown' });
+    expect(legendButton('Caixinhas')).toHaveFocus();
+    expect(detailText()).toContain(
+      `Caixinhas bancárias *${plain(money(70000))} · 14%`,
+    );
+    expect(
+      chart().querySelector('[data-glow="Caixinhas bancárias"]'),
+    ).toHaveAttribute('data-on');
+    expect(JSON.stringify(records)).toBe(snapshot);
   });
 });
