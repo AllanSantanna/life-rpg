@@ -21,12 +21,47 @@ continuam válidos. Na liquidação total, todo custo restante é removido. Vend
 - `bitcoinQuote.ts`: cliente HTTP substituível e cache de uma hora.
 - `useBitcoinQuote.ts`: atualização automática no ciclo de vida do aplicativo.
 - `FinancesPage.tsx`, `MovementsPanel.tsx`, `InvestmentsPanel.tsx`,
-  `InvestmentCard.tsx`, `CashLedgerPanel.tsx`, `FinancialChart.tsx` e
+  `InvestmentCard.tsx`, `ValuationsPanel.tsx`, `FinancialChart.tsx` e
   `CategoryIcon.tsx`: apresentação e formulários.
 - `financeForms.ts`: conversão dos formulários em registros/comandos (extraída
   sem alteração de regras). `investmentActions.ts`: ações por categoria.
   `historyFilters.ts`: filtros somente de leitura dos históricos.
 - `../records/commands.ts`: validação e publicação atômica das alterações.
+
+## Carteira interna única
+
+O Life RPG funciona como uma carteira financeira única e automática. Não há
+cadastro, escolha, edição ou exclusão de contas, nem saldo inicial obrigatório:
+ao abrir Finanças, a visão geral mostra **Saldo disponível**, **Receitas do mês**,
+**Despesas do mês** e **Resultado mensal**, com os botões **Adicionar receita** e
+**Adicionar despesa**. Um clique abre o formulário (`MovementForm`) com o tipo
+já escolhido, sem campo de conta. Editar no histórico abre o mesmo formulário.
+
+A carteira é a conta `principal` (`WALLET_ID` em `ledger.ts`). Registros novos são
+gravados **sem `accountId`**, que já significava “conta principal”. Nenhum
+registro de conta é criado: `cashAccounts()` acrescenta, somente na projeção, uma
+abertura implícita de saldo zero desde o primeiro registro quando não existe
+uma abertura `principal` gravada. Por isso não há migração, duplicação após
+recarregar nem concorrência na criação; o formato persistido não mudou.
+
+Compatibilidade com dados anteriores:
+
+- A abertura `principal` existente (valor e data) continua valendo; operações
+  anteriores à data dela permanecem fora do saldo, como antes.
+- Contas adicionais, transferências e `accountId` gravados são preservados e
+  continuam somados ao saldo disponível; nada é consolidado ou excluído. Editar
+  uma movimentação ou operação antiga mantém o `accountId` em campo oculto.
+- Os comandos `saveAccount`, `deleteAccount`, `saveTransfer` e `deleteTransfer`
+  continuam validados em `records/commands.ts` para registros e backups antigos,
+  mas não têm mais controles na interface.
+- O saldo disponível não inclui investimentos: aportes reais debitam e resgates
+  creditam a carteira; posições iniciais não. O patrimônio continua separado.
+
+As avaliações manuais de investimentos saíram do antigo painel de contas para
+`ValuationsPanel.tsx` (“Avaliações manuais”, na aba Investimentos), sem mudança
+de regras. Testes em `SingleWallet.test.tsx`.
+
+## Regras de cálculo
 
 Resultado mensal = receitas − despesas do mês selecionado. Saldo de uma conta =
 saldo de abertura + receitas − despesas − aportes + resgates + transferências
@@ -41,9 +76,9 @@ dessa abertura já existem à parte e não debitam novamente o dinheiro informad
 Saldos negativos são permitidos, pois podem representar contas devedoras;
 eles não são truncados para zero.
 
-Operações legadas sem `accountId` pertencem à conta `principal`. Sem a abertura
-das contas necessárias, dinheiro disponível e patrimônio ficam pendentes.
-Não há inferência de saldo a partir do resultado mensal.
+Operações sem `accountId` pertencem à carteira interna (`principal`). Sem
+abertura gravada, ela começa em zero (veja “Carteira interna única”). Não há
+inferência de saldo a partir do resultado mensal.
 
 Ativos manuais usam custo como referência enquanto não houver avaliação. Uma
 avaliação informa o valor total da posição na data. Ela permanece como última
@@ -71,7 +106,7 @@ A curva Bézier passa pelas amostras e limita seus controles aos segmentos, evit
 picos artificiais. Há cor de tendência, gradiente discreto, grade, destaque do
 último ponto e animação desabilitada com `prefers-reduced-motion`. Datas iguais
 continuam agregadas pela projeção financeira. Um único ponto fica centralizado,
-sem linha. Estados vazios distinguem falta de saldo inicial de período sem eventos.
+sem linha. Estados vazios distinguem ausência de registros de período sem eventos.
 
 Toque, mouse e foco de teclado abrem um tooltip com data, patrimônio, disponível
 e investimentos, sem tabela ou menu adicional. Setas, Home e End percorrem os
@@ -132,8 +167,9 @@ cotações, avaliações, aberturas de contas e transferências não geram XP.
 
 1. Execute `nvm use` e `npm run dev:web`. Abra `/financas` no mesmo endereço usado
    anteriormente para manter o acesso ao armazenamento do navegador.
-2. Abra “Contas, transferências e avaliações manuais” (na visão geral). Cadastre saldo inicial
-   de R$ 1.000,00, com data anterior às operações do teste.
+2. (Histórico: etapa anterior à carteira única.) Abra “Contas, transferências e
+   avaliações manuais” e cadastre saldo inicial de R$ 1.000,00. Hoje a carteira
+   começa em zero; registre uma receita de R$ 1.000,00 no lugar desta etapa.
 3. Cadastre uma caixinha selecionando **Nova compra ou aporte**, com R$ 200,00: disponível R$ 800,00,
    investimento R$ 200,00, patrimônio R$ 1.000,00, despesas inalteradas
    (em uma carteira sem outros registros). Avalie a caixinha em R$ 210,00:
@@ -178,6 +214,10 @@ variação positiva/negativa/nula, base zero/negativa, curvas, datas iguais, vaz
 ponto único, tooltip, teclado e atualização após exclusões.
 
 ## Exclusão de contas e redefinição
+
+> Histórico: a interface de contas foi removida pela carteira interna única. O
+> comando `deleteAccount` e as regras abaixo continuam válidos na camada de
+> comandos; “Redefinir dados financeiros” continua disponível.
 
 Cada conta oferece Editar e Excluir. A exclusão abre um diálogo com foco inicial
 em Cancelar e não altera dados até a confirmação. Vínculos legados sem `accountId`
@@ -523,11 +563,11 @@ topo. Abaixo, as abas **Movimentações** e **Investimentos** (`FinanceTabs`,
 teclado com setas/Home/End) mostram uma área por vez. “Configurações financeiras”
 permanece ao final. Nenhuma fórmula, comando ou formato de armazenamento mudou.
 
-**Movimentações:** “Nova movimentação” abre o formulário existente (mesmos campos e
-validações). Salvar fecha o formulário e recalcula os indicadores; cancelar fecha
-sem gravar. “Histórico de movimentações” começa recolhido e filtra por mês (o
-mesmo estado de “Mês financeiro”), tipo, conta (registros sem conta pertencem à
-principal) e categoria, com carregamento progressivo de 20 em 20.
+**Movimentações:** “Adicionar receita” e “Adicionar despesa”, na visão geral,
+abrem o formulário existente (mesmos campos e validações, sem conta). Salvar fecha
+o formulário e recalcula os indicadores; cancelar fecha sem gravar. “Histórico de
+movimentações” começa recolhido e filtra por mês (o mesmo estado de “Mês
+financeiro”), tipo e categoria, com carregamento progressivo de 20 em 20.
 
 **Investimentos:** totais por categoria, “Novo investimento” (cadastro existente,
 sob demanda), carteira em cartões e “Histórico de investimentos” recolhido, com
@@ -575,7 +615,7 @@ bem-sucedido, evitando registros duplicados por cliques repetidos.
 - Rótulos dos campos permanecem os existentes (“Valor da operação (R$)”), mesmo
   quando a operação é venda ou resgate.
 - Renda fixa e Outros não possuem cotação; o valor segue a última avaliação manual
-  registrada em “Contas, transferências e avaliações manuais”.
+  registrada em “Avaliações manuais” (aba Investimentos).
 
 ## Cotações de ações e FIIs (brapi.dev)
 

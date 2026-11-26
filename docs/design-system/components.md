@@ -63,7 +63,7 @@ de variante legítima, evolua o componente e documente-a antes de copiar o CSS.
   importação, apelidos), porque o `Disclosure` desmonta o conteúdo fechado e
   perderia o que foi digitado; (4) detalhes compactos dentro de cartões ou listas
   (sessões, recordes, ciclos de Quests, grupos do mapa). Áreas de seção de página
-  usam `Disclosure`: em Finanças, “Contas, transferências e avaliações manuais” e
+  usam `Disclosure`: em Finanças, “Avaliações manuais” e
   “Configurações financeiras” foram convertidas para seguir as seções de histórico
   do mesmo módulo.
 - [ConfirmAction](../../apps/web/src/shared/components/ConfirmAction.tsx): ação

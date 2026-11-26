@@ -15,8 +15,9 @@ pilares não dependem dessas integrações.
   quando os dois são informados. Retiradas não podem deixar saldo aplicado negativo
   em nenhuma data; editar/excluir um aporte também respeita essa validação.
   A carteira distingue custo de aquisição e valor atual manual/estimado. Bitcoin
-  usa satoshis, custo médio e cotação pública. Contas têm saldo inicial explícito;
-  transferências não alteram o fluxo mensal. Patrimônio = disponível + investimentos.
+  usa satoshis, custo médio e cotação pública. O saldo usa uma carteira interna
+  única e automática, sem cadastro de contas; aberturas, contas e transferências
+  de versões anteriores continuam preservadas e não alteram o fluxo mensal. Patrimônio = disponível + investimentos.
   Consulte [Finanças](../apps/web/src/modules/finances/README.md) para contas,
   vendas parciais, avaliações, gráficos e compatibilidade com os dados anteriores.
   Aportes/retiradas são transferências da carteira: não criam receitas/despesas de

@@ -29,7 +29,7 @@ Identidade vetorial, variantes e recursos instaláveis: [Marca Life RPG](brand.m
   `.filter-button` também recebe regras específicas no treino avançado. Não
   existe ainda um único componente para todas as variantes de botão.
 - `ActionButton` consolida as ações primárias de 160 × 44 px: “Importar treino”,
-  “Nova ficha”, “Nova movimentação”, “Novo investimento”, “Salvar data/hora” e
+  “Nova ficha”, “Adicionar receita”, “Adicionar despesa”, “Novo investimento”, “Salvar data/hora” e
   “Criar minha quest”, entre outras. Inventário completo: busque `ActionButton`.
 - `Field`, `RecordForm` e `Actions` são reutilizados entre pilares, mas permanecem
   em `modules/records/RecordUI.tsx`. Não há componente genérico `Input` ou `Card`.
