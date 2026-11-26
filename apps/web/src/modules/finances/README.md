@@ -32,7 +32,7 @@ continuam válidos. Na liquidação total, todo custo restante é removido. Vend
 
 O Life RPG funciona como uma carteira financeira única e automática. Não há
 cadastro, escolha, edição ou exclusão de contas, nem saldo inicial obrigatório:
-ao abrir Finanças, a visão geral mostra **Saldo disponível**, **Receitas do mês**,
+ao abrir Finanças, a aba Carteira mostra **Saldo disponível**, **Receitas do mês**,
 **Despesas do mês** e **Resultado mensal**, com os botões **Adicionar receita** e
 **Adicionar despesa**. Um clique abre o formulário (`MovementForm`) com o tipo
 já escolhido, sem campo de conta. Editar no histórico abre o mesmo formulário.
@@ -88,8 +88,9 @@ avaliação após essas alterações. Na retirada de ativos manuais, o campo de 
 resgatado permite separar o custo do valor recebido; se omitido, ambos são iguais,
 preservando a regra anterior. Em BTC, o custo resgatado é automático.
 
-O gráfico principal mostra **Dinheiro disponível** por padrão, com Mensal
-selecionado. Os botões Dinheiro disponível/Patrimônio total alternam o indicador
+O gráfico mostra **Saldo disponível** por padrão na aba Carteira (e Patrimônio
+total na aba Investimentos), com Mensal selecionado. Os botões Saldo
+disponível/Patrimônio total alternam o indicador
 no mesmo gráfico. Patrimônio total inclui os investimentos; dinheiro disponível
 usa somente saldos de contas e movimentações reais. Os botões Semanal/Mensal/Anual usam janelas móveis de
 7/30/365 dias, incluindo hoje. `chartModel.ts` reaproveita `financialHistory` e
@@ -557,23 +558,50 @@ transferências, carteira, XP nem o envelope v4. Consulte os testes de fluxos e
 
 ## Organização da página e ações nos cartões
 
-A página tem três partes. A **visão geral** (mês, receitas/despesas, dinheiro
-disponível, investimentos, patrimônio, custos, gráfico e contas) fica sempre no
-topo. Abaixo, as abas **Movimentações** e **Investimentos** (`FinanceTabs`,
-teclado com setas/Home/End) mostram uma área por vez. “Configurações financeiras”
-permanece ao final. Nenhuma fórmula, comando ou formato de armazenamento mudou.
+Finanças tem **duas abas** (`FinanceTabs`, teclado com setas/Home/End,
+`aria-selected` e painel associado): **Carteira** (padrão) e **Investimentos**.
+“Configurações financeiras” permanece ao final, fora das abas. Nenhuma fórmula,
+comando ou formato de armazenamento mudou com a reorganização.
 
-**Movimentações:** “Adicionar receita” e “Adicionar despesa”, na visão geral,
-abrem o formulário existente (mesmos campos e validações, sem conta). Salvar fecha
-o formulário e recalcula os indicadores; cancelar fecha sem gravar. “Histórico de
-movimentações” começa recolhido e filtra por mês (o mesmo estado de “Mês
-financeiro”), tipo e categoria, com carregamento progressivo de 20 em 20.
+**Carteira**, nesta ordem:
 
-**Investimentos:** totais por categoria, “Novo investimento” (cadastro existente,
-sob demanda), carteira em cartões e “Histórico de investimentos” recolhido, com
-filtros de investimento, categoria, tipo de operação (compra/aporte,
-venda/retirada, posição inicial) e período. Editar, excluir e “Corrigir como
-posição inicial” continuam no histórico.
+1. **Período** (mês) e os quatro indicadores: Saldo disponível (acumulado, não
+   depende do mês), Receitas do mês, Despesas do mês e Resultado mensal.
+2. Ações rápidas **Adicionar receita** e **Adicionar despesa**: um clique abre
+   `MovementForm` com o tipo escolhido, data de hoje (`localDate`, fuso local) e
+   sem conta. Na edição, a data e o `accountId` originais são preservados.
+3. Gráfico `FinancialChart` sempre visível, iniciando em **Saldo disponível**. Seu
+   intervalo (Semanal/Mensal/Anual) é próprio e independente do Período.
+4. **Histórico de movimentações** recolhido por padrão, aberto por um clique
+   (`Disclosure`); filtros e paginação são mantidos ao recolher e reabrir. O Período é o mesmo mês dos
+   indicadores (um único seletor, sem duplicação). Tipo fica à vista
+   (`Todas | Receitas | Despesas`, `.filter-button` com `aria-pressed`); categoria
+   fica em **Filtros avançados** (`Disclosure`). O filtro de categoria continua
+   aplicado e indicado depois de recolher. Paginação de 20 em 20.
+
+**Investimentos**, nesta ordem:
+
+1. Indicadores patrimoniais: valor dos investimentos, patrimônio financeiro total
+   (saldo disponível + investimentos; aportes já saíram do saldo, então nada é
+   somado duas vezes), custo de aquisição atual, total aportado e resgates.
+2. Ações rápidas **Novo investimento** e **Aporte / Retirada** (esta só aparece
+   com investimentos cadastrados): abre o `OperationForm` existente com escolha do
+   investimento e da operação. Cada cartão mantém suas ações contextuais.
+3. Gráficos sempre visíveis: custo por categoria e **Gráficos de investimentos**
+   (`InvestmentCharts`), com seletor de tipo (`aria-pressed`):
+   - **Evolução**: `FinancialChart` iniciando em Patrimônio total (a visão de
+     saldo segue disponível no mesmo gráfico);
+   - **Distribuição**: participação de cada categoria no valor atual;
+   - **Custo × valor**: barras de custo e valor por categoria, com a diferença
+     somente quando há avaliação/cotação e custo conhecidos.
+     Os dois últimos usam `categoryBreakdown` (agregação de `investmentValue`, as
+     mesmas regras do patrimônio). Valor de referência pelo custo é marcado com
+     `*`; posições sem custo nem cotação ficam fora do valor. Nada é chamado de
+     rentabilidade e nenhum preço é estimado.
+4. **Meus investimentos** (cartões com detalhes, gráficos de mercado, aportes,
+   retiradas, edição e exclusão) e **Histórico de investimentos** recolhido, com
+   filtros de investimento, categoria, tipo de operação e período.
+5. **Avaliações manuais** (`ValuationsPanel`), seção secundária recolhida.
 
 A primeira ação de cada linha abaixo é a principal (`ActionButton`, sempre
 visível). As demais, Editar e Excluir (com confirmação) ficam no menu “Mais ações”
@@ -616,6 +644,9 @@ bem-sucedido, evitando registros duplicados por cliques repetidos.
   quando a operação é venda ou resgate.
 - Renda fixa e Outros não possuem cotação; o valor segue a última avaliação manual
   registrada em “Avaliações manuais” (aba Investimentos).
+- O rótulo “Saldo disponível” substituiu “Dinheiro disponível” no gráfico. Seções
+  históricas deste README mantêm o nome antigo. A métrica de Quests “Dinheiro
+  disponível nas contas” não foi alterada (fora do escopo de Finanças).
 
 ## Cotações de ações e FIIs (brapi.dev)
 
