@@ -467,6 +467,14 @@ async function capture(page, name, width) {
  * usar” visíveis sem rolagem e não cobertos, e fechamento imediato pelo ×.
  */
 async function auditWhatsNew(page, width) {
+  // A explicação inicial é fixa e pode cobrir o botão ao rolar o Perfil.
+  // Dispense-a pelo controle real antes de testar o próximo fluxo.
+  const intro = page.locator('.quick-actions__intro');
+  if (await intro.isVisible()) {
+    const dismiss = intro.getByRole('button', { name: 'Entendi', exact: true });
+    await (width < 768 ? dismiss.tap() : dismiss.click());
+    await intro.waitFor({ state: 'hidden' });
+  }
   const open = page.getByRole('button', { name: 'Ver novidades' });
   await open.scrollIntoViewIfNeeded();
   await (width < 768 ? open.tap() : open.click());
