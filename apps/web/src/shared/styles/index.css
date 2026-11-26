@@ -1677,8 +1677,9 @@
   align-items: center;
   gap: 7px;
 }
+/* O espaçamento até a seção anterior vem do gap da página (.finance-page);
+   a margem própria somava 20 px ao gap e dobrava o intervalo. */
 .financial-settings {
-  margin-top: 20px;
   border-color: #f8717125;
 }
 .financial-settings h3 {
@@ -1869,13 +1870,32 @@
   flex-wrap: wrap;
 }
 
-/* Finanças: visão geral, abas e áreas sob demanda. */
+/* Finanças: visão geral, abas e áreas sob demanda. Um único ritmo vertical
+   de 16 px entre cartões, controlado pelos contêineres (gap), sem margens
+   externas nos cartões. */
+.finance-page,
 .finance-overview,
 .finance-area,
 .finance-tabs {
   display: grid;
-  gap: var(--space-5);
+  gap: var(--space-4);
   min-width: 0;
+}
+/* Títulos de seção: 12 px até o conteúdo. */
+.finance-page .record-section h2,
+.finance-page .record-form h2 {
+  margin-bottom: var(--space-3);
+}
+/* Seções recolhíveis: o botão de 44 px já dá a área de toque; o padding de
+   22 px em cima e embaixo deixava um cartão de 88 px só para o título. */
+.finance-page .record-section.disclosure {
+  padding-block: var(--space-3);
+}
+.finance-page .record-section.disclosure > .disclosure__content:not([hidden]) {
+  padding-bottom: var(--space-2);
+}
+.finance-page .disclosure > .disclosure__heading {
+  margin-bottom: 0;
 }
 .finance-tabs__list {
   display: grid;

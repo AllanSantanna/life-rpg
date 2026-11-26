@@ -232,7 +232,7 @@ export function FinancesPage({
     </div>
   );
   return (
-    <div className="pillar-page" data-area="Finanças">
+    <div className="pillar-page finance-page" data-area="Finanças">
       <FinanceTabs
         label="Áreas de Finanças"
         tabs={areas}
