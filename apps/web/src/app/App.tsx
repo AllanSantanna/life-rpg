@@ -45,6 +45,7 @@ import { SectionHeading } from '../shared/components/SectionHeading';
 import { Icon } from '../shared/components/Icon';
 import { sessionsInProgress } from '../modules/workouts/advanced/startSession';
 import { WhatsNewDialog } from './whats-new/WhatsNewDialog';
+import { WhatsNewEntry } from './whats-new/WhatsNewEntry';
 import { useWhatsNew } from './whats-new/useWhatsNew';
 import { hasPersonalHistory } from './whats-new/presentation';
 
@@ -452,6 +453,9 @@ export function App() {
                   onRestore={restoreBackup}
                   {...(copies ? { copyStore: copies } : {})}
                 />
+                {whatsNew.release && (
+                  <WhatsNewEntry onOpen={whatsNew.openManually} />
+                )}
               </div>
             )}
           </div>

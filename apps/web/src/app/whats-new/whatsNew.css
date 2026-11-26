@@ -176,3 +176,26 @@
     animation: none;
   }
 }
+
+/* Acesso pelo Perfil: linha discreta, sem destaque de ação primária. */
+.whats-new-entry {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.whats-new-entry h2,
+.whats-new-entry p {
+  margin: 0;
+}
+.whats-new-entry__text {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+.whats-new-entry .filter-button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
