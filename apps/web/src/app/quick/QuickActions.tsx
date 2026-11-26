@@ -19,6 +19,7 @@ import type {
   SaveOutcome,
 } from '../../modules/records/types';
 import { SleepForm } from '../../modules/rest/SleepForm';
+import { useConfirmedCommand } from '../../modules/records/useConfirmedCommand';
 import { suggestedPlan } from '../../modules/workouts/advanced/rotation';
 import {
   planStart,
@@ -47,12 +48,6 @@ const formTitles: Record<QuickForm['type'], string> = {
   reading: 'Registrar leitura',
   book: 'Cadastrar livro',
   movement: 'Nova movimentação',
-};
-const saveErrors: Record<Exclude<SaveOutcome, 'saved'>, string> = {
-  failed:
-    'A gravação não foi confirmada neste navegador. O registro não foi salvo com segurança: confira o aviso de armazenamento antes de registrar de novo.',
-  conflict:
-    'Os registros foram alterados em outra aba e esta alteração não foi salva. Recarregue os registros antes de registrar de novo.',
 };
 
 /** Mensagem de sucesso conforme o comando efetivamente aplicado. */
@@ -95,6 +90,7 @@ export function QuickActions({
   onNavigate,
   onOpenSession,
   introStorage,
+  openRequest,
 }: {
   records: LifeRecords;
   today: string;
@@ -104,6 +100,8 @@ export function QuickActions({
   /** Abre a página Treinos na sessão indicada. */
   onOpenSession: (sessionId: string) => void;
   introStorage?: StateStorage<QuickActionsPreference>;
+  /** Pedido externo para abrir o menu (ex.: comando por voz não entendido). */
+  openRequest?: number;
 }) {
   const id = useId();
   const panelId = `${id}-panel`;
@@ -116,23 +114,17 @@ export function QuickActions({
   const [step, setStep] = useState<Step>('root');
   const [form, setForm] = useState<QuickForm | null>(null);
   const [formRevision, setFormRevision] = useState(0);
-  const [saving, setSaving] = useState(false);
-  const [saveError, setSaveError] = useState('');
   const [formNotice, setFormNotice] = useState('');
   const [toast, setToast] = useState('');
   const [workoutError, setWorkoutError] = useState('');
   const [introSeen, dismissIntro] = useQuickActionsIntro(introStorage);
-  /** Trava contra cliques repetidos: um comando aceito por formulário aberto. */
-  const committed = useRef<string | null>(null);
+  /**
+   * Trava contra cliques repetidos e sucesso só após gravar: a mesma regra do
+   * comando por voz (`useConfirmedCommand`).
+   */
+  const save = useConfirmedCommand(onCommand, whenSaved);
+  const { saving, error: saveError } = save;
   const busy = useRef(false);
-  const mounted = useRef(true);
-  // Remarca na montagem: o StrictMode desmonta e remonta os efeitos.
-  useEffect(() => {
-    mounted.current = true;
-    return () => {
-      mounted.current = false;
-    };
-  }, []);
 
   const advanced = records.advancedWorkouts ?? emptyAdvancedWorkouts();
   const running = sessionsInProgress(advanced);
@@ -158,6 +150,12 @@ export function QuickActions({
     setStep('root');
     setOpen(true);
   }
+
+  useEffect(() => {
+    if (!openRequest) return;
+    setStep('root');
+    setOpen(true);
+  }, [openRequest]);
 
   // Foco no primeiro item ao abrir e a cada etapa.
   useEffect(() => {
@@ -247,18 +245,15 @@ export function QuickActions({
 
   function openForm(next: QuickForm) {
     closeMenu(false);
-    committed.current = null;
-    setSaveError('');
+    save.reset();
     setFormNotice('');
-    setSaving(false);
     setForm(next);
     setFormRevision((n) => n + 1);
   }
   function closeForm() {
     if (saving) return;
     setForm(null);
-    committed.current = null;
-    setSaveError('');
+    save.reset();
     setFormNotice('');
     requestAnimationFrame(() =>
       trigger.current?.focus({ preventScroll: true }),
@@ -266,26 +261,12 @@ export function QuickActions({
   }
   /** `run` dos formulários reaproveitados: mesmo comando do App. */
   function run(command: RecordCommand) {
-    if (committed.current !== null)
-      return saveError || 'Este registro já está sendo salvo.';
-    const error = onCommand(command);
-    if (!error) committed.current = successMessage(command);
-    return error;
+    return save.run(command, successMessage(command));
   }
   async function confirmSaved(next?: QuickForm) {
-    const message = committed.current;
+    // Em falha, o formulário continua aberto com os dados; nada de sucesso.
+    const message = await save.confirm();
     if (message === null) return;
-    setSaving(true);
-    setSaveError('');
-    const outcome = whenSaved ? await whenSaved() : 'saved';
-    if (!mounted.current) return;
-    setSaving(false);
-    if (outcome !== 'saved') {
-      // O formulário continua aberto com os dados; nada de sucesso.
-      setSaveError(saveErrors[outcome]);
-      return;
-    }
-    committed.current = null;
     if (next) {
       setForm(next);
       setFormRevision((n) => n + 1);
@@ -647,7 +628,7 @@ export function QuickActions({
                 draft={{ id: null, kind: form.kind }}
                 run={run}
                 onClose={() =>
-                  committed.current !== null ? void confirmSaved() : closeForm()
+                  save.isPending() ? void confirmSaved() : closeForm()
                 }
               />
             )}
