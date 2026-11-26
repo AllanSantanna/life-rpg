@@ -597,7 +597,10 @@ comando ou formato de armazenamento mudou com a reorganização.
    - **Distribuição**: pizza preenchida com a participação de cada categoria
      no valor atual (ver “Resgates simplificados e distribuição em pizza”);
    - **Custo × valor**: barras de custo e valor por categoria, com a diferença
-     somente quando há avaliação/cotação e custo conhecidos.
+     somente quando há avaliação/cotação e custo conhecidos. Quando o valor
+     atual fica abaixo do custo, a diferença (com sinal de menos) aparece em
+     vermelho (`--color-error`) e a barra de valor usa `--color-primary`;
+     diferença indisponível não recebe a cor.
      Os dois últimos usam `categoryBreakdown` (agregação de `investmentValue`, as
      mesmas regras do patrimônio). Valor de referência pelo custo é marcado com
      `*`; posições sem custo nem cotação ficam fora do valor. Nada é chamado de

@@ -2576,6 +2576,16 @@
 .investment-bars__fill--cost {
   background: var(--color-muted);
 }
+/* Valor atual abaixo do custo: texto legível em vermelho claro, barra no
+   vermelho da identidade. */
+.investment-bars [data-trend='negative'] .investment-bars__label > strong {
+  color: var(--color-error);
+}
+.investment-bars
+  [data-trend='negative']
+  .investment-bars__fill:not(.investment-bars__fill--cost) {
+  background: var(--color-primary);
+}
 @media (prefers-reduced-motion: no-preference) {
   .investment-bars__fill {
     transition: width 0.3s ease;

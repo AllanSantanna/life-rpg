@@ -314,8 +314,14 @@ function CostValue({ rows }: { rows: CategoryBreakdown[] }) {
         {rows.map((row) => {
           const comparable = row.costKnown && !row.reference && !row.unpriced;
           const difference = row.value - row.cost;
+          // Abaixo do custo: diferença e barra de valor em vermelho. O sinal
+          // de menos continua no texto, então a cor não é o único indicador.
+          const below = comparable && difference < 0;
           return (
-            <li key={row.category}>
+            <li
+              key={row.category}
+              {...(below ? { 'data-trend': 'negative' } : {})}
+            >
               <div className="investment-bars__label">
                 <span>
                   <CategoryIcon category={row.category} />
@@ -350,7 +356,8 @@ function CostValue({ rows }: { rows: CategoryBreakdown[] }) {
         })}
       </ul>
       <p className="record-hint">
-        Barra cinza: custo · barra verde: valor atual.
+        Barra cinza: custo · barra verde: valor atual (vermelha quando abaixo do
+        custo).
       </p>
       <Notes rows={rows} />
     </div>
