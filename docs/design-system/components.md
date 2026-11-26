@@ -197,6 +197,7 @@ restritos ao módulo Finanças até que outra tela precise do mesmo contrato:
 | `Disclosure`         | Usa o [Disclosure oficial](../../apps/web/src/shared/components/Disclosure.tsx); a cópia local foi removida  |
 | `InlineForm`         | Envolve um `RecordForm` aberto sob demanda: foca o primeiro campo e devolve o foco ao controle que o abriu   |
 | `DeleteConfirmation` | Exclusões financeiras via `FinancialConfirmation`, com “Confirmar exclusão” e cancelamento sem alterar dados |
+| `SwitchField`        | Interruptor de formulário financeiro sobre o padrão oficial `.strength-switch` (`role="switch"`)             |
 
 `Actions` aceita `cancel` para o rótulo do cancelamento (padrão “Cancelar edição”;
 formulários de criação usam “Cancelar”). A seta gira sem transição com

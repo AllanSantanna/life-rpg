@@ -572,7 +572,9 @@ comando ou formato de armazenamento mudou com a reorganização.
    sem conta. Na edição, a data e o `accountId` originais são preservados.
 3. Gráfico `FinancialChart` sempre visível, iniciando em **Saldo disponível**. Seu
    intervalo (Semanal/Mensal/Anual) é próprio e independente do Período.
-4. **Histórico de movimentações** recolhido por padrão, aberto por um clique
+4. **Próximas movimentações** (recorrências) e **Orçamento mensal**, descritos
+   em “Produtividade, recorrências, orçamento e vínculo com a Carteira”.
+5. **Pesquisar no histórico** e **Histórico de movimentações** recolhido por padrão, aberto por um clique
    (`Disclosure`); filtros e paginação são mantidos ao recolher e reabrir. O Período é o mesmo mês dos
    indicadores (um único seletor, sem duplicação). Tipo fica à vista
    (`Todas | Receitas | Despesas`, `.filter-button` com `aria-pressed`); categoria
@@ -739,3 +741,121 @@ abertura de uma das contas, ou o erro de posição do investimento afetado,
 prefixado pelo nome (venda acima da quantidade, compras anteriores sem
 quantidade, retirada acima do custo com a orientação de informar o custo
 resgatado quando há rendimento). Só os demais casos usam a mensagem geral.
+
+## Produtividade, recorrências, orçamento e vínculo com a Carteira
+
+Nenhum dado existente é regravado. As estruturas novas são extensões
+opcionais do envelope v8 (sem migração e sem nova versão): `records.finance`
+ganha `recurrences` e `budgets`; `MoneyMovement` ganha `recurrence`;
+`InvestmentEntry` ganha `walletLinked`. Registros e backups anteriores, sem
+esses campos, continuam válidos e calculados como antes. Cada comando produz um
+estado inteiro validado por `isLifeRecords`, gravado numa única transação
+IndexedDB com controle de revisão: não há gravações parciais.
+
+### Decisões de modelo
+
+| Tema                     | Decisão                                                                                                                                                    |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Identidade               | IDs próprios por registro. Ocorrência de recorrência = par regra/data; a movimentação que a confirma usa o ID determinístico `recorrencia:<regra>:<data>`. |
+| Competência e efetivação | A data prevista da ocorrência é a competência (`recurrence.date`); a data da movimentação é a efetivação e define saldo, mês, orçamento e XP.              |
+| Saldo disponível         | Receitas − despesas ± operações que movimentam a Carteira (`movesWallet`), mais contas e transferências legadas, como antes.                               |
+| Saldo projetado          | Recorrências previstas não entram em nenhum saldo: são listadas à parte e só contam depois de confirmadas.                                                 |
+| Patrimônio               | Saldo disponível + valor dos investimentos. Um aporte vinculado só transfere valor; um aporte com dinheiro externo aumenta o patrimônio.                   |
+| Custo de aquisição       | Inalterado (`position.ts`). Na retirada, valor recebido e custo baixado continuam separados (`costBasisCents`).                                            |
+| Transferências legadas   | `transfers`/`accounts` antigos são preservados e seguem somados ao saldo; não há interface nova para eles.                                                 |
+| Fonte de verdade         | Uma só: registros reais. Pendências, próximas datas, consumo do orçamento, categorias recentes e movimentos internos são projeções.                        |
+
+### Vínculo Carteira–Investimentos
+
+Antes desta entrega, toda compra/aporte real já debitava a carteira e toda
+retirada/venda já creditava, a partir do próprio `InvestmentEntry`. Essa regra
+foi preservada e passou a ser uma escolha explícita nos formulários:
+
+- **Utilizar saldo da Carteira** (aporte) e **Enviar valor para a Carteira**
+  (retirada), interruptores ligados por padrão. Ligado grava
+  `walletLinked: true`; desligado grava `false` (dinheiro de fora do Life RPG
+  ou que sai dele). Posições iniciais nunca movimentam a carteira.
+- Sem o campo (registros anteriores) vale a regra histórica. Nada é vinculado
+  ou desvinculado retroativamente; editar um registro antigo com o interruptor
+  ligado não acrescenta o campo.
+- O movimento interno **não é um segundo registro**: é projetado do mesmo
+  `InvestmentEntry` (mesmo ID). Gravar, editar ou excluir pela aba
+  Investimentos atualiza os dois lados juntos, sem órfãos. Na Carteira, o
+  filtro **Internas** do histórico lista esses movimentos somente para consulta.
+- Aporte vinculado sem saldo é recusado por inteiro (`walletShortfall`): o
+  saldo, sem a própria operação, precisa cobrir o valor na data do aporte e em
+  todas as datas posteriores com registros. Registros anteriores, despesas e
+  retiradas mantêm a política existente (saldos negativos aceitos).
+- Não há receita, despesa, consumo de orçamento ou XP de receita/despesa.
+  A regra existente de atividade financeira diária (80 XP por dia, sem
+  duplicação) continua valendo para operações reais, como antes.
+
+### Repetir, categorias recentes e pesquisa
+
+- **Repetir** (histórico): abre “Nova movimentação” com tipo, descrição, valor
+  e categoria do original e a data de hoje; só grava ao confirmar, com novo ID,
+  sem `accountId` nem vínculo de recorrência. Movimentos internos não têm
+  Repetir.
+- **Categorias**: texto livre gravado na movimentação (é o identificador real;
+  não há cadastro). `CategoryField` mostra até cinco **Recentes** do tipo
+  (receitas ou despesas, pela data mais recente) e **Todas as categorias** sem
+  repetição. Tudo é derivado do histórico, sem cache.
+- **Pesquisar no histórico**: descrição e categoria, sem diferenciar acentos e
+  maiúsculas, todas as palavras; combina com mês, tipo e categoria. Usa
+  `useDeferredValue` e `useMemo`; abrir uma pesquisa expande o histórico.
+  Escape ou **Limpar** apagam o texto.
+
+### Recorrências
+
+- Regra: tipo, descrição, valor, categoria, frequência (semanal, mensal,
+  anual), data inicial, estado (`active`, `paused`, `ended`), pausas e
+  ocorrências dispensadas. A próxima ocorrência e o histórico confirmado são
+  derivados (movimentações com `recurrence`).
+- Criação: interruptor **Repetir periodicamente** ao adicionar uma receita ou
+  despesa (a movimentação vira a primeira ocorrência, na mesma operação) ou
+  **Nova recorrência** (somente previsão, inclusive com início futuro).
+- Datas civis, sem fuso. Mensal no dia 29–31 cai no último dia dos meses
+  menores e volta ao dia de referência; anual em 29/02 usa 28/02 em anos não
+  bissextos. Cada data é calculada pelo índice a partir da data inicial.
+- **Próximas movimentações** lista as vencidas e as dos próximos 30 dias
+  (quatro visíveis, “Mostrar todas”). As ocorrências são calculadas só para a
+  janela consultada (até 5.000 iterações por regra).
+- **Confirmar pagamento/recebimento** abre o formulário preenchido (data
+  prevista, ou hoje se for futura). `confirmRecurrence` é idempotente: uma
+  segunda confirmação da mesma ocorrência não cria nada, e a validação recusa
+  dois registros com o mesmo vínculo (inclusive em backups importados).
+- **Dispensar** (com confirmação) remove a ocorrência das pendências sem criar
+  movimentação. Excluir a movimentação confirmada devolve a ocorrência às
+  pendências.
+- **Editar** vale para as ocorrências não confirmadas; as confirmadas não
+  mudam. **Pausar** oculta as ocorrências a partir da data da pausa até a
+  reativação (vencidas anteriores continuam pendentes). **Encerrar** termina a
+  série hoje e remove as pendências. **Excluir** remove a regra e mantém as
+  movimentações confirmadas.
+
+### Orçamento mensal
+
+- Limite por categoria de despesa, **recorrente**: vale do mês configurado em
+  diante. Editar a partir de um mês encerra a versão anterior no mês anterior
+  (`from`/`to`); remover encerra no mês anterior. Meses passados ficam
+  somente leitura e mantêm o limite que tinham.
+- Consumo = despesas reais do mês (pela data) com a categoria exata.
+  Receitas, recorrências não confirmadas e operações de investimento não
+  entram. Reembolsos não são abatidos automaticamente.
+- Níveis: até 79% normal, 80–99% atenção (`--color-warning`), 100% ou mais
+  limite atingido; sempre com texto. Nada é bloqueado e não há notificações.
+  Orçamentos não concedem XP.
+
+### Limitações
+
+- Não há notificações nem automações em segundo plano.
+- Editar a frequência ou a data inicial recalcula a agenda: movimentações já
+  confirmadas permanecem, mas datas antigas pendentes seguem a nova agenda.
+- O resumo de contagens do arquivo de backup não inclui recorrências e
+  orçamentos, para não invalidar a importação de backups anteriores (a soma
+  de verificação cobre todo o conteúdo).
+- Transferências entre contas legadas continuam fora do filtro Internas.
+
+Testes: `recurrence.test.ts`, `budget.test.ts`, `walletLink.test.ts` e
+`FinanceProductivity.test.tsx`. Fluxos de compra sem receitas anteriores nos
+testes existentes passaram a declarar dinheiro externo (`externalMoney`).
