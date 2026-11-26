@@ -859,3 +859,25 @@ foi preservada e passou a ser uma escolha explícita nos formulários:
 Testes: `recurrence.test.ts`, `budget.test.ts`, `walletLink.test.ts` e
 `FinanceProductivity.test.tsx`. Fluxos de compra sem receitas anteriores nos
 testes existentes passaram a declarar dinheiro externo (`externalMoney`).
+
+## Ajuda contextual e espaçamento
+
+As explicações conceituais saíram da página e ficam em botões “?”
+(`ContextHelp`), com os textos centralizados em `FinanceHelp.tsx`:
+
+| Aba           | Seções com ajuda                                                                                                                                                                                                                                                               |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Carteira      | Saldo disponível, Receitas do mês, Despesas do mês, Resultado mensal, Evolução financeira, Próximas movimentações, Orçamento mensal, Histórico de movimentações e Configurações financeiras                                                                                    |
+| Investimentos | Valor dos investimentos, Patrimônio financeiro total, Custo de aquisição atual, Total aportado conhecido, Resgates e retiradas, Gráficos de investimentos, Evolução financeira, Meus investimentos, Histórico de investimentos, Avaliações manuais e Configurações financeiras |
+| Formulários   | Categorias recentes, Repetir periodicamente, Recorrência, Utilizar saldo da Carteira, Enviar valor para a Carteira, Aportes e retiradas e Cadastro de investimento                                                                                                             |
+
+Continuam visíveis: valores, datas, vencimentos e a contagem de pendências
+vencidas, avisos (investimentos sem avaliação, estimativa parcial, saldo
+insuficiente, mês anterior somente leitura, registro antigo com custo
+resgatado, instrução de venda com quantidade), legendas dos gráficos,
+contagens do histórico, erros e confirmações. Abrir uma ajuda não altera dados
+nem o layout.
+
+Os cartões das duas abas ficam a 16 px entre si, pelo `gap` dos contêineres
+(ver [espaçamentos](../../../../../docs/design-system/spacing.md#ritmo-vertical-de-finanças)).
+Testes em `FinanceHelp.test.tsx` e `shared/components/ContextHelp.test.tsx`.
