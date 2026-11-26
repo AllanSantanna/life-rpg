@@ -84,9 +84,9 @@ Ativos manuais usam custo como referência enquanto não houver avaliação. Uma
 avaliação informa o valor total da posição na data. Ela permanece como última
 avaliação conhecida até uma nova operação e perde validade se as operações
 avaliadas forem editadas ou excluídas (assinatura `basis`). Cadastre nova
-avaliação após essas alterações. Na retirada de ativos manuais, o campo de custo
-resgatado permite separar o custo do valor recebido; se omitido, ambos são iguais,
-preservando a regra anterior. Em BTC, o custo resgatado é automático.
+avaliação após essas alterações. Na retirada de ativos manuais, o custo
+da parcela é calculado automaticamente (ver “Resgates simplificados e
+distribuição em pizza”); em BTC, o custo resgatado também é automático.
 
 O gráfico mostra **Saldo disponível** por padrão na aba Carteira (e Patrimônio
 total na aba Investimentos), com Mensal selecionado. Os botões Saldo
@@ -594,7 +594,8 @@ comando ou formato de armazenamento mudou com a reorganização.
    (`InvestmentCharts`), com seletor de tipo (`aria-pressed`):
    - **Evolução**: `FinancialChart` iniciando em Patrimônio total (a visão de
      saldo segue disponível no mesmo gráfico);
-   - **Distribuição**: participação de cada categoria no valor atual;
+   - **Distribuição**: pizza preenchida com a participação de cada categoria
+     no valor atual (ver “Resgates simplificados e distribuição em pizza”);
    - **Custo × valor**: barras de custo e valor por categoria, com a diferença
      somente quando há avaliação/cotação e custo conhecidos.
      Os dois últimos usam `categoryBreakdown` (agregação de `investmentValue`, as
@@ -624,7 +625,7 @@ Aportar/Comprar/Retirar/Vender/Resgatar abrem, dentro do próprio cartão, o mes
 formulário de aportes e retiradas (`InvestmentFields` + `entryFromForm`) com o
 investimento fixado (campo oculto `investmentId`) e a operação definida
 (`defaultKind` + `lockKind`). Os campos específicos (BTC/sats, USD, quantidade e
-preço, custo resgatado, conta) e o comando `saveInvestmentEntry` são os existentes;
+preço, conta) e o comando `saveInvestmentEntry` são os existentes;
 por isso aportes debitam e retiradas creditam a conta, sem receita/despesa nem
 alteração artificial do patrimônio. “Atualizar saldo” reutiliza a avaliação manual
 da caixinha. “Atualizar cotação” chama `fetchBitcoinQuote`/`fetchUsdQuote`, que já
@@ -883,3 +884,58 @@ nem o layout.
 Os cartões das duas abas ficam a 16 px entre si, pelo `gap` dos contêineres
 (ver [espaçamentos](../../../../../docs/design-system/spacing.md#ritmo-vertical-de-finanças)).
 Testes em `FinanceHelp.test.tsx` e `shared/components/ContextHelp.test.tsx`.
+
+## Resgates simplificados e distribuição em pizza
+
+### Resgate informando só o valor
+
+O formulário de retirada não tem mais “Custo de aquisição resgatado”. Em
+ativos controlados por valor (Renda fixa, Caixinhas bancárias e Outros) ele
+pede apenas **Valor do resgate (R$)**, data e **Enviar valor para a Carteira**;
+quantidade e preço de compra também saem do resgate desses ativos (a
+validação já os recusava em retiradas). BTC, dólar, ações e FIIs mantêm os
+campos de quantidade e o custo pelo preço médio.
+
+O valor resgatado é gravado em centavos inteiros e sai exatamente do saldo
+registrado: numa caixinha com saldo de R$ 713,12, um resgate de R$ 100,00 deixa
+R$ 613,12 (`projectBoxBalance` subtrai o valor). Com a Carteira ligada, o
+mesmo valor entra no saldo disponível, sem virar receita.
+
+O custo da parcela é calculado em `withdrawalCost.ts`, no comando
+`saveInvestmentEntry`, pela metodologia que já existia (principal primeiro):
+
+| Situação                                                     | Custo baixado                                                                        |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------ |
+| Resgate até o custo restante                                 | O próprio valor (regra anterior; nada é gravado a mais)                              |
+| Resgate acima do custo, com saldo conhecido                  | Todo o custo restante, gravado em `costBasisCents`; o excedente é rendimento         |
+| Resgate acima do saldo registrado                            | Recusado, sem salvar                                                                 |
+| Saldo desconhecido (sem saldo informado ou avaliação válida) | Saldo registrado = custo; acima dele, recusado com orientação para atualizar o saldo |
+| Custo parcialmente desconhecido                              | Regra anterior, sem inventar valores                                                 |
+
+O custo nunca altera o valor resgatado. Registros e backups com
+`costBasisCents` são preservados; editar um resgate antigo sem mudar valor nem
+data mantém o custo gravado (inclusive vendas antigas de ações sem
+quantidade). Não houve mudança de schema nem migração.
+
+Limitação: em Renda fixa e Outros com avaliação manual, depois de um resgate o
+valor volta a usar o custo como referência até uma nova avaliação (regra
+existente para esses ativos); nas caixinhas o saldo é projetado.
+
+### Distribuição em pizza
+
+`Distribution` (em `InvestmentCharts.tsx`) desenha uma pizza SVG preenchida até
+o centro (`pieChart.ts`), sem biblioteca nova: cada setor parte do centro;
+uma única categoria é um círculo inteiro; valores zero ou negativos não geram
+setor. A base é o mesmo valor por investimento de **Valor dos investimentos**
+(`categoryBreakdown` sobre `investmentValue`); custo e saldo da Carteira não
+entram. Percentual = valor da categoria ÷ total distribuído, em décimos pelo
+método dos maiores restos, somando exatamente 100,0%.
+
+Cores fixas por categoria (`--color-chart-1` a `--color-chart-7`). Mouse e
+toque nos setores ou a legenda (botões com `aria-pressed`, setas, Home e End)
+escolhem a categoria do detalhe (nome, valor e percentual, `aria-live`); o SVG
+tem nome e um resumo textual para leitores de tela. Estados: sem investimentos
+(mensagem existente), sem valores para distribuir (posições sem custo nem
+cotação, listadas como “Valor pendente”) e referência pelo custo (`*`).
+
+Testes: `withdrawalCost.test.ts` e `DistributionPie.test.tsx`.
