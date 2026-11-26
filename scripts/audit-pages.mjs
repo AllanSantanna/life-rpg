@@ -17,6 +17,7 @@ import {
   readCanonical,
   untilWaiting,
   waitForCommit,
+  skipWhatsNew,
 } from './audit-storage-helpers.mjs';
 
 const { chromium, devices } = await import(
@@ -132,6 +133,7 @@ let backupPath;
 
 async function scenario(name, run, options = desktop) {
   const context = await browser.newContext(options);
+  await skipWhatsNew(context);
   // Serviços públicos de cotação ficam fora do teste (determinismo); a
   // falha deles também precisa ser tolerada pelo app.
   await context.route(

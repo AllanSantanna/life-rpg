@@ -110,3 +110,22 @@ export async function untilWaiting(page, expected, timeout = 10_000) {
     await page.waitForTimeout(100);
   }
 }
+/**
+ * Novidades da versão já apresentadas em todas as páginas do contexto: a
+ * janela automática não cobre os cenários de persistência e publicação. O
+ * valor é posterior a qualquer entrada do catálogo; a janela tem auditoria
+ * própria em `audit-visual.mjs`.
+ */
+export function skipWhatsNew(context) {
+  return context.addInitScript(() => {
+    try {
+      if (!localStorage.getItem('life-rpg:whats-new'))
+        localStorage.setItem(
+          'life-rpg:whats-new',
+          JSON.stringify({ version: 1, data: { seen: '9999-12-31' } }),
+        );
+    } catch {
+      // Armazenamento bloqueado no cenário: nada a preparar.
+    }
+  });
+}

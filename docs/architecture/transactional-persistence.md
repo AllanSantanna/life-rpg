@@ -28,6 +28,7 @@ Notificações não são usadas como transações.
 | `life-rpg:player-state` e `:backup:*` no localStorage   | Originais legados, sempre preservados pela versão atual                                                                                              |
 | `life-rpg:statistics-view` no localStorage              | Preferências visuais descartáveis; mecanismo anterior preservado                                                                                     |
 | `life-rpg:quick-actions` no localStorage                | Só a apresentação inicial das Ações rápidas já vista; descartável                                                                                    |
+| `life-rpg:whats-new` no localStorage                    | Só o identificador da última Novidades da versão apresentada; descartável                                                                            |
 
 O banco tem versão própria, diferente da versão 8 do payload e da revisão de
 concorrência. O vocabulário do payload continua protegido por `storageContract.test.ts`.

@@ -239,6 +239,19 @@ nativo (`.voice-dialog`) com estados explícitos (solicitando permissão,
 Confirmar). Editar abre os formulários existentes de cada pilar. Regras,
 formatos e limitações: [README do módulo](../../apps/web/src/modules/voice-commands/README.md).
 
+## Novidades da versão
+
+[WhatsNewDialog](../../apps/web/src/app/whats-new/WhatsNewDialog.tsx) é um modal
+nativo (`.whats-new-dialog`, top layer) centralizado, de até 600 px, com fundo
+grafite, borda e detalhes vermelhos e entrada de 200 ms (sem animação com
+`prefers-reduced-motion`). Cabeçalho (rótulo da atualização, título, descrição
+e × “Fechar novidades da versão”) e rodapé (`ActionButton` “Começar a usar”,
+foco inicial) ficam fixos; só a lista de cartões rola. Os cartões são
+informativos, agrupados por área, em uma coluna no celular e duas a partir de
+640 px. Escape fecha e o foco volta à origem. No Perfil, a seção “Novidades da
+versão” usa `.filter-button` (“Ver novidades”). Regras de exibição e manutenção
+do catálogo: [README do módulo](../../apps/web/src/app/whats-new/README.md).
+
 ## Finanças: abas, áreas recolhíveis e formulários sob demanda
 
 Componentes locais de [FinanceLayout](../../apps/web/src/modules/finances/FinanceLayout.tsx),
