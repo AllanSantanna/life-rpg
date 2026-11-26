@@ -531,8 +531,9 @@
     overflow: hidden;
     clip-path: inset(50%);
   }
+  /* Base: navegação inferior + botão de Ações rápidas (mesmo valor de pb-44). */
   .view-home main {
-    padding: 18px 12px 110px;
+    padding: 18px 12px 176px;
   }
   .topbar {
     padding: 16px;

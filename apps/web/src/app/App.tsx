@@ -32,6 +32,7 @@ import { StatisticsPage } from '../modules/statistics/StatisticsPage';
 import { useEffect, useRef, useState } from 'react';
 import { useUrlNavigation } from './useUrlNavigation';
 import { Navigation, type View } from './Navigation';
+import { QuickActions } from './quick/QuickActions';
 import { pillarViews } from './views';
 import { PlayerHeader } from '../modules/profile/PlayerHeader';
 import { AttributesPanel } from '../modules/gamification/AttributesPanel';
@@ -87,6 +88,15 @@ export function App() {
   // Remonta formulários locais do Perfil e a lista de cópias após restaurar
   // um backup, para não exibirem valores do estado substituído.
   const [dataEpoch, setDataEpoch] = useState(0);
+  /** Sessão de treino escolhida nas Ações rápidas (aberta em Treinos). */
+  const [sessionFocus, setSessionFocus] = useState<{
+    sessionId: string;
+    nonce: number;
+  }>();
+  // Fora de Treinos o pedido perde efeito: voltar à página não reabre a sessão.
+  useEffect(() => {
+    if (view !== 'workouts') setSessionFocus(undefined);
+  }, [view]);
   const player = state.profile;
   const {
     rewards: goalReward,
@@ -196,7 +206,22 @@ export function App() {
       <a className="skip-link" href="#main">
         Pular para o conteúdo
       </a>
-      <Navigation current={view} onNavigate={navigate} />
+      <Navigation current={view} onNavigate={navigate}>
+        <QuickActions
+          records={state.records}
+          today={today}
+          onCommand={changeRecords}
+          whenSaved={whenSaved}
+          onNavigate={navigate}
+          onOpenSession={(sessionId) => {
+            setSessionFocus((previous) => ({
+              sessionId,
+              nonce: (previous?.nonce ?? 0) + 1,
+            }));
+            navigate('workouts');
+          }}
+        />
+      </Navigation>
       <div className="min-w-0 lg:ml-60">
         <header className="topbar flex items-center justify-between gap-4 border-b border-white/[0.06] px-5 py-4 sm:px-8 lg:px-10">
           <div className="flex items-center gap-2 text-xs text-muted">
@@ -224,7 +249,7 @@ export function App() {
         <main
           id="main"
           tabIndex={-1}
-          className="mx-auto max-w-[1480px] px-5 pb-28 pt-7 sm:px-8 lg:px-10 lg:pb-8 lg:pt-9"
+          className="mx-auto max-w-[1480px] px-5 pb-44 pt-7 sm:px-8 lg:px-10 lg:pb-8 lg:pt-9"
         >
           <StorageNotice
             persistence={persistence}
@@ -356,7 +381,9 @@ export function App() {
                 market={market}
               />
             )}
-            {view === 'workouts' && <WorkoutsPage {...recordProps} />}
+            {view === 'workouts' && (
+              <WorkoutsPage {...recordProps} sessionFocus={sessionFocus} />
+            )}
             {view === 'rest' && <RestPage {...recordProps} />}
             {view === 'knowledge' && <KnowledgePage {...recordProps} />}
             {view === 'classes' && (

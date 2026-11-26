@@ -1,0 +1,412 @@
+/*
+ * Ações rápidas. No celular e no tablet (< 1024px) o botão “+” flutua
+ * centralizado logo acima da navegação inferior: fica dentro de `.sidebar`
+ * (posição fixa), então acompanha a barra em qualquer largura, respeita a área
+ * segura e herda a camada da navegação (z-index 30). Diálogos nativos (top
+ * layer), popovers de ajuda (80) e avisos de conquista (60) ficam acima dele.
+ * No computador vira o botão “+ Ação rápida” da navegação lateral.
+ */
+.quick-actions {
+  --quick-size: 56px;
+  --quick-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  position: absolute;
+  bottom: calc(100% + var(--space-3));
+  left: 50%;
+  width: var(--quick-size);
+  height: var(--quick-size);
+  transform: translateX(-50%);
+}
+.quick-actions__trigger {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  border: 1px solid var(--color-action-border);
+  border-radius: 999px;
+  background: linear-gradient(
+    145deg,
+    var(--color-action-start),
+    var(--color-action-end)
+  );
+  color: var(--color-on-primary);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--color-on-primary) 28%, transparent),
+    0 6px 18px color-mix(in srgb, var(--color-background) 70%, transparent),
+    0 0 16px color-mix(in srgb, var(--color-primary) 30%, transparent);
+  transition:
+    background 0.2s,
+    box-shadow 0.2s;
+}
+.quick-actions__trigger:hover {
+  background: linear-gradient(
+    145deg,
+    var(--color-action-hover-start),
+    var(--color-action-hover-end)
+  );
+}
+.quick-actions__trigger:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 3px;
+}
+.quick-actions__icon {
+  display: grid;
+  place-items: center;
+  transition: transform 0.2s var(--quick-ease);
+}
+/* “+” vira “×” com o menu aberto. */
+.quick-actions[data-open] .quick-actions__icon {
+  transform: rotate(45deg);
+}
+.quick-actions__label {
+  display: none;
+}
+
+/* Menu: grafite, borda discreta, acima do botão no celular. */
+.quick-actions__panel,
+.quick-actions__intro {
+  position: absolute;
+  bottom: calc(100% + var(--space-3));
+  left: 50%;
+  box-sizing: border-box;
+  width: min(340px, calc(100vw - 32px));
+  max-height: calc(100dvh - 220px - env(safe-area-inset-bottom));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--space-3);
+  border: 1px solid
+    color-mix(in srgb, var(--color-action-border) 35%, transparent);
+  border-radius: var(--radius-panel);
+  background: linear-gradient(
+    160deg,
+    var(--color-surface),
+    var(--color-background)
+  );
+  box-shadow: 0 12px 32px
+    color-mix(in srgb, var(--color-background) 80%, transparent);
+  transform: translateX(-50%);
+  animation: quick-in 0.18s var(--quick-ease) both;
+}
+.quick-actions__heading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: calc(-1 * var(--space-1)) 0 var(--space-2);
+}
+.quick-actions__heading h3 {
+  margin: 0;
+  font-size: var(--text-control);
+  font-weight: 600;
+}
+.quick-actions__title,
+.quick-actions__intro h2 {
+  margin: 0;
+  font-size: var(--text-control);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+.quick-actions__back {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  color: var(--color-muted);
+}
+.quick-actions__back:hover {
+  color: var(--color-foreground);
+  background: color-mix(in srgb, var(--color-foreground) 6%, transparent);
+}
+.quick-actions__title {
+  margin-bottom: var(--space-3);
+}
+.quick-actions__grid,
+.quick-actions__list {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.quick-actions__grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  /* Todas as linhas com a mesma altura: cards no mesmo padrão, mesmo quando
+     um subtítulo quebra em duas linhas. */
+  grid-auto-rows: 1fr;
+}
+.quick-actions__grid > li {
+  display: flex;
+  min-width: 0;
+}
+.quick-actions__grid .quick-actions__item {
+  height: 100%;
+  min-height: 64px;
+}
+.quick-actions__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: 56px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid color-mix(in srgb, var(--color-foreground) 8%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--color-foreground) 3%, transparent);
+  color: var(--color-foreground);
+  text-align: left;
+  transition:
+    border-color 0.16s,
+    background 0.16s;
+}
+.quick-actions__item:hover,
+.quick-actions__item:focus-visible {
+  border-color: color-mix(in srgb, var(--area-color) 55%, transparent);
+  background: color-mix(in srgb, var(--area-color) 10%, transparent);
+}
+.quick-actions__item:focus-visible,
+.quick-actions__back:focus-visible,
+.quick-actions__intro-ok:focus-visible,
+.quick-dialog__close:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+.quick-actions__glyph {
+  display: grid;
+  flex: 0 0 36px;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--area-color) 16%, transparent);
+  color: var(--area-color);
+}
+.quick-actions__text {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+.quick-actions__text strong {
+  font-size: var(--text-control);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.quick-actions__text small {
+  color: var(--color-muted);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+.quick-actions__panel .record-error {
+  margin: var(--space-3) 0 0;
+}
+
+/* Apresentação da primeira utilização: balão pequeno, sem bloquear a tela. */
+.quick-actions__intro {
+  display: grid;
+  gap: var(--space-2);
+  width: min(300px, calc(100vw - 32px));
+}
+.quick-actions__intro p {
+  margin: 0;
+  font-size: var(--text-control);
+  line-height: 1.45;
+}
+.quick-actions__intro-ok {
+  justify-self: end;
+  min-height: 36px;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-action-border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--color-primary) 18%, transparent);
+  color: var(--color-foreground);
+  font-weight: 600;
+}
+
+/* Confirmação de sucesso, anunciada por role="status". */
+.quick-actions__toast {
+  position: absolute;
+  bottom: calc(100% + var(--space-3));
+  left: 50%;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  margin: 0;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid color-mix(in srgb, var(--color-finances) 45%, transparent);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-foreground);
+  font-size: var(--text-control);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.quick-actions__toast[data-shown='false'] {
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* Fluxos com barra de ações fixa própria (edição de ficha): o botão sai do
+   caminho para não cobrir “Salvar”. */
+@media (max-width: 1023px) {
+  .app-shell:has(.workout-sticky-actions) .quick-actions {
+    display: none;
+  }
+}
+
+@media (min-width: 1024px) {
+  .quick-actions {
+    position: relative;
+    bottom: auto;
+    left: auto;
+    width: 100%;
+    height: auto;
+    margin-top: var(--space-4);
+    padding-top: var(--space-4);
+    border-top: 1px solid
+      color-mix(in srgb, var(--color-foreground) 7%, transparent);
+    transform: none;
+  }
+  .quick-actions__trigger {
+    display: flex;
+    justify-content: flex-start;
+    gap: 13px;
+    min-height: 48px;
+    padding: 0 14px;
+    border-radius: 8px;
+    border-color: color-mix(
+      in srgb,
+      var(--color-action-border) 55%,
+      transparent
+    );
+    background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+    color: var(--color-foreground);
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: none;
+  }
+  .quick-actions__trigger:hover {
+    background: color-mix(in srgb, var(--color-primary) 22%, transparent);
+  }
+  .quick-actions__icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 999px;
+    background: linear-gradient(
+      145deg,
+      var(--color-action-start),
+      var(--color-action-end)
+    );
+    color: var(--color-on-primary);
+  }
+  .quick-actions__label {
+    display: inline;
+  }
+  /* Apresentação inicial dentro da navegação lateral, abaixo do botão: não
+     cobre nem intercepta o conteúdo da página. */
+  .quick-actions__intro {
+    top: calc(100% + var(--space-3));
+    bottom: auto;
+    left: 0;
+    width: 100%;
+    transform: none;
+  }
+  /* O menu (aberto pelo usuário) e a confirmação abrem à direita. */
+  .quick-actions__panel,
+  .quick-actions__toast {
+    top: 0;
+    bottom: auto;
+    left: calc(100% + 32px);
+    max-height: calc(100dvh - 16px);
+    transform: none;
+  }
+  .quick-actions__toast {
+    top: 6px;
+  }
+}
+
+/* Formulário rápido: modal nativo (top layer), compacto e com rolagem
+   interna. No celular fica no alto da tela, longe do teclado virtual. */
+.quick-dialog {
+  position: fixed;
+  inset: 0;
+  box-sizing: border-box;
+  width: min(480px, calc(100vw - 32px));
+  max-width: none;
+  max-height: calc(100dvh - 32px);
+  margin: var(--space-4) auto auto;
+  padding: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 0;
+  border-radius: var(--radius-panel);
+  background: transparent;
+  color: var(--color-foreground);
+}
+.quick-dialog::backdrop {
+  background: color-mix(in srgb, var(--color-background) 72%, transparent);
+}
+.quick-dialog .record-form {
+  margin: 0;
+}
+.quick-dialog .record-form > h2 {
+  padding-right: 44px;
+}
+.quick-dialog__close {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  color: var(--color-muted);
+}
+.quick-dialog__close:hover {
+  color: var(--color-foreground);
+  background: color-mix(in srgb, var(--color-foreground) 6%, transparent);
+}
+.quick-dialog__notice {
+  margin: 0 0 var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: 8px;
+  background: var(--color-surface);
+  color: var(--color-foreground);
+  font-size: var(--text-control);
+}
+.quick-dialog > .record-hint,
+.quick-dialog > .record-error {
+  margin: var(--space-2) 0 0;
+  padding: var(--space-3) var(--space-4);
+  border-radius: 8px;
+  background: var(--color-surface);
+}
+.reading-book-title {
+  overflow-wrap: anywhere;
+}
+@media (min-width: 640px) {
+  .quick-dialog {
+    margin: auto;
+  }
+}
+
+@keyframes quick-in {
+  from {
+    opacity: 0;
+    translate: 0 6px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .quick-actions__panel,
+  .quick-actions__intro {
+    animation: none;
+  }
+  .quick-actions__icon,
+  .quick-actions__trigger,
+  .quick-actions__item {
+    transition: none;
+  }
+}
