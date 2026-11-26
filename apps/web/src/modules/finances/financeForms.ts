@@ -93,9 +93,8 @@ export function entryFromForm(
     ...units,
     ...(unknown ? { costUnknown: true } : {}),
     ...walletChoice(data, positionInitial),
-    ...(!bitcoin && kind === 'withdrawal' && formText(data, 'costBasis')
-      ? { costBasisCents: formCents(data, 'costBasis') }
-      : {}),
+    // Sem campo de custo resgatado: ativos por valor têm o custo calculado no
+    // comando (`withdrawalCost.ts`); BTC, USD, ações e FIIs usam o preço médio.
   };
 }
 

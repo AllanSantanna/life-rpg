@@ -213,18 +213,20 @@ export function InvestmentFields({
               <p className="record-hint">
                 Informe a quantidade vendida para manter o valor de mercado e o
                 preço médio. Com quantidade, o custo da parcela vendida sai pelo
-                preço médio e o custo de aquisição resgatado fica em branco.
+                preço médio.
               </p>
               {entry?.costBasisCents !== undefined &&
                 entry.quantity !== undefined && (
                   <p className="record-hint">
-                    Este registro antigo informava um custo resgatado. Para
-                    salvar a edição, apague esse custo: a venda passará a sair
-                    pelo preço médio.
+                    Este registro antigo informava um custo resgatado. Ao salvar
+                    a edição, a venda passará a sair pelo preço médio.
                   </p>
                 )}
             </>
           ) : (
+            // Resgates de ativos por valor pedem só o valor: o custo da
+            // parcela é calculado internamente.
+            kind !== 'withdrawal' &&
             (!box ||
               entry?.quantity !== undefined ||
               entry?.purchasePriceCents !== undefined) && (
@@ -248,18 +250,6 @@ export function InvestmentFields({
                 </Field>
               </>
             )
-          )}
-          {!initial && kind === 'withdrawal' && (
-            <Field label="Custo de aquisição resgatado (R$, opcional)">
-              <MoneyInput
-                name="costBasis"
-                defaultValue={
-                  entry?.costBasisCents !== undefined
-                    ? unitsToDecimal(entry.costBasisCents, 2)
-                    : ''
-                }
-              />
-            </Field>
           )}
         </>
       )}

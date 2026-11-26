@@ -17,6 +17,7 @@ import {
 } from '../finances/types';
 import { investmentCategories } from '../finances/types';
 import { walletShortfall } from '../finances/walletLink';
+import { resolveWithdrawalCost } from '../finances/withdrawalCost';
 import { isMonth, removeBudget, setBudget } from '../finances/budget';
 import { isScheduled, occurrenceMovementId } from '../finances/recurrence';
 import { shiftDate } from './dates';
@@ -1061,7 +1062,7 @@ export function applyRecordCommand(
           positionMode(target.category as InvestmentCategory) === 'shares' &&
           isShareSaleWithCostBasis(command.value)
         ),
-        'Em vendas de ações e FIIs com quantidade, o custo vendido sai pelo preço médio. Deixe o custo de aquisição resgatado em branco.',
+        'Em vendas de ações e FIIs com quantidade, o custo vendido sai pelo preço médio; o custo de aquisição não é informado.',
       );
       assert(
         !(
@@ -1071,16 +1072,15 @@ export function applyRecordCommand(
         ) || command.confirmInitial === true,
         'Confirme a conversão em posição inicial.',
       );
+      // Resgates de ativos por valor: custo da parcela calculado internamente;
+      // o valor resgatado não muda.
+      const value = resolveWithdrawalCost(records, command.value);
       next = {
         ...records,
-        investmentEntries: upsert(
-          records.investmentEntries,
-          command.value,
-          'id',
-        ),
+        investmentEntries: upsert(records.investmentEntries, value, 'id'),
       };
       // Aporte com “Utilizar saldo da Carteira”: recusa integral sem saldo.
-      const shortfall = walletShortfall(next, command.value, today);
+      const shortfall = walletShortfall(next, value, today);
       assert(!shortfall, shortfall ?? '');
       break;
     }

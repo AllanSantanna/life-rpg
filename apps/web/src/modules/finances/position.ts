@@ -87,7 +87,7 @@ export function position(
     }
     if (cost < 0 || !Number.isSafeInteger(cost) || !Number.isSafeInteger(units))
       throw new Error(
-        'Retirada excede o custo disponível. Se o resgate inclui rendimento, informe o custo de aquisição resgatado.',
+        'Retirada excede o saldo registrado. Se houve rendimento, atualize o saldo ou a avaliação antes de resgatar.',
       );
   }
   return {

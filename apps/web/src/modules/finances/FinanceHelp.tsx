@@ -337,9 +337,10 @@ const topics = {
           conhecido.
         </p>
         <p>
-          Em retiradas de ativos sem cotação, informe o custo de aquisição da
-          parcela resgatada se for diferente do valor recebido; sem ele, o custo
-          baixado é igual ao valor. BTC usa custo médio automaticamente.
+          No resgate, informe só o valor: ele sai exatamente do saldo
+          registrado. O custo de aquisição da parcela é calculado
+          automaticamente (primeiro o valor aplicado, depois o rendimento); em
+          BTC, dólar, ações e FIIs com quantidade, pelo preço médio.
         </p>
       </>
     ),

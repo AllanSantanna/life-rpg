@@ -305,7 +305,7 @@ describe('B-08: motivo específico das recusas', () => {
         }),
       }),
     ).toMatch(
-      /^CDB: Retirada excede o custo disponível\. Se o resgate inclui rendimento/,
+      /^CDB: o resgate de R\$\s1\.100,00 é maior que o saldo registrado de R\$\s1\.000,00 .*atualize o saldo ou a avaliação/,
     );
   });
 });
