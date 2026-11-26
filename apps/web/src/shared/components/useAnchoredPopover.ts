@@ -14,6 +14,11 @@ interface Options<Panel extends HTMLElement> {
   preferredHeight?: number;
   maximumHeight?: number;
   beforeClose?: () => void;
+  /**
+   * Altura reservada na base da janela (ex.: navegação inferior fixa), em px.
+   * O painel não ocupa essa faixa. Padrão: 0.
+   */
+  bottomInset?: () => number;
 }
 
 /** Posicionamento, fechamento e animação compartilhados pelos controles flutuantes. */
@@ -24,6 +29,7 @@ export function useAnchoredPopover<Panel extends HTMLElement = HTMLDivElement>({
   preferredHeight = 180,
   maximumHeight = 300,
   beforeClose,
+  bottomInset,
 }: Options<Panel> = {}) {
   const anchor = useRef<HTMLButtonElement>(null);
   const ownPanel = useRef<Panel>(null);
@@ -70,7 +76,9 @@ export function useAnchoredPopover<Panel extends HTMLElement = HTMLDivElement>({
       const left = viewport?.offsetLeft ?? 0,
         top = viewport?.offsetTop ?? 0;
       const width = viewport?.width ?? window.innerWidth,
-        height = viewport?.height ?? window.innerHeight;
+        height =
+          (viewport?.height ?? window.innerHeight) -
+          Math.max(0, bottomInset?.() ?? 0);
       const anchorTop = Math.max(top + 8, Math.min(rect.top, top + height - 8));
       const anchorBottom = Math.max(
         top + 8,
@@ -115,7 +123,14 @@ export function useAnchoredPopover<Panel extends HTMLElement = HTMLDivElement>({
       window.visualViewport?.removeEventListener('resize', place);
       window.visualViewport?.removeEventListener('scroll', place);
     };
-  }, [open, minimumWidth, maximumWidth, preferredHeight, maximumHeight]);
+  }, [
+    open,
+    minimumWidth,
+    maximumWidth,
+    preferredHeight,
+    maximumHeight,
+    bottomInset,
+  ]);
   useEffect(() => {
     if (!open) return;
     function outside(event: Event) {

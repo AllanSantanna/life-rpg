@@ -118,13 +118,17 @@ export function Actions({
 export function Summary({
   values,
 }: {
-  values: { label: string; value: string | number }[];
+  /** `help`: ajuda contextual opcional ao lado do rótulo (ex.: Finanças). */
+  values: { label: string; value: string | number; help?: ReactNode }[];
 }) {
   return (
     <dl className="record-summary">
-      {values.map(({ label, value }) => (
+      {values.map(({ label, value, help }) => (
         <div className="panel" key={label}>
-          <dt>{label}</dt>
+          <dt className={help ? 'help-label' : undefined}>
+            {label}
+            {help}
+          </dt>
           <dd>{value}</dd>
         </div>
       ))}

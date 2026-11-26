@@ -66,6 +66,18 @@ de variante legítima, evolua o componente e documente-a antes de copiar o CSS.
   usam `Disclosure`: em Finanças, “Avaliações manuais” e
   “Configurações financeiras” foram convertidas para seguir as seções de histórico
   do mesmo módulo.
+- [ContextHelp](../../apps/web/src/shared/components/ContextHelp.tsx): ajuda
+  contextual. Botão circular “?” (24 px, área de toque de 44 px) com nome
+  acessível “Ajuda sobre {título}”, que abre uma janela não modal
+  (`role="dialog"`, título associado) sobre `useAnchoredPopover`: posição
+  dentro da viewport e acima da navegação inferior fixa, clique fora, Esc e
+  “Fechar ajuda” devolvem o foco ao “?”; animação desligada com movimento
+  reduzido. Props: `title`, `label` opcional e o conteúdo. `HelpHeading` põe o
+  “?” ao lado de um `h2`/`h3`; `Disclosure` aceita `help` (fora do botão de
+  abrir/fechar) e `Summary` aceita `help` por indicador. Use para explicar
+  conceitos; informações necessárias para operar continuam visíveis. Não use
+  `title` nativo nem um “?” em cada campo comum. Em Finanças os textos ficam em
+  [FinanceHelp](../../apps/web/src/modules/finances/FinanceHelp.tsx).
 - [ConfirmAction](../../apps/web/src/shared/components/ConfirmAction.tsx): ação
   com confirmação explícita (exclusões, substituição ou restauração de registros).
   Mostra a consequência, “Confirmar …” e “Cancelar”; o foco vai para Cancelar ao

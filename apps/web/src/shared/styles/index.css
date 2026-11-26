@@ -1420,6 +1420,9 @@
   margin-top: 5px;
   margin-bottom: 0;
 }
+.wealth-chart__heading .help-heading {
+  margin-top: 5px;
+}
 .wealth-chart__periods {
   display: flex;
   gap: 4px;
@@ -1881,10 +1884,14 @@
   gap: var(--space-4);
   min-width: 0;
 }
-/* Títulos de seção: 12 px até o conteúdo. */
+/* Títulos de seção com ajuda: 12 px até o conteúdo. */
 .finance-page .record-section h2,
 .finance-page .record-form h2 {
   margin-bottom: var(--space-3);
+}
+.finance-page .record-section > .record-hint:first-of-type,
+.finance-page .help-heading + .record-hint {
+  margin-top: 0;
 }
 /* Seções recolhíveis: o botão de 44 px já dá a área de toque; o padding de
    22 px em cima e embaixo deixava um cartão de 88 px só para o título. */
@@ -2044,11 +2051,17 @@
   align-items: center;
   gap: var(--space-2);
 }
+.finance-category__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  min-width: 0;
+}
 .finance-category__title {
   color: var(--color-muted);
   font-size: 12px;
 }
-.finance-category__recent .filter-button {
+.finance-category__chips .filter-button {
   max-width: 100%;
   overflow-wrap: anywhere;
 }
@@ -2056,6 +2069,181 @@
   display: grid;
   gap: var(--space-3);
   margin-block: var(--space-3);
+}
+/* Ajuda contextual (ContextHelp): “?” compacto com área de toque de 44 px. */
+.help-heading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+.help-heading > :is(h2, h3),
+.finance-page .help-heading > :is(h2, h3) {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+/* A distância até o conteúdo fica na linha do título, não no h2. */
+.finance-page .record-section > .help-heading,
+.finance-page .finance-section-head {
+  margin-bottom: var(--space-3);
+}
+.context-help__trigger {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid #ffffff2e;
+  border-radius: 50%;
+  background: #1c1a1b;
+  color: var(--color-muted);
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1;
+  cursor: pointer;
+}
+.context-help__trigger::after {
+  content: '';
+  position: absolute;
+  inset: -10px;
+}
+.context-help__trigger:hover,
+.context-help__trigger[aria-expanded='true'] {
+  border-color: var(--color-action-border);
+  color: var(--color-foreground);
+}
+.context-help__trigger:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 3px;
+}
+.context-help__panel {
+  position: fixed;
+  z-index: 80;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  border: 1px solid #ffffff25;
+  border-radius: 12px;
+  background: #191919;
+  color: #d4d4d8;
+  box-shadow: 0 12px 30px #0007;
+  font-size: 13px;
+  line-height: 1.6;
+  text-align: left;
+  animation: select-open 0.14s ease-out;
+}
+.context-help__panel[data-state='closing'] {
+  pointer-events: none;
+  animation: select-close 0.12s ease-in forwards;
+}
+.context-help__panel:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+.context-help__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+.context-help__head h2 {
+  margin: 0;
+  color: var(--color-foreground);
+  font-size: 14px;
+  font-weight: 650;
+}
+.context-help__close {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  color: var(--color-muted);
+}
+.context-help__close:hover {
+  color: var(--color-foreground);
+}
+.context-help__close:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+}
+.context-help__body p,
+.context-help__body ul {
+  margin: var(--space-2) 0 0;
+}
+.context-help__body ul {
+  padding-left: var(--space-4);
+  list-style: disc;
+}
+.context-help__body li + li {
+  margin-top: var(--space-1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .context-help__panel {
+    animation: none;
+  }
+}
+/* Formulários: uma única ajuda discreta, sem “?” em cada campo. */
+.finance-form-help {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-block: var(--space-3);
+  color: var(--color-muted);
+  font-size: 12px;
+}
+.finance-switch-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.finance-switch-row > .strength-switch {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+/* Disclosure com ajuda: título, “?” e o restante da linha (seta). */
+.disclosure__heading--help {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.disclosure__heading--help > button:first-child:not(.text-action) {
+  width: auto;
+  flex: 0 1 auto;
+}
+.disclosure__heading--help:has(> button:first-child[aria-expanded='true'])
+  .disclosure__chevron {
+  transform: rotate(-90deg);
+}
+/* A regra geral dos botões do título não se aplica ao “?”. */
+.disclosure__heading button.context-help__trigger {
+  display: inline-flex;
+  justify-content: center;
+  width: 24px;
+  min-height: 0;
+  gap: 0;
+  padding: 0;
+  text-align: center;
+}
+.disclosure__heading--help .disclosure__rest {
+  display: flex;
+  flex: 1 1 auto;
+  align-self: stretch;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: var(--control-height);
+  cursor: pointer;
+}
+/* Indicadores com ajuda: o “?” fica ao lado do rótulo. */
+.record-summary dt.help-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
 }
 /* Cabeçalho de seção com título e ação principal (quebra no celular). */
 .finance-section-head {

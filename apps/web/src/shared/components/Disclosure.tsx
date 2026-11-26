@@ -17,6 +17,7 @@ export function Disclosure({
   count,
   hint,
   animated = false,
+  help,
   children,
 }: {
   title: string;
@@ -33,6 +34,11 @@ export function Disclosure({
   hint?: { open: string; closed: string };
   /** Entrada discreta do conteúdo; desligada com movimento reduzido. */
   animated?: boolean;
+  /**
+   * Ajuda contextual (`ContextHelp`) ao lado do título. Fica fora do botão de
+   * abrir/fechar; o restante da linha continua alternando a seção pelo mouse.
+   */
+  help?: ReactNode;
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(defaultOpen);
@@ -41,12 +47,25 @@ export function Disclosure({
   const chevron = (
     <Icon name="chevron" size={18} className="disclosure__chevron" />
   );
+  const toggle = () => setOpen((value) => !value);
+  const toggleMark = hint ? (
+    <span className="disclosure__toggle">
+      <span className="disclosure__hint" aria-hidden="true">
+        {open ? hint.open : hint.closed}
+      </span>
+      {chevron}
+    </span>
+  ) : (
+    chevron
+  );
   return (
     <section
       className={`${className} disclosure`}
       aria-labelledby={`${id}-title`}
     >
-      <Heading className="disclosure__heading">
+      <Heading
+        className={`disclosure__heading${help ? ' disclosure__heading--help' : ''}`}
+      >
         <button
           type="button"
           className={variant === 'text' ? 'text-action' : undefined}
@@ -54,23 +73,25 @@ export function Disclosure({
           aria-expanded={open}
           aria-label={label}
           aria-controls={`${id}-content`}
-          onClick={() => setOpen((value) => !value)}
+          onClick={toggle}
         >
           <span>
             {title}
             {count !== undefined && ` (${count})`}
           </span>
-          {hint ? (
-            <span className="disclosure__toggle">
-              <span className="disclosure__hint" aria-hidden="true">
-                {open ? hint.open : hint.closed}
-              </span>
-              {chevron}
-            </span>
-          ) : (
-            chevron
-          )}
+          {!help && toggleMark}
         </button>
+        {help}
+        {help && (
+          // Área complementar só para o ponteiro; o teclado usa o botão.
+          <span
+            className="disclosure__rest"
+            aria-hidden="true"
+            onClick={toggle}
+          >
+            {toggleMark}
+          </span>
+        )}
       </Heading>
       <div
         id={`${id}-content`}
