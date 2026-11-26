@@ -24,13 +24,13 @@
   --color-focus: #fca5a5;
   --color-error: #ffaaaa;
   --color-warning: #eab308;
-  --color-chart-1: #e0525a;
-  --color-chart-2: #d9bc82;
-  --color-chart-3: #85c99a;
-  --color-chart-4: #6fa8dc;
-  --color-chart-5: #f7931a;
-  --color-chart-6: #bba0d7;
-  --color-chart-7: #9ca3af;
+  --color-chart-1: #dc2626;
+  --color-chart-2: #eab308;
+  --color-chart-3: #22c55e;
+  --color-chart-4: #3b82f6;
+  --color-chart-5: #f97316;
+  --color-chart-6: #a855f7;
+  --color-chart-7: #ec4899;
   --color-muscle-ready: #22c55e;
   --color-muscle-recovering: #eab308;
   --color-muscle-tired: #f97316;
@@ -2327,17 +2327,16 @@
   margin-inline: auto;
   overflow: visible;
 }
+/* Cores cheias como no mapa muscular; a seleção é indicada pelo contorno. */
 .distribution-pie__slice {
   stroke: var(--color-surface);
   stroke-width: 1.5;
   cursor: pointer;
-  opacity: 0.78;
-  transition: opacity 0.15s ease;
+  transition: stroke-width 0.15s ease;
 }
 .distribution-pie__slice.is-active {
-  opacity: 1;
   stroke: var(--color-foreground);
-  stroke-width: 2;
+  stroke-width: 2.5;
 }
 .distribution-pie [data-tone='0'] {
   fill: var(--color-chart-1);

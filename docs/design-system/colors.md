@@ -30,18 +30,21 @@ texto (“Atenção: 80% ou mais do limite”). Dentro do limite a barra usa
 
 A pizza da aba Investimentos usa uma cor fixa por categoria, na ordem de
 `investmentCategories`, sempre acompanhada de nome, valor e percentual na
-legenda (a cor não é o único meio de identificação). Setores são separados
-por um contorno da cor da superfície.
+legenda (a cor não é o único meio de identificação). A paleta segue a
+intensidade das cores do mapa muscular (`--color-muscle-*` e
+`--color-primary`), completada com azul, roxo e rosa do mesmo nível de
+saturação. Setores são separados por um contorno da cor da superfície; o
+selecionado recebe contorno claro, sem reduzir a opacidade dos demais.
 
 | Token             | Valor     | Categoria            |
 | ----------------- | --------- | -------------------- |
-| `--color-chart-1` | `#e0525a` | Ações                |
-| `--color-chart-2` | `#d9bc82` | Fundos imobiliários  |
-| `--color-chart-3` | `#85c99a` | Renda fixa           |
-| `--color-chart-4` | `#6fa8dc` | Caixinhas bancárias  |
-| `--color-chart-5` | `#f7931a` | Bitcoin              |
-| `--color-chart-6` | `#bba0d7` | Dólar (USD)          |
-| `--color-chart-7` | `#9ca3af` | Outros investimentos |
+| `--color-chart-1` | `#dc2626` | Ações                |
+| `--color-chart-2` | `#eab308` | Fundos imobiliários  |
+| `--color-chart-3` | `#22c55e` | Renda fixa           |
+| `--color-chart-4` | `#3b82f6` | Caixinhas bancárias  |
+| `--color-chart-5` | `#f97316` | Bitcoin              |
+| `--color-chart-6` | `#a855f7` | Dólar (USD)          |
+| `--color-chart-7` | `#ec4899` | Outros investimentos |
 
 ## Pilares
 
