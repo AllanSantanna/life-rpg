@@ -13,6 +13,7 @@ import type {
   Investment,
   InvestmentEntry,
   MoneyMovement,
+  RecurringRule,
 } from '../finances/types';
 import type { WorkoutDay } from '../workouts/types';
 import type { SleepDay } from '../rest/types';
@@ -43,6 +44,29 @@ export type RecordCommand =
   | { type: 'saveMarketQuote'; value: MarketQuote }
   | { type: 'saveMovement'; value: MoneyMovement }
   | { type: 'deleteMovement'; id: string }
+  /** Cria/edita uma regra; `firstMovement` confirma a primeira ocorrência junto. */
+  | {
+      type: 'saveRecurrence';
+      rule: RecurringRule;
+      firstMovement?: MoneyMovement;
+    }
+  /** Confirma uma ocorrência criando a movimentação real (idempotente). */
+  | { type: 'confirmRecurrence'; value: MoneyMovement }
+  | {
+      type: 'setRecurrenceStatus';
+      id: string;
+      status: RecurringRule['status'];
+    }
+  | { type: 'skipRecurrence'; id: string; date: string }
+  | { type: 'deleteRecurrence'; id: string }
+  | {
+      type: 'setBudget';
+      id: string;
+      category: string;
+      limitCents: number;
+      month: string;
+    }
+  | { type: 'removeBudget'; category: string; month: string }
   | {
       type: 'saveInvestment';
       value: Investment;

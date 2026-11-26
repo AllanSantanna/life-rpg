@@ -1,4 +1,4 @@
-import { isInitialPosition } from './initialPosition';
+import { movesWallet } from './initialPosition';
 import type { LifeRecords } from '../records/types';
 import { emptyLedger } from './types';
 
@@ -8,7 +8,8 @@ export function accountDeletionImpact(records: LifeRecords, id: string) {
     accountId?: string;
     positionInitial?: boolean;
     costUnknown?: boolean;
-  }) => !isInitialPosition(entry) && (entry.accountId ?? 'principal') === id;
+    walletLinked?: boolean;
+  }) => movesWallet(entry) && (entry.accountId ?? 'principal') === id;
   const investmentIds = new Set(
     records.investmentEntries
       .filter(belongs)

@@ -92,10 +92,27 @@ export function entryFromForm(
           : formCents(data, 'amount'),
     ...units,
     ...(unknown ? { costUnknown: true } : {}),
+    ...walletChoice(data, positionInitial),
     ...(!bitcoin && kind === 'withdrawal' && formText(data, 'costBasis')
       ? { costBasisCents: formCents(data, 'costBasis') }
       : {}),
   };
+}
+
+/**
+ * Escolha “Utilizar saldo da Carteira” / “Enviar valor para a Carteira”. O campo
+ * oculto `walletChoice` indica que o interruptor foi exibido. Na edição de um
+ * registro anterior (sem `walletLinked`), manter o interruptor ligado preserva o
+ * registro sem o campo, com a mesma regra histórica; desligá-lo grava `false`.
+ */
+function walletChoice(
+  data: FormData,
+  positionInitial: boolean,
+): Pick<InvestmentEntry, 'walletLinked'> {
+  if (positionInitial || formText(data, 'walletChoice') !== '1') return {};
+  const linked = formText(data, 'wallet') === 'on';
+  if (linked && formText(data, 'walletLegacy') === '1') return {};
+  return { walletLinked: linked };
 }
 
 export function movementFromForm(data: FormData, id: string): MoneyMovement {

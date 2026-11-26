@@ -6,6 +6,11 @@ export interface MoneyMovement {
   amountCents: number;
   category: string;
   date: string;
+  /**
+   * Ocorrência de recorrência confirmada por esta movimentação. Ausente nos
+   * registros comuns e anteriores; o par regra/data é único.
+   */
+  recurrence?: { ruleId: string; date: string };
 }
 export const investmentCategories = [
   'Ações',
@@ -39,6 +44,12 @@ export interface InvestmentEntry {
   costUnknown?: boolean;
   positionInitial?: boolean;
   acquisitionDateUnknown?: boolean;
+  /**
+   * Escolha explícita de movimentar a Carteira (aporte debita, retirada
+   * credita). Ausente em registros anteriores: vale a regra histórica
+   * (operações reais movimentam a carteira; posições iniciais não).
+   */
+  walletLinked?: boolean;
 }
 
 export interface CashAccount {
@@ -97,7 +108,44 @@ export const TICKER_PATTERN = /^[A-Z][A-Z0-9]{3}\d{1,2}$/;
 export function normalizeTicker(value: string) {
   return value.trim().toUpperCase();
 }
+export type RecurrenceFrequency = 'weekly' | 'monthly' | 'yearly';
+/**
+ * Regra de receita/despesa periódica. É uma previsão: não altera saldo, XP ou
+ * orçamento. Cada ocorrência confirmada vira uma `MoneyMovement` real com
+ * `recurrence`, que é a fonte única do histórico confirmado.
+ */
+export interface RecurringRule {
+  id: string;
+  kind: MoneyMovement['kind'];
+  description: string;
+  amountCents: number;
+  category: string;
+  frequency: RecurrenceFrequency;
+  /** Data da primeira ocorrência; define o dia de referência da série. */
+  startDate: string;
+  status: 'active' | 'paused' | 'ended';
+  /** Último dia da série quando encerrada. */
+  endDate?: string;
+  /** Intervalos pausados: ocorrências em [from, to) não ficam pendentes. */
+  pauses?: { from: string; to?: string }[];
+  /** Ocorrências dispensadas pelo usuário (sem movimentação). */
+  skipped?: string[];
+}
+/**
+ * Limite mensal recorrente de uma categoria de despesa, válido de `from` até
+ * `to` (meses `AAAA-MM`, inclusive). Alterar o limite cria uma nova versão a
+ * partir do mês escolhido, sem reescrever os meses anteriores.
+ */
+export interface CategoryBudget {
+  id: string;
+  category: string;
+  limitCents: number;
+  from: string;
+  to?: string;
+}
 export interface FinanceLedger {
+  recurrences?: RecurringRule[];
+  budgets?: CategoryBudget[];
   marketQuotes?: MarketQuote[];
   usdQuotes?: UsdQuote[];
   accounts: CashAccount[];

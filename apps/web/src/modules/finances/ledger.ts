@@ -1,5 +1,5 @@
 import { projectBoxBalance } from './savingsBox';
-import { isInitialPosition } from './initialPosition';
+import { movesWallet } from './initialPosition';
 import type { LifeRecords } from '../records/types';
 import {
   emptyLedger,
@@ -173,10 +173,7 @@ export function accountBalance(
         0,
       ) +
     records.investmentEntries
-      .filter(
-        (item) =>
-          applies(item) && !isInitialPosition(item) && !item.costUnknown,
-      )
+      .filter((item) => applies(item) && movesWallet(item))
       .reduce(
         (sum, item) =>
           sum +
@@ -201,7 +198,7 @@ export function financialSummary(records: LifeRecords, date: string) {
     ...records.investmentEntries,
   ].some(
     (item) =>
-      !('investmentId' in item && isInitialPosition(item)) &&
+      !('investmentId' in item && !movesWallet(item)) &&
       item.date <= date &&
       !accounts.some(
         (account) =>
