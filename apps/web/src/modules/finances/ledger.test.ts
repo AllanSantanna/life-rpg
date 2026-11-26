@@ -268,7 +268,11 @@ describe('Livro financeiro e compatibilidade', () => {
   });
   it('não inventa saldo inicial nem cotação anterior à observação e recalcula histórico', () => {
     let s = btc();
-    expect(financialSummary(emptyRecords(), today).wealth).toBeNull();
+    // Sem registros, a carteira interna começa em zero, sem inventar saldo.
+    expect(financialSummary(emptyRecords(), today)).toMatchObject({
+      cash: 0,
+      wealth: 0,
+    });
     s = apply(s, {
       type: 'saveQuote',
       value: {

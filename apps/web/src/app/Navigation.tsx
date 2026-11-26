@@ -1,5 +1,6 @@
 import { BrandLogo } from '../shared/components/BrandLogo';
 import { Icon, type IconName } from '../shared/components/Icon';
+import type { ReactNode } from 'react';
 import { pillarViews, type View } from './views';
 export type { View } from './views';
 const links: { id: View; label: string; icon: IconName; number: string }[] = [
@@ -20,9 +21,12 @@ function isActive(link: View, current: View) {
 export function Navigation({
   current,
   onNavigate,
+  children,
 }: {
   current: View;
   onNavigate: (view: View) => void;
+  /** Ações rápidas: flutuam acima da barra no celular; abaixo da lista no computador. */
+  children?: ReactNode;
 }) {
   return (
     <aside className="sidebar">
@@ -59,6 +63,7 @@ export function Navigation({
           </button>
         ))}
       </nav>
+      {children}
     </aside>
   );
 }

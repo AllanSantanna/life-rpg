@@ -14,7 +14,7 @@ atuais. O projeto também contém uma base de API para evoluções futuras.
 - **Dashboard:** personagem, classe, nível, XP, indicadores dos quatro pilares,
   quests do usuário e medalhas, com layout dark/vermelho e navegação responsiva.
 - **Finanças:** receitas e despesas com edição/exclusão, histórico mensal e saldo;
-  contas com saldo inicial, transferências, posições preexistentes sem débito e compras reais de investimentos; correção confirmada de compras antigas e avaliações manuais;
+  carteira interna única e automática (sem criar ou escolher contas; registros anteriores preservados), posições preexistentes sem débito e compras reais de investimentos; correção confirmada de compras antigas e avaliações manuais;
   Bitcoin em BTC/sats e dólar (USD), com cotações de referência, custo médio e vendas parciais. Campos monetários com máscara durante a digitação. Caixinhas por instituição,
   contrato CDI informativo e atualização manual do saldo/rendimento, sem juros automáticos. Gráficos distinguem
   fluxo mensal, dinheiro disponível, investimentos e patrimônio sem duplicação.

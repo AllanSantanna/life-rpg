@@ -276,9 +276,10 @@ describe('Quests livres, ciclos e indicadores', () => {
       metric: 'wealth',
       unit: 'reais',
     });
+    // Sem registros, a carteira interna vale zero: não há patrimônio pendente.
     expect(
       currentGoalCycle(missing.items[0]!, missing, emptyRecords(), today).value,
-    ).toBeNull();
+    ).toBe(0);
   });
   it('pausa sem apagar dados, impede progresso manual e retoma mantendo o histórico', () => {
     let state = goal({ cadence: 'daily', target: 1000 }, '2026-11-10');

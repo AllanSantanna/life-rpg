@@ -2,6 +2,7 @@ import {
   cardDetails,
   cardMenuAction,
   confirmDeletion,
+  financeTab,
   investmentCard,
   newInvestmentForm,
 } from '../../test/finances';
@@ -93,6 +94,8 @@ describe('Caixinhas pela interface', () => {
     );
     expect(stored().records.investments).toHaveLength(2);
     expect(stored().records.movements).toEqual([]);
+    // Caixinhas preexistentes não debitam o saldo disponível (aba Carteira).
+    financeTab('Carteira');
     expect(
       screen.getByRole('region', { name: 'Evolução financeira' }),
     ).toHaveTextContent('R$ 2.000,00');

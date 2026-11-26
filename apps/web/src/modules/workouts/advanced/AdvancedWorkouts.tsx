@@ -1,9 +1,9 @@
-import { currentSessionStart } from './sessionTiming';
+import { planStart } from './startSession';
 import {
   Icon as WorkoutIcon,
   type IconName as WorkoutIconName,
 } from '../../../shared/components/Icon';
-import { useId, useRef, useState, type KeyboardEvent } from 'react';
+import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
 import { ActionButton } from '../../../shared/components/ActionButton';
 import { StatusDialog } from '../../../shared/components/StatusDialog';
 import { plural } from '../../../shared/lib/plural';
@@ -56,11 +56,14 @@ export function AdvancedWorkouts({
   today,
   onCommand,
   whenSaved,
+  focus,
 }: {
   state: AdvancedWorkoutState;
   today: string;
   onCommand: AdvancedCommandHandler;
   whenSaved?: () => Promise<SaveOutcome>;
+  /** Sessão aberta pelas Ações rápidas; `nonce` repete a abertura. */
+  focus?: { sessionId: string; nonce: number } | undefined;
 }) {
   const activeSession = state.sessions.findLast(
     (s) => s.status === 'in_progress',
@@ -79,26 +82,18 @@ export function AdvancedWorkouts({
     setTab('session');
   }
   function start(planId: string) {
-    const existing = state.sessions.findLast(
-      (s) => s.status === 'in_progress' && s.planId === planId,
-    );
-    if (existing) {
-      open(existing.id);
-      return;
-    }
-    const id = crypto.randomUUID();
-    const startedAt = currentSessionStart(today);
-    if (
-      !onCommand({
-        type: 'startSession',
-        id,
-        planId,
-        date: today,
-        ...(startedAt !== undefined ? { startedAt } : {}),
-      })
-    )
-      open(id);
+    const { sessionId, command } = planStart(state, planId, today);
+    if (!command || !onCommand(command)) open(sessionId);
   }
+  // Abre a sessão escolhida nas Ações rápidas, mesmo com a página já aberta.
+  const focusNonce = focus?.nonce;
+  const focusId = focus?.sessionId;
+  useEffect(() => {
+    if (focusId === undefined) return;
+    setImporting(false);
+    setSessionId(focusId);
+    setTab('session');
+  }, [focusNonce, focusId]);
   function moveTab(event: KeyboardEvent<HTMLButtonElement>, index: number) {
     const next =
       event.key === 'ArrowRight'

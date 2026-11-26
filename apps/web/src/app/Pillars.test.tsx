@@ -6,6 +6,7 @@ import {
   movementHistory,
   newInvestmentForm,
   newMovementForm,
+  externalMoney,
 } from '../test/finances';
 import {
   cleanup,
@@ -83,15 +84,9 @@ describe('Fluxos reais dos quatro pilares', () => {
         (item: { description: string }) => item.description === 'Mercado',
       ).amountCents,
     ).toBe(9025);
-    selectDate(
-      screen.getByRole('combobox', { name: 'Mês financeiro' }),
-      '2026-10',
-    );
+    selectDate(screen.getByRole('combobox', { name: 'Período' }), '2026-10');
     expect(movementHistory()).toHaveTextContent('Nenhuma movimentação');
-    selectDate(
-      screen.getByRole('combobox', { name: 'Mês financeiro' }),
-      '2026-11',
-    );
+    selectDate(screen.getByRole('combobox', { name: 'Período' }), '2026-11');
     fireEvent.click(screen.getByRole('button', { name: 'Excluir Mercado' }));
     expect(stored().records.movements).toHaveLength(2);
     confirmDeletion();
@@ -111,6 +106,8 @@ describe('Fluxos reais dos quatro pilares', () => {
     input(form, 'Tipo de registro do investimento', 'Nova compra ou aporte');
     input(form, 'Quantidade (opcional)', '3');
     input(form, 'Preço de compra por unidade (R$, opcional)', '100,50');
+    // Sem receitas cadastradas: compra com dinheiro de fora da Carteira.
+    externalMoney(form);
     click(form, 'Adicionar investimento');
     expect(stored().records.investmentEntries[0].amountCents).toBe(30150);
     expect(stored().records.movements).toEqual([]);
@@ -119,6 +116,7 @@ describe('Fluxos reais dos quatro pilares', () => {
       'Comprar mais Carteira pessoal',
     );
     input(form, 'Valor da operação (R$)', '100');
+    externalMoney(form);
     click(form, 'Registrar operação');
     form = cardAction(
       'Investimento Carteira pessoal',

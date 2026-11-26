@@ -75,6 +75,13 @@ vi.mock('../app/playerRepository', async () => {
 beforeEach(() => {
   vi.setSystemTime(new Date(2026, 10, 13, 12));
   window.localStorage.clear();
+  // Novidades da versão: as suítes começam com uma versão posterior a qualquer
+  // entrada do catálogo já apresentada, para a janela automática não interferir.
+  // Os testes da janela (app/whats-new) removem esta chave.
+  window.localStorage.setItem(
+    'life-rpg:whats-new',
+    JSON.stringify({ version: 1, data: { seen: '9999-12-31' } }),
+  );
   window.history.replaceState(null, '', '/');
 });
 afterEach(() => {

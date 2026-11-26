@@ -15,6 +15,8 @@ export interface MovementFilters {
   kind: typeof ALL | MoneyMovement['kind'];
   accountId: string;
   category: string;
+  /** Texto da pesquisa rápida; vazio não filtra. */
+  query?: string;
 }
 export function filterMovements(
   movements: readonly MoneyMovement[],
@@ -28,9 +30,33 @@ export function filterMovements(
         (filters.accountId === ALL ||
           // Registros legados sem conta pertencem à conta principal.
           (item.accountId ?? 'principal') === filters.accountId) &&
-        (filters.category === ALL || item.category === filters.category),
+        (filters.category === ALL || item.category === filters.category) &&
+        matchesSearch(item, filters.query ?? ''),
     )
     .sort((a, b) => b.date.localeCompare(a.date));
+}
+/** Texto comparável: sem acentos, minúsculo e com espaços normalizados. */
+export function searchable(value: string) {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLocaleLowerCase('pt-BR')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+/**
+ * Pesquisa rápida: todas as palavras precisam aparecer na descrição ou na
+ * categoria (campos textuais do modelo). Somente leitura; combina-se com os
+ * filtros de mês, tipo e categoria.
+ */
+export function matchesSearch(
+  item: { description: string; category: string },
+  query: string,
+) {
+  const terms = searchable(query).split(' ').filter(Boolean);
+  if (!terms.length) return true;
+  const text = searchable(`${item.description} ${item.category}`);
+  return terms.every((term) => text.includes(term));
 }
 export function movementCategories(movements: readonly MoneyMovement[]) {
   return [...new Set(movements.map((item) => item.category))].sort((a, b) =>

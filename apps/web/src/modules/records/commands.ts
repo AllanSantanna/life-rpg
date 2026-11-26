@@ -13,8 +13,14 @@ import {
   TICKER_PATTERN,
   type InvestmentCategory,
   type MarketQuote,
+  type RecurringRule,
 } from '../finances/types';
 import { investmentCategories } from '../finances/types';
+import { walletShortfall } from '../finances/walletLink';
+import { resolveWithdrawalCost } from '../finances/withdrawalCost';
+import { isMonth, removeBudget, setBudget } from '../finances/budget';
+import { isScheduled, occurrenceMovementId } from '../finances/recurrence';
+import { shiftDate } from './dates';
 import { bookProgress } from '../knowledge/calculations';
 import { isDate } from './dates';
 
@@ -90,6 +96,66 @@ function list(
       value.length
   );
 }
+function isRecurringRule(item: Record<string, unknown>) {
+  const pauses = item.pauses;
+  const skipped = item.skipped;
+  const validPauses =
+    pauses === undefined ||
+    (Array.isArray(pauses) &&
+      pauses.length <= 1000 &&
+      pauses.every(
+        (pause: unknown, index: number) =>
+          record(pause) &&
+          isDate(pause.from) &&
+          (pause.to === undefined
+            ? index === pauses.length - 1
+            : isDate(pause.to) && String(pause.to) > String(pause.from)),
+      ));
+  const openPause =
+    Array.isArray(pauses) &&
+    record(pauses.at(-1)) &&
+    (pauses.at(-1) as Record<string, unknown>).to === undefined;
+  return (
+    text(item.id) &&
+    (item.kind === 'income' || item.kind === 'expense') &&
+    text(item.description) &&
+    cents(item.amountCents) &&
+    text(item.category) &&
+    (item.frequency === 'weekly' ||
+      item.frequency === 'monthly' ||
+      item.frequency === 'yearly') &&
+    isDate(item.startDate) &&
+    (item.status === 'active' ||
+      item.status === 'paused' ||
+      item.status === 'ended') &&
+    (item.status === 'ended'
+      ? isDate(item.endDate)
+      : item.endDate === undefined) &&
+    validPauses &&
+    openPause === (item.status === 'paused') &&
+    (skipped === undefined ||
+      (Array.isArray(skipped) &&
+        skipped.length <= 10000 &&
+        skipped.every(isDate) &&
+        new Set(skipped).size === skipped.length))
+  );
+}
+/** Versões de limite da mesma categoria não podem se sobrepor. */
+function budgetsDisjoint(budgets: Record<string, unknown>[]) {
+  const sorted = [...budgets].sort(
+    (a, b) =>
+      String(a.category).localeCompare(String(b.category)) ||
+      String(a.from).localeCompare(String(b.from)),
+  );
+  return sorted.every((item, index) => {
+    const previous = sorted[index - 1];
+    return (
+      !previous ||
+      previous.category !== item.category ||
+      (previous.to !== undefined && String(previous.to) < String(item.from))
+    );
+  });
+}
 export function isLifeRecords(value: unknown): value is LifeRecords {
   if (
     !record(value) ||
@@ -109,8 +175,21 @@ export function isLifeRecords(value: unknown): value is LifeRecords {
         text(item.description) &&
         text(item.category) &&
         cents(item.amountCents) &&
-        isDate(item.date),
-    )
+        isDate(item.date) &&
+        (item.recurrence === undefined ||
+          (record(item.recurrence) &&
+            text(item.recurrence.ruleId) &&
+            isDate(item.recurrence.date))),
+    ) ||
+    // Uma ocorrência de recorrência é confirmada no máximo uma vez.
+    new Set(
+      value.movements
+        .filter((item) => record(item.recurrence))
+        .map((item) => {
+          const link = item.recurrence as Record<string, unknown>;
+          return `${String(link.ruleId)}:${String(link.date)}`;
+        }),
+    ).size !== value.movements.filter((item) => record(item.recurrence)).length
   )
     return false;
   if (
@@ -154,6 +233,13 @@ export function isLifeRecords(value: unknown): value is LifeRecords {
       )
         return false;
       if (item.positionInitial === true && item.kind !== 'contribution')
+        return false;
+      if (
+        item.walletLinked !== undefined &&
+        (typeof item.walletLinked !== 'boolean' ||
+          (item.walletLinked &&
+            (item.positionInitial === true || item.costUnknown === true)))
+      )
         return false;
       if (
         item.acquisitionDateUnknown !== undefined &&
@@ -362,6 +448,26 @@ export function isLifeRecords(value: unknown): value is LifeRecords {
             positive(q.observedAt) &&
             q.marketTime <= q.observedAt + 60000,
         ))
+    )
+      return false;
+    if (
+      ledger.recurrences !== undefined &&
+      !list(ledger.recurrences, isRecurringRule)
+    )
+      return false;
+    if (
+      ledger.budgets !== undefined &&
+      (!list(
+        ledger.budgets,
+        (item) =>
+          text(item.id) &&
+          text(item.category) &&
+          cents(item.limitCents) &&
+          isMonth(item.from) &&
+          (item.to === undefined ||
+            (isMonth(item.to) && String(item.to) >= String(item.from))),
+      ) ||
+        !budgetsDisjoint(ledger.budgets))
     )
       return false;
     if (
@@ -630,10 +736,220 @@ export function applyRecordCommand(
       };
       break;
 
-    case 'saveMovement':
+    case 'saveMovement': {
+      // O vínculo com uma recorrência só nasce na confirmação e é preservado
+      // nas edições; não pode ser criado, trocado ou removido por aqui.
+      const existing = records.movements.find(
+        (item) => item.id === command.value.id,
+      );
+      assert(
+        JSON.stringify(existing?.recurrence) ===
+          JSON.stringify(command.value.recurrence),
+        'Use “Confirmar” em Próximas movimentações para registrar uma ocorrência.',
+      );
       next = {
         ...records,
         movements: upsert(records.movements, command.value, 'id'),
+      };
+      break;
+    }
+    case 'saveRecurrence': {
+      const rules = finance.recurrences ?? [];
+      const existing = rules.find((item) => item.id === command.rule.id);
+      // Estado (pausa, encerramento, dispensas) muda só pelos próprios comandos.
+      const input = command.rule;
+      const fields = {
+        id: input.id,
+        kind: input.kind,
+        description: input.description,
+        amountCents: input.amountCents,
+        category: input.category,
+        frequency: input.frequency,
+        startDate: input.startDate,
+      };
+      const rule: RecurringRule = existing
+        ? {
+            ...fields,
+            status: existing.status,
+            ...(existing.endDate ? { endDate: existing.endDate } : {}),
+            ...(existing.pauses ? { pauses: existing.pauses } : {}),
+            ...(existing.skipped ? { skipped: existing.skipped } : {}),
+          }
+        : { ...fields, status: 'active' };
+      const first = command.firstMovement;
+      if (first) {
+        assert(
+          !existing &&
+            first.kind === rule.kind &&
+            first.recurrence?.ruleId === rule.id &&
+            first.recurrence.date === rule.startDate &&
+            first.date === rule.startDate &&
+            first.id === occurrenceMovementId(rule.id, rule.startDate) &&
+            isDate(first.date) &&
+            first.date <= today &&
+            !records.movements.some((item) => item.id === first.id),
+          'A primeira ocorrência deve corresponder à data inicial da recorrência.',
+        );
+      }
+      next = {
+        ...records,
+        movements: first ? [...records.movements, first] : records.movements,
+        finance: { ...finance, recurrences: upsert(rules, rule, 'id') },
+      };
+      break;
+    }
+    case 'confirmRecurrence': {
+      const link = command.value.recurrence;
+      assert(link, 'Selecione uma ocorrência prevista.');
+      const rule = finance.recurrences?.find((item) => item.id === link.ruleId);
+      assert(rule, 'Recorrência não encontrada.');
+      // Idempotente: confirmar de novo a mesma ocorrência não cria nada.
+      if (
+        records.movements.some(
+          (item) =>
+            item.recurrence?.ruleId === link.ruleId &&
+            item.recurrence.date === link.date,
+        )
+      )
+        return records;
+      assert(
+        rule.status !== 'ended' &&
+          isScheduled(rule, link.date) &&
+          !(rule.skipped ?? []).includes(link.date) &&
+          command.value.kind === rule.kind &&
+          command.value.id === occurrenceMovementId(rule.id, link.date) &&
+          !records.movements.some((item) => item.id === command.value.id),
+        'Esta ocorrência não está disponível para confirmação.',
+      );
+      next = { ...records, movements: [...records.movements, command.value] };
+      break;
+    }
+    case 'setRecurrenceStatus': {
+      const rules = finance.recurrences ?? [];
+      const rule = rules.find((item) => item.id === command.id);
+      assert(rule, 'Recorrência não encontrada.');
+      const pauses = rule.pauses ?? [];
+      const open = pauses.at(-1)?.to === undefined ? pauses.at(-1) : undefined;
+      /** Fecha a pausa aberta hoje; uma pausa iniciada hoje é descartada. */
+      const closed = open
+        ? open.from === today
+          ? pauses.slice(0, -1)
+          : [...pauses.slice(0, -1), { from: open.from, to: today }]
+        : pauses;
+      /** Regra sem as pausas, para regravá-las já ajustadas. */
+      const base: RecurringRule = { ...rule };
+      delete base.pauses;
+      let updated: RecurringRule;
+      if (command.status === 'paused') {
+        assert(
+          rule.status === 'active',
+          'Somente recorrências ativas podem ser pausadas.',
+        );
+        updated = {
+          ...rule,
+          status: 'paused',
+          pauses: [...pauses, { from: today }],
+        };
+      } else if (command.status === 'active') {
+        assert(
+          rule.status === 'paused',
+          'Somente recorrências pausadas podem ser reativadas.',
+        );
+        updated = {
+          ...base,
+          status: 'active',
+          ...(closed.length ? { pauses: closed } : {}),
+        };
+      } else {
+        assert(rule.status !== 'ended', 'A recorrência já está encerrada.');
+        updated = {
+          ...base,
+          status: 'ended',
+          endDate: today,
+          ...(closed.length ? { pauses: closed } : {}),
+        };
+      }
+      next = {
+        ...records,
+        finance: { ...finance, recurrences: upsert(rules, updated, 'id') },
+      };
+      break;
+    }
+    case 'skipRecurrence': {
+      const rules = finance.recurrences ?? [];
+      const rule = rules.find((item) => item.id === command.id);
+      assert(rule, 'Recorrência não encontrada.');
+      assert(
+        isScheduled(rule, command.date) &&
+          command.date <= shiftDate(today, 400) &&
+          !records.movements.some(
+            (item) =>
+              item.recurrence?.ruleId === rule.id &&
+              item.recurrence.date === command.date,
+          ),
+        'Esta ocorrência não pode ser dispensada.',
+      );
+      if ((rule.skipped ?? []).includes(command.date)) return records;
+      next = {
+        ...records,
+        finance: {
+          ...finance,
+          recurrences: upsert(
+            rules,
+            {
+              ...rule,
+              skipped: [...(rule.skipped ?? []), command.date].sort(),
+            },
+            'id',
+          ),
+        },
+      };
+      break;
+    }
+    case 'deleteRecurrence':
+      // As movimentações já confirmadas são reais e permanecem no histórico.
+      next = {
+        ...records,
+        finance: {
+          ...finance,
+          recurrences: (finance.recurrences ?? []).filter(
+            (item) => item.id !== command.id,
+          ),
+        },
+      };
+      break;
+    case 'setBudget':
+      assert(
+        text(command.category) &&
+          cents(command.limitCents) &&
+          isMonth(command.month),
+        'Informe a categoria, um limite maior que zero e o mês.',
+      );
+      next = {
+        ...records,
+        finance: {
+          ...finance,
+          budgets: setBudget(finance.budgets ?? [], {
+            id: command.id,
+            category: command.category.trim(),
+            limitCents: command.limitCents,
+            month: command.month,
+          }),
+        },
+      };
+      break;
+    case 'removeBudget':
+      assert(isMonth(command.month), 'Informe o mês.');
+      next = {
+        ...records,
+        finance: {
+          ...finance,
+          budgets: removeBudget(
+            finance.budgets ?? [],
+            command.category,
+            command.month,
+          ),
+        },
       };
       break;
     case 'deleteMovement':
@@ -657,6 +973,10 @@ export function applyRecordCommand(
           ? upsert(records.investmentEntries, command.initialEntry, 'id')
           : records.investmentEntries,
       };
+      if (command.initialEntry) {
+        const shortfall = walletShortfall(next, command.initialEntry, today);
+        assert(!shortfall, shortfall ?? '');
+      }
       if (command.initialValuation) {
         const v = command.initialValuation;
         assert(
@@ -742,7 +1062,7 @@ export function applyRecordCommand(
           positionMode(target.category as InvestmentCategory) === 'shares' &&
           isShareSaleWithCostBasis(command.value)
         ),
-        'Em vendas de ações e FIIs com quantidade, o custo vendido sai pelo preço médio. Deixe o custo de aquisição resgatado em branco.',
+        'Em vendas de ações e FIIs com quantidade, o custo vendido sai pelo preço médio; o custo de aquisição não é informado.',
       );
       assert(
         !(
@@ -752,14 +1072,16 @@ export function applyRecordCommand(
         ) || command.confirmInitial === true,
         'Confirme a conversão em posição inicial.',
       );
+      // Resgates de ativos por valor: custo da parcela calculado internamente;
+      // o valor resgatado não muda.
+      const value = resolveWithdrawalCost(records, command.value);
       next = {
         ...records,
-        investmentEntries: upsert(
-          records.investmentEntries,
-          command.value,
-          'id',
-        ),
+        investmentEntries: upsert(records.investmentEntries, value, 'id'),
       };
+      // Aporte com “Utilizar saldo da Carteira”: recusa integral sem saldo.
+      const shortfall = walletShortfall(next, value, today);
+      assert(!shortfall, shortfall ?? '');
       break;
     }
     case 'deleteInvestmentEntry':

@@ -20,6 +20,18 @@ normal de 4 px por unidade. Em composições locais, prefira essa escala ou as
 classes existentes; valores de 14/18/22 px devem usar seus tokens semânticos.
 Não substitua um valor contextual por outro só para torná-lo múltiplo de 4.
 
+## Ritmo vertical de Finanças
+
+A página de Finanças (`.finance-page`) usa um único intervalo de 16 px
+(`--space-4`) entre cartões, aplicado pelo `gap` dos contêineres
+(`.finance-page`, `.finance-tabs`, `.finance-area`, `.finance-overview`).
+Cartões não têm margem externa própria: `.financial-settings` tinha
+`margin-top: 20px` somado ao `gap` de 20 px, o que dobrava o intervalo antes de
+Configurações financeiras. Títulos com ajuda ficam a 12 px do conteúdo
+(`--space-3`), e seções recolhíveis usam `padding-block: 12px`, mantendo o
+botão de 44 px como área de toque. Os demais pilares mantêm o `gap` de 20 px
+de `.pillar-page`.
+
 ## Controles
 
 - `--control-height`: 44 px, altura mínima recorrente; em `ActionButton`, também fixa.

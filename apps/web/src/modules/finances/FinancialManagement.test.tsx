@@ -19,6 +19,7 @@ import {
   createDemoPlayerState,
   PLAYER_STORAGE_KEY,
 } from '../../app/playerState';
+import { money } from './calculations';
 import { emptyLedger } from './types';
 const today = '2026-11-13';
 afterEach(cleanup);
@@ -76,10 +77,11 @@ function seed(linked = true) {
 function stored() {
   return JSON.parse(localStorage.getItem(PLAYER_STORAGE_KEY)!).data;
 }
-function openAccounts() {
-  fireEvent.click(
-    screen.getByText('Contas, transferências e avaliações manuais'),
-  );
+function overview() {
+  return screen.getByRole('region', { name: 'Visão geral financeira' });
+}
+function summaryValue(label: string) {
+  return within(overview()).getByText(label).nextElementSibling?.textContent;
 }
 function openReset() {
   fireEvent.click(screen.getByText('Configurações financeiras'));
@@ -89,127 +91,64 @@ function openReset() {
   return screen.getByRole('dialog', { name: 'Redefinir dados financeiros' });
 }
 describe('Confirmações financeiras e persistência', () => {
-  it('mantém edição e permite cancelar exclusão com foco no botão seguro', () => {
+  it('carteira legada: oculta o gerenciamento de contas sem alterar registros', () => {
     const state = seed();
     render(<App />);
-    openAccounts();
+    // Abertura de R$ 1.000,00 + salário R$ 100,00; a transferência entre as
+    // contas antigas não altera o total.
+    expect(summaryValue('Saldo disponível')).toBe(money(110000));
+    for (const name of [
+      /Excluir conta/,
+      /Editar conta/,
+      /Cadastrar saldo inicial/,
+      /Transferir entre contas/,
+      /Contas, transferências/,
+    ]) {
+      expect(screen.queryByRole('button', { name })).not.toBeInTheDocument();
+      expect(screen.queryByRole('form', { name })).not.toBeInTheDocument();
+    }
     expect(
-      screen.getByRole('button', { name: 'Editar conta Conta teste' }),
-    ).toBeInTheDocument();
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Excluir conta Conta teste' }),
-    );
-    const dialog = screen.getByRole('dialog', {
-      name: 'Excluir conta Conta teste',
-    });
-    expect(dialog).toHaveTextContent('possui registros vinculados');
+      screen.queryByText(/Contas, transferências/),
+    ).not.toBeInTheDocument();
     expect(
-      within(dialog).getByRole('button', { name: 'Cancelar' }),
-    ).toHaveFocus();
-    expect(
-      within(dialog).getByRole('button', {
-        name: 'Excluir conta e registros vinculados',
-      }),
-    ).toBeDisabled();
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Cancelar' }));
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      screen.queryByRole('combobox', { name: 'Conta' }),
+    ).not.toBeInTheDocument();
+    // Abrir a página não grava nem recria a carteira.
     expect(stored().records).toEqual(state.records);
   });
-  it('exige confirmação explícita para excluir vínculos e atualiza saldo, gráfico e recarga', () => {
-    seed();
+  it('carteira legada: novas movimentações preservam contas, IDs e transferências', () => {
+    const state = seed();
     const app = render(<App />);
-    openAccounts();
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Excluir conta Conta teste' }),
-    );
-    const dialog = screen.getByRole('dialog');
-    fireEvent.click(within(dialog).getByRole('checkbox'));
-    fireEvent.click(
-      within(dialog).getByRole('button', {
-        name: 'Excluir conta e registros vinculados',
-      }),
-    );
-    expect(stored().records.movements).toEqual([]);
-    expect(stored().records.finance.transfers).toEqual([]);
-    expect(stored().records.finance.accounts).toHaveLength(1);
+    fireEvent.click(screen.getByRole('button', { name: 'Adicionar despesa' }));
+    const form = screen.getByRole('form', { name: 'Nova movimentação' });
     expect(
-      screen.queryByRole('button', { name: 'Excluir conta Conta teste' }),
+      within(form).queryByRole('combobox', { name: 'Conta' }),
     ).not.toBeInTheDocument();
-    expect(
-      screen.getByRole('region', { name: 'Evolução financeira' }),
-    ).toHaveTextContent('Nenhum registro neste período');
+    fireEvent.change(within(form).getByLabelText('Descrição'), {
+      target: { value: 'Farmácia' },
+    });
+    fireEvent.change(within(form).getByLabelText('Valor (R$)'), {
+      target: { value: '2500' },
+    });
+    fireEvent.click(
+      within(form).getByRole('button', { name: 'Adicionar movimentação' }),
+    );
+    const next = stored().records;
+    expect(next.finance).toEqual(state.records.finance);
+    expect(next.movements.slice(0, 1)).toEqual(state.records.movements);
+    expect(next.movements[1]).toMatchObject({
+      kind: 'expense',
+      description: 'Farmácia',
+      amountCents: 2500,
+    });
+    expect(next.movements[1]).not.toHaveProperty('accountId');
+    expect(summaryValue('Saldo disponível')).toBe(money(107500));
     app.unmount();
     render(<App />);
-    openAccounts();
+    expect(summaryValue('Saldo disponível')).toBe(money(107500));
     expect(
-      screen.getByRole('button', { name: 'Excluir conta Outra conta' }),
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByRole('button', { name: 'Excluir conta Conta teste' }),
-    ).not.toBeInTheDocument();
-  });
-  it('exclui conta vazia somente após confirmação', () => {
-    seed(false);
-    render(<App />);
-    openAccounts();
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Excluir conta Conta teste' }),
-    );
-    const dialog = screen.getByRole('dialog');
-    expect(dialog).toHaveTextContent('não possui movimentações vinculadas');
-    expect(stored().records.finance.accounts).toHaveLength(2);
-    fireEvent.click(
-      within(dialog).getByRole('button', {
-        name: 'Confirmar exclusão da conta',
-      }),
-    );
-    expect(stored().records.finance.accounts).toHaveLength(1);
-  });
-  it('informa investimentos compartilhados antes de excluir operações de outras contas', () => {
-    const state = seed();
-    state.records.investments = [
-      { id: 'a', name: 'Reserva compartilhada', category: 'Renda fixa' },
-    ];
-    state.records.investmentEntries = [
-      {
-        id: 'buy',
-        investmentId: 'a',
-        kind: 'contribution',
-        amountCents: 10000,
-        date: today,
-      },
-      {
-        id: 'sell',
-        investmentId: 'a',
-        kind: 'withdrawal',
-        accountId: 'other',
-        amountCents: 5000,
-        date: today,
-      },
-    ];
-    localStorage.setItem(
-      PLAYER_STORAGE_KEY,
-      JSON.stringify({ version: 2, data: state }),
-    );
-    render(<App />);
-    openAccounts();
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Excluir conta Conta teste' }),
-    );
-    const dialog = screen.getByRole('dialog');
-    expect(dialog).toHaveTextContent('Reserva compartilhada');
-    expect(dialog).toHaveTextContent(
-      '1 operações em outras contas também serão excluídas',
-    );
-    expect(stored().records.investmentEntries).toHaveLength(2);
-    fireEvent.click(within(dialog).getByRole('checkbox'));
-    fireEvent.click(
-      within(dialog).getByRole('button', {
-        name: 'Excluir conta e registros vinculados',
-      }),
-    );
-    expect(stored().records.investments).toEqual([]);
-    expect(stored().records.investmentEntries).toEqual([]);
+      stored().records.finance.accounts.map((a: { id: string }) => a.id),
+    ).toEqual(['principal', 'other']);
   });
   it('não repõe dados quando uma cotação pendente termina depois da redefinição', async () => {
     let resolve: ((quote: BitcoinQuote) => void) | undefined;

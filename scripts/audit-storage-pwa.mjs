@@ -6,6 +6,7 @@ import {
   readCanonical,
   untilWaiting,
   waitForCommit,
+  skipWhatsNew,
 } from './audit-storage-helpers.mjs';
 
 // Production builds are served only on a temporary loopback origin. Every
@@ -107,6 +108,7 @@ async function context(width = 1024, workers = 'block') {
     reducedMotion: 'reduce',
     acceptDownloads: true,
   });
+  await skipWhatsNew(ctx);
   await ctx.route('**/*', (route) =>
     [base, dev].some((origin) =>
       route

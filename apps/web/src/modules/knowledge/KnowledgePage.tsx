@@ -1,18 +1,10 @@
 import { ConfirmAction } from '../../shared/components/ConfirmAction';
-import { CustomSelect } from '../../shared/components/CustomSelect';
 import { useCommand } from '../records/useCommand';
-import { formText, formNumber, newId } from '../records/form';
+import { newId } from '../records/form';
 import { useState } from 'react';
 import type { RecordPageProps } from '../records/types';
-import {
-  Actions,
-  DateField,
-  Empty,
-  Field,
-  RecordForm,
-  Summary,
-  RecordFeedback,
-} from '../records/RecordUI';
+import { Empty, Summary, RecordFeedback } from '../records/RecordUI';
+import { BookForm, ReadingForm } from './KnowledgeForms';
 import { displayDate } from '../records/dates';
 import { bookProgress, readingStats } from './calculations';
 import { ProgressBar } from '../../shared/components/ProgressBar';
@@ -36,103 +28,30 @@ export function KnowledgePage({ records, today, onCommand }: RecordPageProps) {
         ]}
       />
       <div className="record-columns">
-        <RecordForm
+        <BookForm
           key={`book:${bookId}:${revision}`}
-          title={book ? 'Editar livro' : 'Cadastrar livro'}
-          onSubmit={(data) => {
-            const error = run({
-              type: 'saveBook',
-              value: {
-                id: book?.id ?? newId(),
-                title: formText(data, 'title'),
-                totalPages: formNumber(data, 'totalPages'),
-              },
-            });
-            if (!error) {
-              setBookId(null);
-              setRevision((value) => value + 1);
-            }
-            return error;
+          book={book}
+          run={run}
+          onSaved={() => {
+            setBookId(null);
+            setRevision((value) => value + 1);
           }}
-        >
-          <Field label="Título do livro">
-            <input
-              name="title"
-              required
-              maxLength={200}
-              defaultValue={book?.title}
-            />
-          </Field>
-          <Field label="Total de páginas">
-            <input
-              name="totalPages"
-              type="number"
-              min="1"
-              max="1000000"
-              step="1"
-              required
-              defaultValue={book?.totalPages}
-            />
-          </Field>
-          <Actions
-            submit={book ? 'Salvar livro' : 'Adicionar livro'}
-            onCancel={book ? () => setBookId(null) : undefined}
-          />
-        </RecordForm>
+          onCancel={book ? () => setBookId(null) : undefined}
+        />
         {records.books.length > 0 && (
-          <RecordForm
+          <ReadingForm
             key={`reading:${readingId}:${revision}`}
-            title={reading ? 'Corrigir leitura' : 'Registrar leitura'}
-            onSubmit={(data) => {
-              const error = run({
-                type: 'saveReading',
-                value: {
-                  id: reading?.id ?? newId(),
-                  bookId: formText(data, 'bookId'),
-                  pages: formNumber(data, 'pages'),
-                  date: formText(data, 'date'),
-                },
-              });
-              if (!error) {
-                setReadingId(null);
-                setRevision((value) => value + 1);
-              }
-              return error;
+            books={records.books}
+            readings={records.readings}
+            reading={reading}
+            today={today}
+            run={run}
+            onSaved={() => {
+              setReadingId(null);
+              setRevision((value) => value + 1);
             }}
-          >
-            <Field label="Livro da leitura">
-              <CustomSelect
-                label="Livro da leitura"
-                name="bookId"
-                defaultValue={reading?.bookId}
-                options={records.books.map((item) => ({
-                  value: item.id,
-                  label: item.title,
-                  icon: 'book',
-                  area: 'Conhecimento',
-                }))}
-              />
-            </Field>
-            <Field label="Páginas lidas neste registro">
-              <input
-                name="pages"
-                type="number"
-                min="1"
-                step="1"
-                required
-                defaultValue={reading?.pages}
-              />
-            </Field>
-            <DateField today={today} value={reading?.date} />
-            <p className="record-hint">
-              Informe as páginas lidas nesta sessão, não a página atual do
-              livro.
-            </p>
-            <Actions
-              submit={reading ? 'Salvar leitura' : 'Adicionar leitura'}
-              onCancel={reading ? () => setReadingId(null) : undefined}
-            />
-          </RecordForm>
+            onCancel={reading ? () => setReadingId(null) : undefined}
+          />
         )}
       </div>
       <RecordFeedback message={message} />

@@ -20,7 +20,11 @@ export function WorkoutsPage({
   today,
   onCommand,
   whenSaved,
-}: RecordPageProps) {
+  sessionFocus,
+}: RecordPageProps & {
+  /** Sessão de treino a exibir, escolhida nas Ações rápidas. */
+  sessionFocus?: { sessionId: string; nonce: number } | undefined;
+}) {
   const [date, setDate] = useState(today);
   const [month, setMonth] = useState(today.slice(0, 7));
   const { run, message } = useCommand(onCommand);
@@ -83,6 +87,7 @@ export function WorkoutsPage({
           today={today}
           onCommand={(command) => run({ type: 'advancedWorkout', command })}
           {...(whenSaved ? { whenSaved } : {})}
+          focus={sessionFocus}
         />
       )}
 

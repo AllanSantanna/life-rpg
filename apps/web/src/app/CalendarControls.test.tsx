@@ -45,11 +45,11 @@ describe('Calendários em todos os módulos', () => {
     expect(
       history().queryByText('Registro de outubro'),
     ).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole('combobox', { name: 'Mês financeiro' }));
+    fireEvent.click(screen.getByRole('combobox', { name: 'Período' }));
     fireEvent.click(screen.getByRole('button', { name: 'outubro de 2026' }));
-    expect(
-      screen.getByRole('combobox', { name: 'Mês financeiro' }),
-    ).toHaveTextContent('10/2026');
+    expect(screen.getByRole('combobox', { name: 'Período' })).toHaveTextContent(
+      '10/2026',
+    );
     expect(history().getByText('Registro de outubro')).toBeInTheDocument();
     expect(localStorage.getItem(PLAYER_STORAGE_KEY)).toBe(raw);
   });

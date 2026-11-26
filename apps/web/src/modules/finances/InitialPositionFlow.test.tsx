@@ -1,5 +1,6 @@
 import {
   cardAction,
+  financeTab,
   investmentHistory,
   newInvestmentForm,
 } from '../../test/finances';
@@ -106,9 +107,12 @@ describe('Posições iniciais na interface', () => {
       quantity: 0.00061258,
     });
     const chart = screen.getByRole('region', { name: 'Evolução financeira' });
-    expect(
-      within(chart).getByRole('button', { name: 'Dinheiro disponível' }),
-    ).toHaveAttribute('aria-pressed', 'true');
+    // Na aba Investimentos o gráfico abre no patrimônio; a visão de saldo segue disponível.
+    const cashView = within(chart).getByRole('button', {
+      name: 'Saldo disponível',
+    });
+    fireEvent.click(cashView);
+    expect(cashView).toHaveAttribute('aria-pressed', 'true');
     expect(chart).toHaveTextContent('R$ 200,00');
     fireEvent.click(
       within(chart).getByRole('button', { name: 'Patrimônio total' }),
@@ -124,7 +128,7 @@ describe('Posições iniciais na interface', () => {
       within(form).getByRole('button', { name: 'Registrar operação' }),
     );
     fireEvent.click(
-      within(chart).getByRole('button', { name: 'Dinheiro disponível' }),
+      within(chart).getByRole('button', { name: 'Saldo disponível' }),
     );
     expect(chart).toHaveTextContent('R$ 150,00');
     expect(stored().movements).toEqual([]);
@@ -161,6 +165,8 @@ describe('Posições iniciais na interface', () => {
     expect(stored().investmentEntries).toEqual([
       { ...state.records.investmentEntries[0], positionInitial: true },
     ]);
+    // O saldo disponível aparece na aba Carteira, padrão após recarregar.
+    financeTab('Carteira');
     await waitFor(() =>
       expect(
         screen.getByRole('region', { name: 'Evolução financeira' }),
@@ -221,7 +227,7 @@ describe('Posições iniciais na interface', () => {
       'true',
     );
     expect(screen.getByRole('img')).toHaveAccessibleName(
-      /Dinheiro disponível em reais/,
+      /Saldo disponível em reais/,
     );
     for (const period of ['Semanal', 'Anual', 'Mensal']) {
       fireEvent.click(screen.getByRole('button', { name: period }));

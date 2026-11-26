@@ -63,9 +63,21 @@ de variante legítima, evolua o componente e documente-a antes de copiar o CSS.
   importação, apelidos), porque o `Disclosure` desmonta o conteúdo fechado e
   perderia o que foi digitado; (4) detalhes compactos dentro de cartões ou listas
   (sessões, recordes, ciclos de Quests, grupos do mapa). Áreas de seção de página
-  usam `Disclosure`: em Finanças, “Contas, transferências e avaliações manuais” e
+  usam `Disclosure`: em Finanças, “Avaliações manuais” e
   “Configurações financeiras” foram convertidas para seguir as seções de histórico
   do mesmo módulo.
+- [ContextHelp](../../apps/web/src/shared/components/ContextHelp.tsx): ajuda
+  contextual. Botão circular “?” (24 px, área de toque de 44 px) com nome
+  acessível “Ajuda sobre {título}”, que abre uma janela não modal
+  (`role="dialog"`, título associado) sobre `useAnchoredPopover`: posição
+  dentro da viewport e acima da navegação inferior fixa, clique fora, Esc e
+  “Fechar ajuda” devolvem o foco ao “?”; animação desligada com movimento
+  reduzido. Props: `title`, `label` opcional e o conteúdo. `HelpHeading` põe o
+  “?” ao lado de um `h2`/`h3`; `Disclosure` aceita `help` (fora do botão de
+  abrir/fechar) e `Summary` aceita `help` por indicador. Use para explicar
+  conceitos; informações necessárias para operar continuam visíveis. Não use
+  `title` nativo nem um “?” em cada campo comum. Em Finanças os textos ficam em
+  [FinanceHelp](../../apps/web/src/modules/finances/FinanceHelp.tsx).
 - [ConfirmAction](../../apps/web/src/shared/components/ConfirmAction.tsx): ação
   com confirmação explícita (exclusões, substituição ou restauração de registros).
   Mostra a consequência, “Confirmar …” e “Cancelar”; o foco vai para Cancelar ao
@@ -186,6 +198,60 @@ destrutivas continuam abrindo a confirmação correspondente. Use-o quando um it
 tiver uma ação principal e outras secundárias; não substitui `CustomSelect` para
 escolha de valores.
 
+## Ações rápidas
+
+[QuickActions](../../apps/web/src/app/quick/QuickActions.tsx) é o acesso global
+para registrar Treino, Sono, Leitura e Finanças sem trocar de página. Fica dentro
+da navegação (`Navigation` recebe o conteúdo como `children`):
+
+- Abaixo de 1024 px: botão circular “+” (48 px, gradiente das ações primárias)
+  ao lado do botão de voz, no grupo `.global-actions` centralizado logo acima da barra inferior, posicionado em relação à própria
+  barra (sem medidas por largura de tela). Herda a camada da navegação (30):
+  diálogos nativos, ajudas “?” (80) e avisos de conquista (60) ficam acima.
+  Some enquanto houver `.workout-sticky-actions` (edição de ficha), para não
+  cobrir “Salvar”.
+- A partir de 1024 px: botão “+ Ação rápida” abaixo da lista da navegação
+  lateral; o painel abre à direita e sobe se passar da janela.
+- Nome acessível “Abrir ações rápidas” / “Fechar ações rápidas”,
+  `aria-expanded`; o “+” gira para “×” com o menu aberto.
+- Menu (`role="dialog"`, título “Ações rápidas”): grade 2 × 2 com ícone na cor
+  do pilar (`data-area`), etapas internas para Treino e Finanças com “Voltar”.
+  Setas, Home e End percorrem os itens; Esc volta da etapa ou fecha e devolve o
+  foco; clique fora fecha sem roubar o foco.
+- Formulários: modal nativo `.quick-dialog` (top layer), no alto da tela no
+  celular (longe do teclado virtual), com os mesmos componentes das páginas
+  (`SleepForm`, `ReadingForm`, `BookForm`, `MovementForm`). O sucesso só é
+  anunciado (região `aria-live`) depois de `whenSaved()` confirmar a gravação;
+  falhas mantêm o formulário e os dados, sem reaplicar o comando.
+- Apresentação da primeira utilização: balão não modal com “Entendi”, que não
+  rouba o foco nem aparece durante treino em andamento. A preferência fica em
+  `life-rpg:quick-actions` (localStorage), fora do estado do jogador.
+
+## Comando por voz
+
+[VoiceCommandButton](../../apps/web/src/modules/voice-commands/VoiceCommandButton.tsx)
+fica no grupo `.global-actions`, ao lado do “+” das Ações rápidas, com o mesmo
+tamanho (48 px). No celular é um círculo grafite com borda vermelha discreta e
+ícone `mic`; ouvindo, ganha borda e anel vermelhos (sem brilho intenso). No
+computador é “Comando por voz” abaixo de “Ação rápida”. A janela é um modal
+nativo (`.voice-dialog`) com estados explícitos (solicitando permissão,
+“Ouvindo...”, frase reconhecida, cartão de confirmação com Editar, Cancelar e
+Confirmar). Editar abre os formulários existentes de cada pilar. Regras,
+formatos e limitações: [README do módulo](../../apps/web/src/modules/voice-commands/README.md).
+
+## Novidades da versão
+
+[WhatsNewDialog](../../apps/web/src/app/whats-new/WhatsNewDialog.tsx) é um modal
+nativo (`.whats-new-dialog`, top layer) centralizado, de até 600 px, com fundo
+grafite, borda e detalhes vermelhos e entrada de 200 ms (sem animação com
+`prefers-reduced-motion`). Cabeçalho (rótulo da atualização, título, descrição
+e × “Fechar novidades da versão”) e rodapé (`ActionButton` “Começar a usar”,
+foco inicial) ficam fixos; só a lista de cartões rola. Os cartões são
+informativos, agrupados por área, em uma coluna no celular e duas a partir de
+640 px. Escape fecha e o foco volta à origem. No Perfil, a seção “Novidades da
+versão” usa `.filter-button` (“Ver novidades”). Regras de exibição e manutenção
+do catálogo: [README do módulo](../../apps/web/src/app/whats-new/README.md).
+
 ## Finanças: abas, áreas recolhíveis e formulários sob demanda
 
 Componentes locais de [FinanceLayout](../../apps/web/src/modules/finances/FinanceLayout.tsx),
@@ -197,6 +263,7 @@ restritos ao módulo Finanças até que outra tela precise do mesmo contrato:
 | `Disclosure`         | Usa o [Disclosure oficial](../../apps/web/src/shared/components/Disclosure.tsx); a cópia local foi removida  |
 | `InlineForm`         | Envolve um `RecordForm` aberto sob demanda: foca o primeiro campo e devolve o foco ao controle que o abriu   |
 | `DeleteConfirmation` | Exclusões financeiras via `FinancialConfirmation`, com “Confirmar exclusão” e cancelamento sem alterar dados |
+| `SwitchField`        | Interruptor de formulário financeiro sobre o padrão oficial `.strength-switch` (`role="switch"`)             |
 
 `Actions` aceita `cancel` para o rótulo do cancelamento (padrão “Cancelar edição”;
 formulários de criação usam “Cancelar”). A seta gira sem transição com

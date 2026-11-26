@@ -32,6 +32,8 @@ import { StatisticsPage } from '../modules/statistics/StatisticsPage';
 import { useEffect, useRef, useState } from 'react';
 import { useUrlNavigation } from './useUrlNavigation';
 import { Navigation, type View } from './Navigation';
+import { QuickActions } from './quick/QuickActions';
+import { VoiceCommandButton } from '../modules/voice-commands/VoiceCommandButton';
 import { pillarViews } from './views';
 import { PlayerHeader } from '../modules/profile/PlayerHeader';
 import { AttributesPanel } from '../modules/gamification/AttributesPanel';
@@ -41,6 +43,11 @@ import { useAchievementUnlocks } from '../modules/gamification/achievements/pres
 import { MetricCard } from '../shared/components/MetricCard';
 import { SectionHeading } from '../shared/components/SectionHeading';
 import { Icon } from '../shared/components/Icon';
+import { sessionsInProgress } from '../modules/workouts/advanced/startSession';
+import { WhatsNewDialog } from './whats-new/WhatsNewDialog';
+import { WhatsNewEntry } from './whats-new/WhatsNewEntry';
+import { useWhatsNew } from './whats-new/useWhatsNew';
+import { hasPersonalHistory } from './whats-new/presentation';
 
 const titles: Record<View, string> = {
   home: 'Visão geral',
@@ -87,6 +94,17 @@ export function App() {
   // Remonta formulários locais do Perfil e a lista de cópias após restaurar
   // um backup, para não exibirem valores do estado substituído.
   const [dataEpoch, setDataEpoch] = useState(0);
+  /** Sessão de treino escolhida nas Ações rápidas (aberta em Treinos). */
+  const [sessionFocus, setSessionFocus] = useState<{
+    sessionId: string;
+    nonce: number;
+  }>();
+  /** Pedido do comando por voz para abrir o menu de Ações rápidas. */
+  const [quickRequest, setQuickRequest] = useState(0);
+  // Fora de Treinos o pedido perde efeito: voltar à página não reabre a sessão.
+  useEffect(() => {
+    if (view !== 'workouts') setSessionFocus(undefined);
+  }, [view]);
   const player = state.profile;
   const {
     rewards: goalReward,
@@ -100,6 +118,22 @@ export function App() {
   // do usuário nesta sessão; abrir, importar ou restaurar não anima.
   const unlocks = useAchievementUnlocks(achievements);
   const openAchievements = () => navigate('profile', 'conquistas');
+  // Novidades da versão: decididas uma vez, com os registros já carregados;
+  // adiadas durante avisos de armazenamento, conquistas e treino em andamento.
+  const advanced = state.records.advancedWorkouts;
+  const whatsNew = useWhatsNew({
+    settled:
+      ready && (persistence.kind === 'saved' || persistence.kind === 'saving'),
+    existingUser: () => hasPersonalHistory(state),
+    blocked:
+      !!legacyChange ||
+      persistence.kind === 'protected' ||
+      persistence.kind === 'conflict' ||
+      unlocks.queue.length > 0 ||
+      (view === 'workouts' &&
+        !!advanced &&
+        sessionsInProgress(advanced).length > 0),
+  });
   const attributes = realAttributes(dedication);
   const currentMetrics = recordMetrics(state.records, today, dedication);
   function changeRecords(command: RecordCommand): string | null {
@@ -196,7 +230,32 @@ export function App() {
       <a className="skip-link" href="#main">
         Pular para o conteúdo
       </a>
-      <Navigation current={view} onNavigate={navigate} />
+      <Navigation current={view} onNavigate={navigate}>
+        <div className="global-actions">
+          <QuickActions
+            records={state.records}
+            today={today}
+            onCommand={changeRecords}
+            whenSaved={whenSaved}
+            onNavigate={navigate}
+            openRequest={quickRequest}
+            onOpenSession={(sessionId) => {
+              setSessionFocus((previous) => ({
+                sessionId,
+                nonce: (previous?.nonce ?? 0) + 1,
+              }));
+              navigate('workouts');
+            }}
+          />
+          <VoiceCommandButton
+            records={state.records}
+            today={today}
+            onCommand={changeRecords}
+            whenSaved={whenSaved}
+            onOpenQuickActions={() => setQuickRequest((n) => n + 1)}
+          />
+        </div>
+      </Navigation>
       <div className="min-w-0 lg:ml-60">
         <header className="topbar flex items-center justify-between gap-4 border-b border-white/[0.06] px-5 py-4 sm:px-8 lg:px-10">
           <div className="flex items-center gap-2 text-xs text-muted">
@@ -224,7 +283,7 @@ export function App() {
         <main
           id="main"
           tabIndex={-1}
-          className="mx-auto max-w-[1480px] px-5 pb-28 pt-7 sm:px-8 lg:px-10 lg:pb-8 lg:pt-9"
+          className="mx-auto max-w-[1480px] px-5 pb-44 pt-7 sm:px-8 lg:px-10 lg:pb-8 lg:pt-9"
         >
           <StorageNotice
             persistence={persistence}
@@ -356,7 +415,9 @@ export function App() {
                 market={market}
               />
             )}
-            {view === 'workouts' && <WorkoutsPage {...recordProps} />}
+            {view === 'workouts' && (
+              <WorkoutsPage {...recordProps} sessionFocus={sessionFocus} />
+            )}
             {view === 'rest' && <RestPage {...recordProps} />}
             {view === 'knowledge' && <KnowledgePage {...recordProps} />}
             {view === 'classes' && (
@@ -392,6 +453,9 @@ export function App() {
                   onRestore={restoreBackup}
                   {...(copies ? { copyStore: copies } : {})}
                 />
+                {whatsNew.release && (
+                  <WhatsNewEntry onOpen={whatsNew.openManually} />
+                )}
               </div>
             )}
           </div>
@@ -401,6 +465,13 @@ export function App() {
             onClose={unlocks.dismissAll}
             {...(view === 'profile' ? {} : { onOpenGallery: openAchievements })}
           />
+          {whatsNew.open && whatsNew.release && (
+            <WhatsNewDialog
+              release={whatsNew.release}
+              onClose={whatsNew.close}
+              returnFocus={() => heading.current}
+            />
+          )}
           <footer className="mt-9 flex flex-wrap items-center justify-between gap-3 border-t border-white/[0.06] pt-5 text-[11px] text-muted">
             <span>{persistenceLabels[persistence.kind]}</span>
           </footer>

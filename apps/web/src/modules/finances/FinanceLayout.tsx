@@ -102,3 +102,51 @@ export function FinanceTabs<Id extends string>({
     </div>
   );
 }
+
+/**
+ * Interruptor liga/desliga de formulários financeiros. Reutiliza o padrão
+ * oficial `.strength-switch` (checkbox com `role="switch"`); desligado, o campo
+ * não participa do `FormData`.
+ */
+export function SwitchField({
+  label,
+  description,
+  name,
+  checked,
+  onChange,
+  help,
+}: {
+  label: string;
+  description?: string;
+  name?: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  /** Ajuda contextual ao lado, fora do rótulo (não aninha botões no label). */
+  help?: ReactNode;
+}) {
+  const field = (
+    <label className="strength-switch finance-switch">
+      <span>
+        <strong>{label}</strong>
+        {description && <small>{description}</small>}
+      </span>
+      <input
+        type="checkbox"
+        role="switch"
+        name={name}
+        aria-label={label}
+        checked={checked}
+        onChange={(event) => onChange(event.target.checked)}
+      />
+      <span aria-hidden="true" className="strength-switch-track" />
+    </label>
+  );
+  return help ? (
+    <div className="finance-switch-row">
+      {field}
+      {help}
+    </div>
+  ) : (
+    field
+  );
+}

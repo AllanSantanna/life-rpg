@@ -1,4 +1,9 @@
-import { cardAction, movementHistory, newMovementForm } from '../test/finances';
+import {
+  cardAction,
+  financeTab,
+  movementHistory,
+  newMovementForm,
+} from '../test/finances';
 import {
   cleanup,
   fireEvent,
@@ -65,61 +70,68 @@ function submit(form: HTMLElement, name: string) {
   fireEvent.click(within(form).getByRole('button', { name }));
 }
 describe('Seletores customizados nos módulos do aplicativo', () => {
-  it('preserva contas, tipos de movimentação, transferências e avaliações ao escolher e editar', () => {
+  it('preserva tipos de movimentação, contas legadas e avaliações ao escolher e editar', () => {
     const state = initial();
+    // Registro anterior à carteira única, vinculado a uma conta secundária.
+    const legacy = {
+      id: 'legacy',
+      kind: 'income' as const,
+      description: 'Antiga',
+      category: 'Geral',
+      amountCents: 2000,
+      date: '2026-11-01',
+      accountId: 'other',
+    };
+    state.records.movements = [legacy];
+    localStorage.setItem(
+      PLAYER_STORAGE_KEY,
+      JSON.stringify({ version: PLAYER_STORAGE_VERSION, data: state }),
+    );
     window.history.replaceState(null, '', '/financas');
     const app = render(<App />);
     expect(document.querySelector('select')).toBeNull();
     let form = newMovementForm();
     expect(
-      within(form).getByRole('combobox', { name: 'Conta' }),
-    ).toHaveTextContent('Conta principal');
+      within(form).queryByRole('combobox', { name: 'Conta' }),
+    ).not.toBeInTheDocument();
     expect(
       within(form).getByRole('combobox', { name: 'Tipo de movimentação' }),
     ).toHaveTextContent('Despesa');
     choose(form, 'Tipo de movimentação', 'Receita');
-    choose(form, 'Conta', 'Conta secundária');
     input(form, 'Descrição', 'Recebimento');
     input(form, 'Valor (R$)', '10000');
     submit(form, 'Adicionar movimentação');
-    expect(stored().records.movements[0]).toMatchObject({
+    expect(stored().records.movements[1]).toMatchObject({
       kind: 'income',
-      accountId: 'other',
       amountCents: 10000,
     });
+    expect(stored().records.movements[1]).not.toHaveProperty('accountId');
     movementHistory();
     fireEvent.click(screen.getByRole('button', { name: 'Editar Recebimento' }));
     form = screen.getByRole('form', { name: 'Editar movimentação' });
     expect(
       within(form).getByRole('combobox', { name: 'Tipo de movimentação' }),
     ).toHaveTextContent('Receita');
-    expect(
-      within(form).getByRole('combobox', { name: 'Conta' }),
-    ).toHaveTextContent('Conta secundária');
     choose(form, 'Tipo de movimentação', 'Despesa');
-    choose(form, 'Conta', 'Conta principal');
     submit(form, 'Salvar movimentação');
-    expect(stored().records.movements).toHaveLength(1);
-    expect(stored().records.movements[0]).toMatchObject({
+    expect(stored().records.movements).toHaveLength(2);
+    expect(stored().records.movements[1]).toMatchObject({
       kind: 'expense',
-      accountId: 'principal',
       amountCents: 10000,
     });
-    fireEvent.click(
-      screen.getByText('Contas, transferências e avaliações manuais'),
-    );
-    form = screen.getByRole('form', { name: 'Transferir entre contas' });
-    choose(form, 'Conta de origem', 'Conta secundária');
-    choose(form, 'Conta de destino', 'Conta principal');
-    input(form, 'Valor da transferência (R$)', '5000');
-    submit(form, 'Salvar transferência');
-    expect(stored().records.finance.transfers[0]).toMatchObject({
-      fromId: 'other',
-      toId: 'principal',
-      amountCents: 5000,
+    // Editar o registro antigo mantém o ID e a conta de origem.
+    fireEvent.click(screen.getByRole('button', { name: 'Editar Antiga' }));
+    form = screen.getByRole('form', { name: 'Editar movimentação' });
+    input(form, 'Valor (R$)', '3000');
+    submit(form, 'Salvar movimentação');
+    expect(stored().records.movements[0]).toEqual({
+      ...legacy,
+      amountCents: 3000,
     });
-    expect(accountBalance(stored().records, 'principal', today)).toBe(95000);
-    expect(accountBalance(stored().records, 'other', today)).toBe(45000);
+    expect(accountBalance(stored().records, 'principal', today)).toBe(90000);
+    expect(accountBalance(stored().records, 'other', today)).toBe(53000);
+    financeTab('Investimentos');
+    fireEvent.click(screen.getByRole('button', { name: 'Avaliações manuais' }));
     form = screen.getByRole('form', {
       name: 'Atualizar valor de investimento',
     });
@@ -148,11 +160,8 @@ describe('Seletores customizados nos módulos do aplicativo', () => {
     render(<App />);
     expect(localStorage.getItem(PLAYER_STORAGE_KEY)).toBe(saved);
     // Após recarregar, a seção recolhível volta fechada, como no navegador.
-    fireEvent.click(
-      screen.getByRole('button', {
-        name: 'Contas, transferências e avaliações manuais',
-      }),
-    );
+    financeTab('Investimentos');
+    fireEvent.click(screen.getByRole('button', { name: 'Avaliações manuais' }));
     fireEvent.click(screen.getByRole('button', { name: 'Editar avaliação' }));
     form = screen.getByRole('form', { name: 'Editar avaliação' });
     expect(

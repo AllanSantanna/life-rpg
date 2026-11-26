@@ -4,14 +4,18 @@ import { fireEvent, screen, within } from '@testing-library/react';
  * Navegação da página Finanças nos testes de interface. Os formulários e
  * históricos abrem sob demanda; estes atalhos reproduzem os cliques do usuário.
  */
-export function financeTab(name: 'Movimentações' | 'Investimentos') {
+export function financeTab(name: 'Carteira' | 'Investimentos') {
   const tab = screen.getByRole('tab', { name });
   if (tab.getAttribute('aria-selected') !== 'true') fireEvent.click(tab);
 }
 
-export function newMovementForm() {
-  financeTab('Movimentações');
-  fireEvent.click(screen.getByRole('button', { name: 'Nova movimentação' }));
+/** Abre o formulário pelas ações rápidas da visão geral (um clique). */
+export function newMovementForm(kind: 'income' | 'expense' = 'expense') {
+  fireEvent.click(
+    screen.getByRole('button', {
+      name: kind === 'income' ? 'Adicionar receita' : 'Adicionar despesa',
+    }),
+  );
   return screen.getByRole('form', { name: 'Nova movimentação' });
 }
 
@@ -27,8 +31,9 @@ function expand(name: string) {
   return screen.getByRole('region', { name });
 }
 
+/** Histórico da Carteira: recolhido por padrão; o helper o abre. */
 export function movementHistory() {
-  financeTab('Movimentações');
+  financeTab('Carteira');
   return expand('Histórico de movimentações');
 }
 
@@ -39,7 +44,7 @@ export function investmentHistory() {
 
 export function wallet() {
   financeTab('Investimentos');
-  return screen.getByRole('region', { name: 'Carteira cadastrada' });
+  return screen.getByRole('region', { name: 'Meus investimentos' });
 }
 
 /** Cartão da carteira: `Caixinha Nome` ou `Investimento Nome`. */
@@ -86,4 +91,16 @@ export function confirmDeletion() {
       name: 'Confirmar exclusão',
     }),
   );
+}
+
+/**
+ * Desliga “Utilizar saldo da Carteira” no formulário: aporte com dinheiro de
+ * fora do Life RPG. Usado em fluxos que não cadastram receitas antes da compra,
+ * pois um aporte vinculado sem saldo suficiente é recusado.
+ */
+export function externalMoney(form: HTMLElement) {
+  const toggle = within(form).getByRole('switch', {
+    name: 'Utilizar saldo da Carteira',
+  });
+  if ((toggle as HTMLInputElement).checked) fireEvent.click(toggle);
 }

@@ -74,16 +74,25 @@ describe('Evolução financeira automática', () => {
     expect(screen.getByRole('img')).toHaveAccessibleName(/2 pontos/);
     fireEvent.click(screen.getByRole('button', { name: 'Anual' }));
     expect(screen.getByRole('img')).toHaveAccessibleName(/4 pontos/);
+    // A explicação saiu da área do gráfico e continua na ajuda contextual.
+    expect(screen.queryByText(/não representa rentabilidade/)).toBeNull();
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Ajuda sobre evolução financeira' }),
+    );
     expect(
-      screen.getByText(/Não representa rentabilidade/),
-    ).toBeInTheDocument();
+      screen.getByRole('dialog', { name: 'Evolução financeira' }),
+    ).toHaveTextContent('não representa rentabilidade');
   });
   it('mostra estado vazio sem inventar pontos ou valores', () => {
     render(<FinancialChart records={emptyRecords()} today={today} />);
     expect(screen.getByText('Seu histórico começa aqui')).toBeInTheDocument();
-    expect(screen.getByText(/Cadastre o saldo inicial/)).toBeInTheDocument();
+    // A carteira interna começa em zero; não se exige saldo inicial.
+    expect(
+      screen.getByText(/Registre a primeira receita ou despesa/),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/saldo inicial/i)).not.toBeInTheDocument();
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
-    expect(screen.getByText('Saldo inicial pendente')).toBeInTheDocument();
+    expect(screen.getByText('R$ 0,00')).toBeInTheDocument();
   });
   it('centraliza um único ponto sem desenhar linha ou área fictícias', () => {
     const state = records();

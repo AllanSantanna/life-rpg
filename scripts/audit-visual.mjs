@@ -65,6 +65,12 @@ async function seed(page, populated) {
     const { testState, testSession, testSet } =
       await import('/src/modules/workouts/advanced/testFixtures.ts');
     const state = createInitialPlayerState();
+    // Novidades da versão já apresentadas: a janela automática não cobre as
+    // páginas auditadas. A janela é auditada à parte, aberta pelo Perfil.
+    localStorage.setItem(
+      'life-rpg:whats-new',
+      JSON.stringify({ version: 1, data: { seen: '9999-12-31' } }),
+    );
     if (populated) {
       const today = '2026-11-17';
       state.profile.name = 'Aventureiro com nome extenso';
@@ -456,6 +462,67 @@ async function capture(page, name, width) {
     metrics.dialogs.length ? `dialogs=${JSON.stringify(metrics.dialogs)}` : '',
   );
 }
+/**
+ * Novidades da versão aberta pelo Perfil: dentro da tela, × e “Começar a
+ * usar” visíveis sem rolagem e não cobertos, e fechamento imediato pelo ×.
+ */
+async function auditWhatsNew(page, width) {
+  const open = page.getByRole('button', { name: 'Ver novidades' });
+  await open.scrollIntoViewIfNeeded();
+  await (width < 768 ? open.tap() : open.click());
+  const dialog = page.getByRole('dialog', { name: 'Novidades da versão' });
+  await dialog.waitFor();
+  await capture(page, 'novidades-perfil', width);
+  const layout = await page.evaluate(() => {
+    const box = (selector) => {
+      const element = document.querySelector(selector);
+      const rect = element.getBoundingClientRect();
+      const hit = document.elementFromPoint(
+        rect.left + rect.width / 2,
+        rect.top + rect.height / 2,
+      );
+      return {
+        top: rect.top,
+        bottom: rect.bottom,
+        left: rect.left,
+        right: rect.right,
+        reachable: !!hit && element.contains(hit),
+      };
+    };
+    return {
+      viewport: { width: innerWidth, height: innerHeight },
+      dialog: box('.whats-new-dialog'),
+      close: box('.whats-new__close'),
+      start: box('.whats-new__footer .action-button'),
+    };
+  });
+  const inside = (rect) =>
+    rect.top >= 0 &&
+    rect.left >= 0 &&
+    rect.right <= layout.viewport.width &&
+    rect.bottom <= layout.viewport.height;
+  check(
+    inside(layout.dialog) &&
+      inside(layout.close) &&
+      inside(layout.start) &&
+      layout.close.reachable &&
+      layout.start.reachable,
+    'novidades-layout',
+    width,
+    `Novidades da versão fora da tela ou coberta: ${JSON.stringify(layout)}`,
+  );
+  const close = page.getByRole('button', {
+    name: 'Fechar novidades da versão',
+  });
+  await (width < 768 ? close.tap() : close.click());
+  await dialog.waitFor({ state: 'detached' });
+  check(
+    !(await page.locator('.whats-new-dialog').count()),
+    'novidades-fechar',
+    width,
+    'O × deve fechar as Novidades da versão.',
+  );
+}
 try {
   for (const width of (process.env.AUDIT_WIDTHS ?? '320,390,768,1024,1440')
     .split(',')
@@ -574,13 +641,15 @@ try {
                 .map((rect, index) => rect.top - sections[index].bottom);
             });
             check(
-              // Ficha, nome, conquistas, backup e cópias de segurança.
-              gaps.length === 4 && gaps.every((gap) => gap >= 16),
+              // Ficha, nome, conquistas, backup, cópias de segurança e
+              // Novidades da versão.
+              gaps.length === 5 && gaps.every((gap) => gap >= 16),
               'perfil-espacamento',
               width,
               `Vão entre seções do Perfil: ${gaps.join(', ')} px`,
             );
           }
+          if (name === 'perfil' && populated) await auditWhatsNew(page, width);
           if (name === 'perfil')
             check(
               !(await page.locator('[data-avatar]').count()) &&
@@ -684,20 +753,13 @@ try {
         .click();
       await capture(page, 'quest-form', width);
       await page.goto(base + '/financas');
+      // Carteira única: saldo, receitas/despesas e ações rápidas no topo.
+      await capture(page, 'financas-visao-geral', width);
       await page
-        .getByText('Contas, transferências e avaliações manuais', {
-          exact: true,
-        })
+        .getByRole('button', { name: 'Adicionar receita', exact: true })
         .click();
-      await capture(page, 'financas-contas', width);
-      await page
-        .getByRole('button', {
-          name: 'Excluir conta Conta principal da auditoria',
-          exact: true,
-        })
-        .click();
-      await capture(page, 'financas-dialog', width);
-      await page.keyboard.press('Escape');
+      await capture(page, 'financas-receita', width);
+      await page.getByRole('button', { name: 'Cancelar', exact: true }).click();
       await page
         .getByText('Configurações financeiras', { exact: true })
         .click();
@@ -711,21 +773,44 @@ try {
       await capture(page, 'financas-reset-dialog', width);
       await page.keyboard.press('Escape');
       await page
-        .getByRole('button', { name: 'Nova movimentação', exact: true })
+        .getByRole('button', { name: 'Adicionar despesa', exact: true })
         .click();
       await capture(page, 'financas-movimentacao', width);
       await page.getByRole('button', { name: 'Cancelar', exact: true }).click();
+      // Histórico recolhido por padrão: abre, mostra filtros avançados e fecha.
       await page
         .getByRole('button', {
           name: 'Histórico de movimentações',
           exact: true,
         })
         .click();
+      await page
+        .getByRole('button', { name: 'Filtros avançados', exact: true })
+        .click();
+      await page
+        .getByRole('region', { name: 'Histórico de movimentações' })
+        .scrollIntoViewIfNeeded();
       await capture(page, 'financas-historico', width);
+      await page
+        .getByRole('button', { name: 'Filtros avançados', exact: true })
+        .click();
       await page
         .getByRole('tab', { name: 'Investimentos', exact: true })
         .click();
       await capture(page, 'financas-investimentos', width);
+      for (const [name, slug] of [
+        ['Distribuição', 'financas-grafico-distribuicao'],
+        ['Custo × valor', 'financas-grafico-custo'],
+        ['Evolução', null],
+      ]) {
+        await page.getByRole('button', { name, exact: true }).click();
+        if (slug) {
+          await page
+            .getByRole('region', { name: 'Gráficos de investimentos' })
+            .scrollIntoViewIfNeeded();
+          await capture(page, slug, width);
+        }
+      }
       await page
         .getByRole('button', {
           name: 'Mais ações de Caixinha de auditoria com nome extenso',

@@ -10,7 +10,7 @@ O body tem largura mínima de 320 px. O conteúdo usa `min-width: 0`, grades
 | Contexto                              | Regra implementada                                                                                          |
 | ------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | Conteúdo da página                    | `max-w-[1480px]`, `px-5 sm:px-8 lg:px-10`                                                                   |
-| Navegação abaixo de 1024 px           | Barra inferior fixa com `safe-area-inset-bottom`; conteúdo reserva `pb-28`                                  |
+| Navegação abaixo de 1024 px           | Barra inferior fixa com `safe-area-inset-bottom`; conteúdo reserva `pb-44` (barra, Ações rápidas e voz)     |
 | Navegação a partir de 1024 px         | Sidebar de 240 px; conteúdo `lg:ml-60`                                                                      |
 | Resumos abaixo de 768 px              | Quatro → duas colunas; painéis de registros com padding de 16 px                                            |
 | Resumos abaixo de 480 px              | Uma coluna; valores não quebram no meio (ex.: “R$ 11.000,00”)                                               |

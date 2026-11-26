@@ -1,3 +1,4 @@
+import { FinanceHelp } from './FinanceHelp';
 import { useEffect, useId, useRef, useState } from 'react';
 import type { LifeRecords } from '../records/types';
 import { daysBetween, displayDate } from '../records/dates';
@@ -24,13 +25,16 @@ const compactMoney = (cents: number) =>
 export function FinancialChart({
   records,
   today,
+  defaultView = 'cash',
 }: {
   records: LifeRecords;
   today: string;
+  /** Visão inicial: saldo na aba Carteira, patrimônio na aba Investimentos. */
+  defaultView?: ChartView;
 }) {
-  const [view, setView] = useState<ChartView>('cash');
-  const label = view === 'cash' ? 'Dinheiro disponível' : 'Patrimônio total';
-  const pointLabel = view === 'cash' ? 'dinheiro disponível' : 'patrimônio';
+  const [view, setView] = useState<ChartView>(defaultView);
+  const label = view === 'cash' ? 'Saldo disponível' : 'Patrimônio total';
+  const pointLabel = view === 'cash' ? 'saldo disponível' : 'patrimônio';
   const [period, setPeriod] = useState<ChartPeriod>(30);
   const [activeDate, setActiveDate] = useState<string | null>(null);
   const [width, setWidth] = useState(720);
@@ -39,6 +43,11 @@ export function FinancialChart({
   const id = useId();
   const model = wealthChartModel(records, today, period, view);
   const { points, current, currentValue, change, percent, trend } = model;
+  // Sem nenhum registro, a carteira interna começa em zero: ainda não há histórico.
+  const fresh =
+    !records.movements.length &&
+    !records.investmentEntries.length &&
+    !records.finance?.accounts.length;
   const active = points.find((point) => point.date === activeDate);
   useEffect(() => {
     const element = container.current;
@@ -116,7 +125,10 @@ export function FinancialChart({
           <span className="wealth-chart__eyebrow">
             EVOLUÇÃO DOS SEUS SALDOS
           </span>
-          <h2>Evolução financeira</h2>
+          <div className="help-heading">
+            <h2>Evolução financeira</h2>
+            <FinanceHelp topic="chart" />
+          </div>
         </div>
         <div
           className="wealth-chart__periods"
@@ -151,7 +163,7 @@ export function FinancialChart({
             setActiveDate(null);
           }}
         >
-          Dinheiro disponível
+          Saldo disponível
         </button>
         <button
           type="button"
@@ -175,7 +187,7 @@ export function FinancialChart({
             {currentValue === null
               ? view === 'wealth' && current.unpriced
                 ? 'Cotação pendente'
-                : 'Saldo inicial pendente'
+                : 'Saldo pendente'
               : money(currentValue)}
           </strong>
         </p>
@@ -197,11 +209,6 @@ export function FinancialChart({
           </span>
         </div>
       </div>
-      <p className="wealth-chart__context">
-        {view === 'cash'
-          ? 'Saldo das contas e transferências reais. Posições iniciais e oscilações dos investimentos não alteram o dinheiro disponível.'
-          : 'Mudança do patrimônio total, incluindo entradas e saídas de dinheiro. Não representa rentabilidade.'}
-      </p>
       <div
         className="wealth-chart__plot"
         ref={container}
@@ -222,15 +229,15 @@ export function FinancialChart({
           <div className="wealth-chart__empty">
             <Icon name="chart" size={32} />
             <h3>
-              {currentValue === null
-                ? current.unpriced
-                  ? 'Aguardando referência USD/BRL'
-                  : 'Seu histórico começa aqui'
-                : 'Nenhum registro neste período'}
+              {currentValue === null && current.unpriced
+                ? 'Aguardando referência USD/BRL'
+                : currentValue === null || fresh
+                  ? 'Seu histórico começa aqui'
+                  : 'Nenhum registro neste período'}
             </h3>
             <p>
-              {currentValue === null
-                ? 'Cadastre o saldo inicial da sua conta e a primeira movimentação para acompanhar seu patrimônio.'
+              {currentValue === null || fresh
+                ? 'Registre a primeira receita ou despesa para acompanhar seu patrimônio.'
                 : 'Selecione outro período ou registre uma nova movimentação.'}
             </p>
           </div>
@@ -241,7 +248,7 @@ export function FinancialChart({
               height={height}
               viewBox={`0 0 ${width} ${height}`}
               role="img"
-              aria-label={`${view === 'cash' ? 'Dinheiro disponível' : 'Patrimônio financeiro'} em reais; ${points.length} ${points.length === 1 ? 'ponto' : 'pontos'}. Consulte cada ponto por toque, mouse ou teclado.`}
+              aria-label={`${view === 'cash' ? 'Saldo disponível' : 'Patrimônio financeiro'} em reais; ${points.length} ${points.length === 1 ? 'ponto' : 'pontos'}. Consulte cada ponto por toque, mouse ou teclado.`}
             >
               <defs>
                 <linearGradient id={`${id}-fill`} x1="0" y1="0" x2="0" y2="1">
@@ -355,7 +362,7 @@ export function FinancialChart({
               role="group"
               aria-label={
                 view === 'cash'
-                  ? 'Pontos do dinheiro disponível'
+                  ? 'Pontos do saldo disponível'
                   : 'Pontos do patrimônio'
               }
             >
@@ -445,7 +452,7 @@ export function FinancialChart({
       {points.length > 1 && first && last && (
         <p className="wealth-chart__note">
           Comparação entre os registros de {displayDate(first.date)} e{' '}
-          {displayDate(last.date)}. Toque ou passe o mouse para ver os detalhes.
+          {displayDate(last.date)}.
         </p>
       )}
       {view === 'wealth' && !current.known && (

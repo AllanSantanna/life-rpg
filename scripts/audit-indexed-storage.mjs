@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import http from 'node:http';
 import fs from 'node:fs/promises';
 import { resolve } from 'node:path';
+import { skipWhatsNew } from './audit-storage-helpers.mjs';
 
 const { chromium } = await import(
   process.env.PLAYWRIGHT_MODULE ?? 'playwright'
@@ -124,6 +125,7 @@ async function scenario(name, run) {
     locale: 'pt-BR',
     timezoneId: 'America/Sao_Paulo',
   });
+  await skipWhatsNew(context);
   try {
     const page = await context.newPage();
     await setup(page);

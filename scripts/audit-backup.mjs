@@ -17,6 +17,7 @@ import {
   readSnapshot,
   resetFixtureDatabase,
   waitForCommit,
+  skipWhatsNew,
 } from './audit-storage-helpers.mjs';
 
 const { chromium, devices } = await import(
@@ -57,6 +58,7 @@ const mobile = { ...devices['Pixel 7'], ...desktop };
 
 async function scenario(name, run, options = desktop) {
   const context = await browser.newContext(options);
+  await skipWhatsNew(context);
   try {
     await run(context);
     results.push({ name, passed: true });

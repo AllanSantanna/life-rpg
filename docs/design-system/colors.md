@@ -20,6 +20,35 @@ como variáveis CSS e utilitários Tailwind (`bg-background`, `text-muted`, etc.
 `--color-error: #ffaaaa` centraliza a cor já usada em `record-error`, inclusive
 nas rejeições de formulário do perfil e das configurações financeiras.
 
+`--color-warning: #eab308` indica estado de atenção (não erro): usado no
+orçamento mensal de Finanças a partir de 80% do limite, sempre acompanhado de
+texto (“Atenção: 80% ou mais do limite”). Dentro do limite a barra usa
+`--color-finances`; a partir de 100%, `--color-primary` e o texto em
+`--color-error`.
+
+## Gráfico de distribuição
+
+A pizza da aba Investimentos usa uma cor fixa por categoria, na ordem de
+`investmentCategories` (independente da ordem dos valores), sempre
+acompanhada de nome, valor e percentual na legenda. A paleta deriva da
+linguagem do Mapa Muscular (verde, âmbar, laranja e vermelho) em tons menos
+saturados, completada por oliva, petróleo e ametista; nenhuma categoria usa
+cinza. Cada tom define `--slice-color` (como `--muscle-color` no mapa): a
+fatia, o marcador, a borda e o brilho da seleção usam a mesma variável.
+
+| Token             | Valor     | Categoria             |
+| ----------------- | --------- | --------------------- |
+| `--color-chart-1` | `#d94b55` | Ações (rubi)          |
+| `--color-chart-2` | `#e78a45` | Fundos imobiliários   |
+| `--color-chart-3` | `#a3b85c` | Renda fixa (oliva)    |
+| `--color-chart-4` | `#35b779` | Caixinhas bancárias   |
+| `--color-chart-5` | `#e8b84a` | Bitcoin (dourado)     |
+| `--color-chart-6` | `#4fa3a5` | Dólar (USD, petróleo) |
+| `--color-chart-7` | `#9b75c9` | Outros (ametista)     |
+
+As categorias são fixas; uma categoria nova deve receber o próximo token
+(`--color-chart-8`), nunca uma cor aleatória.
+
 ## Pilares
 
 `data-area` atribui `--area-color`; reutilize esse mecanismo em cartões,

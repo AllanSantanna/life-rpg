@@ -5,6 +5,7 @@ import {
   investmentCard,
   investmentHistory,
   newInvestmentForm,
+  externalMoney,
 } from '../../test/finances';
 import { selectDate, selectOption } from '../../test/selectOption';
 import {
@@ -51,15 +52,6 @@ function open() {
   window.history.replaceState(null, '', '/financas');
   return render(<App />);
 }
-function account() {
-  fireEvent.click(
-    screen.getByText('Contas, transferências e avaliações manuais'),
-  );
-  const form = screen.getByRole('form', { name: 'Cadastrar saldo inicial' });
-  input(form, 'Saldo inicial (R$)', '100000');
-  input(form, 'Data', '2026-01-01');
-  click(form, 'Cadastrar saldo inicial');
-}
 describe('Fluxos com moedas formatadas', () => {
   it('cadastra USD, vende parcialmente, edita valores e recupera tudo após recarga', async () => {
     vi.mocked(fetchUsdQuote).mockResolvedValue({
@@ -68,7 +60,6 @@ describe('Fluxos com moedas formatadas', () => {
       observedAt: Date.now(),
     });
     const app = open();
-    account();
     let form = newInvestmentForm();
     input(form, 'Nome do investimento', 'Dólares');
     input(form, 'Categoria do investimento', 'Dólar (USD)');
@@ -80,6 +71,7 @@ describe('Fluxos com moedas formatadas', () => {
         /Valor estimado da quantidade informada: R\$\s520,00/,
       ),
     );
+    externalMoney(form);
     click(form, 'Adicionar investimento');
     await waitFor(() => expect(stored().finance.usdQuotes).toHaveLength(1));
     expect(stored().investmentEntries[0]).toMatchObject({
@@ -140,7 +132,6 @@ describe('Fluxos com moedas formatadas', () => {
       observedAt: Date.now(),
     });
     open();
-    account();
     let form = newInvestmentForm();
     input(form, 'Nome do investimento', 'BTC em sats');
     input(form, 'Categoria do investimento', 'Bitcoin');
@@ -152,6 +143,7 @@ describe('Fluxos com moedas formatadas', () => {
     expect(within(form).getByLabelText('Quantidade em BTC')).toHaveValue(
       '0,00100000',
     );
+    externalMoney(form);
     click(form, 'Adicionar investimento');
     await waitFor(() => expect(stored().finance.quotes).toHaveLength(1));
     expect(stored().investmentEntries[0]).toMatchObject({
@@ -176,7 +168,6 @@ describe('Fluxos com moedas formatadas', () => {
   it('mostra a referência USD desatualizada após falha sem bloquear o formulário', async () => {
     vi.mocked(fetchUsdQuote).mockRejectedValue(new Error('offline'));
     open();
-    account();
     const form = newInvestmentForm();
     input(form, 'Nome do investimento', 'Posição existente');
     input(form, 'Categoria do investimento', 'Dólar (USD)');

@@ -1,9 +1,7 @@
 import { CustomDatePicker } from '../../shared/components/CustomDatePicker';
 import { CustomSelect } from '../../shared/components/CustomSelect';
 import { isInitialPosition } from './initialPosition';
-import { AccountField } from './CashLedgerPanel';
 import { DateField } from '../records/RecordUI';
-import type { LifeRecords } from '../records/types';
 import { fetchBitcoinQuote } from './bitcoinQuote';
 import { fetchUsdQuote } from './usdQuote';
 import { useEffect, useState } from 'react';
@@ -13,6 +11,9 @@ import { MoneyInput } from './MoneyInput';
 import { money } from './calculations';
 import { unitsToDecimal } from './monetary';
 import { isMarketCategory } from './types';
+import { SwitchField } from './FinanceLayout';
+import { FinanceHelp } from './FinanceHelp';
+import { movesWallet } from './initialPosition';
 import type {
   BitcoinQuote,
   UsdQuote,
@@ -21,7 +22,6 @@ import type {
 } from './types';
 export function InvestmentFields({
   category,
-  records,
   today,
   entry,
   initial = false,
@@ -31,7 +31,6 @@ export function InvestmentFields({
   lockKind = false,
 }: {
   category: InvestmentCategory;
-  records: LifeRecords;
   today: string;
   entry?: InvestmentEntry | undefined;
   initial?: boolean;
@@ -88,6 +87,13 @@ export function InvestmentFields({
   const [kind, setKind] = useState(
     entry?.kind ?? defaultKind ?? 'contribution',
   );
+  // Registros novos começam ligados (regra histórica: operações reais
+  // movimentam a Carteira); a edição mostra o estado efetivo do registro.
+  const [wallet, setWallet] = useState(() =>
+    entry && !isInitialPosition(entry) ? movesWallet(entry) : true,
+  );
+  const legacyWallet =
+    !!entry && entry.walletLinked === undefined && !isInitialPosition(entry);
   const label =
     positionInitial && kind === 'contribution'
       ? 'Custo de aquisição (R$, se conhecido)'
@@ -95,7 +101,9 @@ export function InvestmentFields({
         ? 'Valor pago (R$, se conhecido)'
         : initial
           ? 'Valor aplicado inicial (R$)'
-          : 'Valor da operação (R$)';
+          : kind === 'withdrawal' && !bitcoin && !usd && !shares
+            ? 'Valor do resgate (R$)'
+            : 'Valor da operação (R$)';
   const estimate =
     bitcoin && quote
       ? Number(
@@ -135,11 +143,32 @@ export function InvestmentFields({
           />
         </Field>
       )}
-      {kind === 'contribution' && !positionInitial && (
-        <p className="record-hint">
-          Compra/aporte real: desconta o valor da conta selecionada, sem gerar
-          despesa de consumo.
-        </p>
+      {(kind === 'withdrawal' || !positionInitial) && (
+        <>
+          <input type="hidden" name="walletChoice" value="1" />
+          {legacyWallet && (
+            <input type="hidden" name="walletLegacy" value="1" />
+          )}
+          <SwitchField
+            name="wallet"
+            label={
+              kind === 'withdrawal'
+                ? 'Enviar valor para a Carteira'
+                : 'Utilizar saldo da Carteira'
+            }
+            help={
+              <FinanceHelp
+                topic={
+                  kind === 'withdrawal'
+                    ? 'walletWithdrawal'
+                    : 'walletContribution'
+                }
+              />
+            }
+            checked={wallet}
+            onChange={setWallet}
+          />
+        </>
       )}
       <Field label={label}>
         <MoneyInput
@@ -156,13 +185,6 @@ export function InvestmentFields({
           }
         />
       </Field>
-      {positionInitial && kind === 'contribution' && (
-        <p className="record-hint">
-          Posição inicial: não desconta de nenhuma conta e não gera XP de
-          compra. Informe o custo original quando conhecido; sem ele, preço
-          médio e valorização ficam pendentes.
-        </p>
-      )}
       {bitcoin ? (
         <BitcoinQuantity quantity={entry?.quantity} onUnitsChange={setUnits} />
       ) : usd ? (
@@ -193,18 +215,20 @@ export function InvestmentFields({
               <p className="record-hint">
                 Informe a quantidade vendida para manter o valor de mercado e o
                 preço médio. Com quantidade, o custo da parcela vendida sai pelo
-                preço médio e o custo de aquisição resgatado fica em branco.
+                preço médio.
               </p>
               {entry?.costBasisCents !== undefined &&
                 entry.quantity !== undefined && (
                   <p className="record-hint">
-                    Este registro antigo informava um custo resgatado. Para
-                    salvar a edição, apague esse custo: a venda passará a sair
-                    pelo preço médio.
+                    Este registro antigo informava um custo resgatado. Ao salvar
+                    a edição, a venda passará a sair pelo preço médio.
                   </p>
                 )}
             </>
           ) : (
+            // Resgates de ativos por valor pedem só o valor: o custo da
+            // parcela é calculado internamente.
+            kind !== 'withdrawal' &&
             (!box ||
               entry?.quantity !== undefined ||
               entry?.purchasePriceCents !== undefined) && (
@@ -229,18 +253,6 @@ export function InvestmentFields({
               </>
             )
           )}
-          {!initial && kind === 'withdrawal' && (
-            <Field label="Custo de aquisição resgatado (R$, opcional)">
-              <MoneyInput
-                name="costBasis"
-                defaultValue={
-                  entry?.costBasisCents !== undefined
-                    ? unitsToDecimal(entry.costBasisCents, 2)
-                    : ''
-                }
-              />
-            </Field>
-          )}
         </>
       )}
       {positionInitial && kind === 'contribution' ? (
@@ -258,7 +270,11 @@ export function InvestmentFields({
       ) : (
         <>
           <DateField key="operation-date" today={today} value={entry?.date} />
-          <AccountField records={records} value={entry?.accountId} />
+          {/* Sem escolha de conta: aportes e retiradas usam a carteira interna;
+              a edição preserva a conta de operações anteriores. */}
+          {entry?.accountId !== undefined && (
+            <input type="hidden" name="accountId" value={entry.accountId} />
+          )}
         </>
       )}
       {(bitcoin || usd) && (

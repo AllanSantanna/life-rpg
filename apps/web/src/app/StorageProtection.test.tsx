@@ -29,6 +29,11 @@ import { createPlayerStorage, usePlayerState } from './usePlayerState';
 afterEach(cleanup);
 beforeEach(() => {
   localStorage.clear();
+  // Mesma semente do setup: a janela de Novidades da versão não interfere.
+  localStorage.setItem(
+    'life-rpg:whats-new',
+    JSON.stringify({ version: 1, data: { seen: '9999-12-31' } }),
+  );
   vi.setSystemTime(new Date('2026-11-20T12:00:00'));
 });
 const today = '2026-11-20';
