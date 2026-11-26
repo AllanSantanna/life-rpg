@@ -64,7 +64,9 @@ function previewRows(preview: BackupPreview): [string, string][] {
         : `Versão ${preview.storageVersion}`,
     ],
     [
-      'Finanças',
+      // Apresentação apenas: contas/transferências internas da carteira única
+      // continuam no arquivo e em `summary`, mas não são expostas ao usuário.
+      'Dados financeiros',
       [
         plural(c.movements, 'movimentação', 'movimentações'),
         plural(c.investments, 'investimento', 'investimentos'),
@@ -73,8 +75,6 @@ function previewRows(preview: BackupPreview): [string, string][] {
           'operação de investimento',
           'operações de investimento',
         ),
-        plural(c.accounts, 'conta', 'contas'),
-        plural(c.transfers, 'transferência', 'transferências'),
         plural(c.valuations, 'avaliação', 'avaliações'),
         plural(c.quotes, 'cotação', 'cotações'),
       ].join(', '),

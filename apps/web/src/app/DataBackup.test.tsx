@@ -184,6 +184,9 @@ describe('Backup de dados no Perfil', () => {
     choose(section, original, 'life-rpg-backup-2026-11-12.json');
     const group = await preview();
     expect(within(group).getByText(/12 movimentações/)).toBeInTheDocument();
+    // Carteira única: contas internas não aparecem na prévia amigável.
+    expect(within(group).getByText('Dados financeiros')).toBeInTheDocument();
+    expect(within(group).queryByText(/\bcontas?\b/)).toBeNull();
     fireEvent.click(
       within(group).getByRole('button', { name: 'Restaurar backup' }),
     );

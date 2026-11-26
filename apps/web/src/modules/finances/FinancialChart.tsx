@@ -24,13 +24,16 @@ const compactMoney = (cents: number) =>
 export function FinancialChart({
   records,
   today,
+  defaultView = 'cash',
 }: {
   records: LifeRecords;
   today: string;
+  /** Visão inicial: saldo na aba Carteira, patrimônio na aba Investimentos. */
+  defaultView?: ChartView;
 }) {
-  const [view, setView] = useState<ChartView>('cash');
-  const label = view === 'cash' ? 'Dinheiro disponível' : 'Patrimônio total';
-  const pointLabel = view === 'cash' ? 'dinheiro disponível' : 'patrimônio';
+  const [view, setView] = useState<ChartView>(defaultView);
+  const label = view === 'cash' ? 'Saldo disponível' : 'Patrimônio total';
+  const pointLabel = view === 'cash' ? 'saldo disponível' : 'patrimônio';
   const [period, setPeriod] = useState<ChartPeriod>(30);
   const [activeDate, setActiveDate] = useState<string | null>(null);
   const [width, setWidth] = useState(720);
@@ -156,7 +159,7 @@ export function FinancialChart({
             setActiveDate(null);
           }}
         >
-          Dinheiro disponível
+          Saldo disponível
         </button>
         <button
           type="button"
@@ -204,7 +207,7 @@ export function FinancialChart({
       </div>
       <p className="wealth-chart__context">
         {view === 'cash'
-          ? 'Saldo da carteira com receitas, despesas, aportes e resgates reais. Posições iniciais e oscilações dos investimentos não alteram o dinheiro disponível.'
+          ? 'Saldo da carteira com receitas, despesas, aportes e resgates reais. Posições iniciais e oscilações dos investimentos não alteram o saldo disponível.'
           : 'Mudança do patrimônio total, incluindo entradas e saídas de dinheiro. Não representa rentabilidade.'}
       </p>
       <div
@@ -246,7 +249,7 @@ export function FinancialChart({
               height={height}
               viewBox={`0 0 ${width} ${height}`}
               role="img"
-              aria-label={`${view === 'cash' ? 'Dinheiro disponível' : 'Patrimônio financeiro'} em reais; ${points.length} ${points.length === 1 ? 'ponto' : 'pontos'}. Consulte cada ponto por toque, mouse ou teclado.`}
+              aria-label={`${view === 'cash' ? 'Saldo disponível' : 'Patrimônio financeiro'} em reais; ${points.length} ${points.length === 1 ? 'ponto' : 'pontos'}. Consulte cada ponto por toque, mouse ou teclado.`}
             >
               <defs>
                 <linearGradient id={`${id}-fill`} x1="0" y1="0" x2="0" y2="1">
@@ -360,7 +363,7 @@ export function FinancialChart({
               role="group"
               aria-label={
                 view === 'cash'
-                  ? 'Pontos do dinheiro disponível'
+                  ? 'Pontos do saldo disponível'
                   : 'Pontos do patrimônio'
               }
             >
