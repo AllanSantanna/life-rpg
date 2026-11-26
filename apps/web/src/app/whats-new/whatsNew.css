@@ -1,0 +1,178 @@
+/*
+ * Novidades da versão. Modal nativo centralizado, compacto e escuro, com
+ * detalhes vermelhos. Cabeçalho (com o ×) e rodapé ficam fixos; só a lista
+ * rola, então fechar nunca exige rolagem.
+ */
+.whats-new-dialog {
+  position: fixed;
+  inset: 0;
+  box-sizing: border-box;
+  width: min(600px, calc(100vw - 32px));
+  max-width: none;
+  max-height: calc(100dvh - 32px);
+  margin: auto;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--radius-panel);
+  background: transparent;
+  color: var(--color-foreground);
+}
+.whats-new-dialog[open] {
+  display: flex;
+}
+.whats-new-dialog::backdrop {
+  background: color-mix(in srgb, var(--color-background) 80%, transparent);
+}
+.whats-new {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  width: 100%;
+  max-height: calc(100dvh - 32px);
+  border-color: color-mix(in srgb, var(--color-action-border) 35%, transparent);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--color-primary-dark) 22%, var(--color-surface)),
+    var(--color-surface) 45%
+  );
+  box-shadow: 0 20px 80px
+    color-mix(in srgb, var(--color-background) 70%, transparent);
+  animation: whats-new-in 200ms ease-out;
+}
+.whats-new__header {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-5) var(--space-5) var(--space-4);
+}
+.whats-new__badge {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid
+    color-mix(in srgb, var(--color-action-border) 55%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-primary) 16%, transparent);
+  color: var(--color-focus);
+}
+.whats-new__heading {
+  display: grid;
+  flex: 1 1 auto;
+  gap: var(--space-1);
+  min-width: 0;
+}
+.whats-new__heading p,
+.whats-new__heading h2 {
+  margin: 0;
+}
+.whats-new__eyebrow {
+  color: var(--color-focus);
+}
+.whats-new__heading h2 {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+.whats-new__intro {
+  color: var(--color-muted);
+  font-size: 14px;
+}
+.whats-new .whats-new__close {
+  position: static;
+  flex: 0 0 auto;
+  margin: calc(var(--space-1) * -1) calc(var(--space-2) * -1) 0 0;
+}
+.whats-new__body {
+  display: grid;
+  gap: var(--space-4);
+  min-height: 0;
+  padding: 0 var(--space-5) var(--space-4);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.whats-new__group {
+  display: grid;
+  gap: var(--space-2);
+}
+.whats-new__group-title {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.whats-new__list {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.whats-new__item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  min-width: 0;
+  padding: var(--space-3);
+  border: 1px solid color-mix(in srgb, var(--color-foreground) 8%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--color-background) 45%, transparent);
+}
+.whats-new__icon {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--color-primary) 14%, transparent);
+  color: var(--color-action-border);
+}
+.whats-new__item > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.whats-new__item p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.whats-new__item-title {
+  font-size: 14px;
+  font-weight: 600;
+}
+.whats-new__item-text {
+  color: var(--color-muted);
+  font-size: var(--text-control);
+  line-height: var(--leading-control);
+}
+.whats-new__footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: var(--space-4) var(--space-5) var(--space-5);
+  border-top: 1px solid
+    color-mix(in srgb, var(--color-foreground) 6%, transparent);
+}
+@media (min-width: 640px) {
+  .whats-new__list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@keyframes whats-new-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .whats-new {
+    animation: none;
+  }
+}
