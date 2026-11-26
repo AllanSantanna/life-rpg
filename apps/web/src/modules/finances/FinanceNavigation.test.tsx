@@ -180,7 +180,7 @@ describe('Finanças em duas abas', () => {
       within(form).getByRole('combobox', { name: 'Operação' }),
       'Retirada / venda',
     );
-    fireEvent.change(within(form).getByLabelText('Valor da operação (R$)'), {
+    fireEvent.change(within(form).getByLabelText('Valor do resgate (R$)'), {
       target: { value: '10000' },
     });
     fireEvent.click(

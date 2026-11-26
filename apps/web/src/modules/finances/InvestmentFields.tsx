@@ -101,7 +101,9 @@ export function InvestmentFields({
         ? 'Valor pago (R$, se conhecido)'
         : initial
           ? 'Valor aplicado inicial (R$)'
-          : 'Valor da operação (R$)';
+          : kind === 'withdrawal' && !bitcoin && !usd && !shares
+            ? 'Valor do resgate (R$)'
+            : 'Valor da operação (R$)';
   const estimate =
     bitcoin && quote
       ? Number(

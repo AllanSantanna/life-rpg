@@ -398,7 +398,7 @@ describe('Ações diretas no investimento', () => {
       name: 'Enviar valor para a Carteira',
     });
     expect(toggle).toBeChecked();
-    fill(form, 'Valor da operação (R$)', '10000');
+    fill(form, 'Valor do resgate (R$)', '10000');
     fireEvent.click(
       within(form).getByRole('button', { name: 'Registrar operação' }),
     );

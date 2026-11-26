@@ -452,7 +452,12 @@ describe('Organização da página Finanças', () => {
     const before = summary();
     let form = cardAction('Caixinha Caixa Itaú', 'Retirar de Caixa Itaú');
     expect(form).toHaveAccessibleName('Retirar · Caixa Itaú');
-    input(form, 'Valor da operação (R$)', '50,00');
+    // Resgate pede só o valor: sem custo de aquisição nem quantidade.
+    expect(
+      within(form).queryByLabelText(/Custo de aquisição resgatado/),
+    ).toBeNull();
+    expect(within(form).queryByLabelText(/Quantidade/)).toBeNull();
+    input(form, 'Valor do resgate (R$)', '50,00');
     submit(form);
     expect(stored().investmentEntries[3]).toMatchObject({
       kind: 'withdrawal',
