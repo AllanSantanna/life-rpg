@@ -1,5 +1,5 @@
 import { FinanceHelp } from './FinanceHelp';
-import { useId, useState } from 'react';
+import { useId, useRef, useState, type KeyboardEvent } from 'react';
 import { Empty } from '../records/RecordUI';
 import type { LifeRecords } from '../records/types';
 import { money } from './calculations';
@@ -7,6 +7,8 @@ import { CategoryIcon } from './CategoryIcon';
 import { FinancialChart } from './FinancialChart';
 import { categoryLabel } from './investmentActions';
 import { categoryBreakdown, type CategoryBreakdown } from './categoryBreakdown';
+import { formatTenths, percentTenths, pieSlices } from './pieChart';
+import { investmentCategories } from './types';
 
 const chartKinds = [
   { id: 'evolution', label: 'Evolução' },
@@ -14,9 +16,6 @@ const chartKinds = [
   { id: 'cost', label: 'Custo × valor' },
 ] as const;
 type ChartKind = (typeof chartKinds)[number]['id'];
-
-const percent = (share: number) =>
-  `${(share * 100).toLocaleString('pt-BR', { maximumFractionDigits: 1 })}%`;
 
 /**
  * Gráficos da aba Investimentos com escolha do tipo. Todos usam somente os
@@ -94,32 +93,158 @@ function Notes({ rows }: { rows: CategoryBreakdown[] }) {
   );
 }
 
+/** Tom fixo por categoria (tokens `--color-chart-1` a `--color-chart-7`). */
+const tone = (category: CategoryBreakdown['category']) =>
+  investmentCategories.indexOf(category);
+
+/**
+ * Distribuição do valor atual por categoria em pizza (setores até o centro).
+ * Base única: o mesmo valor por investimento usado em “Valor dos
+ * investimentos” (`investmentValue`); custo e saldo da Carteira não entram.
+ * Percentuais em décimos pelo método dos maiores restos (somam 100,0%).
+ * Mouse e toque nos setores ou a legenda (teclado) escolhem a categoria
+ * exibida no detalhe; nenhum texto é desenhado sobre os setores.
+ */
 function Distribution({ rows }: { rows: CategoryBreakdown[] }) {
+  const id = useId();
+  const values = rows.map((row) => Math.max(0, row.value));
+  const tenths = percentTenths(values);
+  const slices = pieSlices(values);
+  const largest = slices[0]?.index ?? 0;
+  const [selected, setSelected] = useState<CategoryBreakdown['category']>();
+  const activeIndex = Math.max(
+    0,
+    rows.findIndex((row) => row.category === selected),
+  );
+  const active = selected ? activeIndex : largest;
+  const current = rows[active];
+  const total = values.reduce((sum, value) => sum + value, 0);
+  const legend = useRef<HTMLUListElement>(null);
+  const choose = (index: number) => setSelected(rows[index]?.category);
+  function onLegendKey(event: KeyboardEvent<HTMLButtonElement>, index: number) {
+    const step =
+      event.key === 'ArrowDown' || event.key === 'ArrowRight'
+        ? 1
+        : event.key === 'ArrowUp' || event.key === 'ArrowLeft'
+          ? -1
+          : 0;
+    const next =
+      event.key === 'Home'
+        ? 0
+        : event.key === 'End'
+          ? rows.length - 1
+          : step
+            ? (index + step + rows.length) % rows.length
+            : -1;
+    if (next < 0) return;
+    event.preventDefault();
+    choose(next);
+    const buttons =
+      legend.current?.querySelectorAll<HTMLButtonElement>('button');
+    buttons?.[next]?.focus();
+  }
   return (
-    <div className="panel record-section investment-chart">
-      <h3>Distribuição do valor atual por categoria</h3>
-      <ul className="investment-bars">
-        {rows.map((row) => (
-          <li key={row.category}>
-            <div className="investment-bars__label">
-              <span>
-                <CategoryIcon category={row.category} />
-                {categoryLabel(row.category)}
-                {row.reference && ' *'}
-              </span>
-              <strong>
-                {money(row.value)} · {percent(row.share)}
-              </strong>
-            </div>
-            <div className="investment-bars__track" aria-hidden="true">
-              <span
-                className="investment-bars__fill"
-                style={{ width: `${row.share * 100}%` }}
-              />
-            </div>
-          </li>
-        ))}
-      </ul>
+    <div className="panel record-section investment-chart distribution-pie">
+      <h3 id={`${id}-title`}>Distribuição dos investimentos</h3>
+      {total <= 0 ? (
+        <Empty>
+          Ainda não há valores registrados para distribuir. Informe um custo,
+          uma avaliação ou uma cotação.
+        </Empty>
+      ) : (
+        <div className="distribution-pie__body">
+          <div className="distribution-pie__figure">
+            <svg
+              viewBox="0 0 200 200"
+              role="img"
+              aria-labelledby={`${id}-title`}
+              aria-describedby={`${id}-summary`}
+              className="distribution-pie__svg"
+              data-slices={slices.length}
+            >
+              {slices.map((slice) => {
+                const row = rows[slice.index]!;
+                const shared = {
+                  className: `distribution-pie__slice${slice.index === active ? ' is-active' : ''}`,
+                  'data-tone': tone(row.category),
+                  'data-category': row.category,
+                  onPointerEnter: () => choose(slice.index),
+                  onClick: () => choose(slice.index),
+                };
+                return slice.path ? (
+                  <path key={row.category} d={slice.path} {...shared} />
+                ) : (
+                  <circle
+                    key={row.category}
+                    cx="100"
+                    cy="100"
+                    r="96"
+                    {...shared}
+                  />
+                );
+              })}
+            </svg>
+            <p id={`${id}-summary`} className="sr-only">
+              {rows
+                .map(
+                  (row, index) =>
+                    `${categoryLabel(row.category)}: ${money(values[index]!)}, ${formatTenths(tenths[index]!)}`,
+                )
+                .join('; ')}
+              .
+            </p>
+          </div>
+          <div className="distribution-pie__side">
+            {current && (
+              <p className="distribution-pie__detail" aria-live="polite">
+                <strong>
+                  {categoryLabel(current.category)}
+                  {current.reference && ' *'}
+                </strong>
+                <span>
+                  {money(values[active]!)} · {formatTenths(tenths[active]!)}
+                </span>
+              </p>
+            )}
+            <ul
+              ref={legend}
+              className="distribution-pie__legend"
+              aria-label="Categorias da distribuição"
+            >
+              {rows.map((row, index) => (
+                <li key={row.category}>
+                  <button
+                    type="button"
+                    aria-pressed={index === active}
+                    tabIndex={index === active ? 0 : -1}
+                    onClick={() => choose(index)}
+                    onFocus={() => choose(index)}
+                    onKeyDown={(event) => onLegendKey(event, index)}
+                  >
+                    <span
+                      className="distribution-pie__swatch"
+                      data-tone={tone(row.category)}
+                      aria-hidden="true"
+                    />
+                    <span className="distribution-pie__name">
+                      <CategoryIcon category={row.category} />
+                      {categoryLabel(row.category)}
+                      {row.reference && ' *'}
+                    </span>
+                    <span className="distribution-pie__value">
+                      {values[index]! > 0
+                        ? `${money(values[index]!)} · ${formatTenths(tenths[index]!)}`
+                        : row.unpriced
+                          ? 'Valor pendente'
+                          : `${money(0)} · 0%`}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
       <Notes rows={rows} />
     </div>
   );

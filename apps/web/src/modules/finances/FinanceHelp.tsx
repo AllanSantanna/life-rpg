@@ -238,8 +238,12 @@ const topics = {
           de saldo disponível segue no mesmo gráfico).
         </p>
         <p>
-          <strong>Distribuição</strong>: participação de cada categoria no valor
-          atual dos investimentos.
+          <strong>Distribuição dos investimentos</strong>: mostra como o valor
+          dos seus investimentos está dividido entre as categorias. Cada fatia
+          representa a participação daquela categoria no total investido, pelo
+          mesmo valor usado em Valor dos investimentos (o saldo da Carteira não
+          entra). Toque, passe o mouse ou use a legenda para ver valor e
+          percentual.
         </p>
         <p>
           <strong>Custo × valor</strong>: custo (cinza) e valor registrado

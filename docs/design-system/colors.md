@@ -26,6 +26,23 @@ texto (“Atenção: 80% ou mais do limite”). Dentro do limite a barra usa
 `--color-finances`; a partir de 100%, `--color-primary` e o texto em
 `--color-error`.
 
+## Gráfico de distribuição
+
+A pizza da aba Investimentos usa uma cor fixa por categoria, na ordem de
+`investmentCategories`, sempre acompanhada de nome, valor e percentual na
+legenda (a cor não é o único meio de identificação). Setores são separados
+por um contorno da cor da superfície.
+
+| Token             | Valor     | Categoria            |
+| ----------------- | --------- | -------------------- |
+| `--color-chart-1` | `#e0525a` | Ações                |
+| `--color-chart-2` | `#d9bc82` | Fundos imobiliários  |
+| `--color-chart-3` | `#85c99a` | Renda fixa           |
+| `--color-chart-4` | `#6fa8dc` | Caixinhas bancárias  |
+| `--color-chart-5` | `#f7931a` | Bitcoin              |
+| `--color-chart-6` | `#bba0d7` | Dólar (USD)          |
+| `--color-chart-7` | `#9ca3af` | Outros investimentos |
+
 ## Pilares
 
 `data-area` atribui `--area-color`; reutilize esse mecanismo em cartões,

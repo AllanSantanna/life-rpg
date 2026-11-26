@@ -24,6 +24,13 @@
   --color-focus: #fca5a5;
   --color-error: #ffaaaa;
   --color-warning: #eab308;
+  --color-chart-1: #e0525a;
+  --color-chart-2: #d9bc82;
+  --color-chart-3: #85c99a;
+  --color-chart-4: #6fa8dc;
+  --color-chart-5: #f7931a;
+  --color-chart-6: #bba0d7;
+  --color-chart-7: #9ca3af;
   --color-muscle-ready: #22c55e;
   --color-muscle-recovering: #eab308;
   --color-muscle-tired: #f97316;
@@ -2300,6 +2307,150 @@
 }
 .finance-budget__item[data-level='exceeded'] .finance-budget__level {
   color: var(--color-error);
+}
+/* Distribuição dos investimentos: pizza preenchida e legenda interativa. */
+.distribution-pie__body {
+  display: grid;
+  grid-template-columns: minmax(0, 260px) minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-6);
+  margin-top: var(--space-3);
+}
+.distribution-pie__figure {
+  min-width: 0;
+}
+.distribution-pie__svg {
+  display: block;
+  width: 100%;
+  max-width: 260px;
+  aspect-ratio: 1;
+  margin-inline: auto;
+  overflow: visible;
+}
+.distribution-pie__slice {
+  stroke: var(--color-surface);
+  stroke-width: 1.5;
+  cursor: pointer;
+  opacity: 0.78;
+  transition: opacity 0.15s ease;
+}
+.distribution-pie__slice.is-active {
+  opacity: 1;
+  stroke: var(--color-foreground);
+  stroke-width: 2;
+}
+.distribution-pie [data-tone='0'] {
+  fill: var(--color-chart-1);
+  background: var(--color-chart-1);
+}
+.distribution-pie [data-tone='1'] {
+  fill: var(--color-chart-2);
+  background: var(--color-chart-2);
+}
+.distribution-pie [data-tone='2'] {
+  fill: var(--color-chart-3);
+  background: var(--color-chart-3);
+}
+.distribution-pie [data-tone='3'] {
+  fill: var(--color-chart-4);
+  background: var(--color-chart-4);
+}
+.distribution-pie [data-tone='4'] {
+  fill: var(--color-chart-5);
+  background: var(--color-chart-5);
+}
+.distribution-pie [data-tone='5'] {
+  fill: var(--color-chart-6);
+  background: var(--color-chart-6);
+}
+.distribution-pie [data-tone='6'] {
+  fill: var(--color-chart-7);
+  background: var(--color-chart-7);
+}
+.distribution-pie__side {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.distribution-pie__detail {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  color: var(--color-muted);
+}
+.distribution-pie__detail strong {
+  color: var(--color-foreground);
+  font-size: 16px;
+  font-weight: 650;
+}
+.distribution-pie__legend {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.distribution-pie__legend button {
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  width: 100%;
+  min-height: var(--control-height);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid transparent;
+  border-radius: var(--control-radius);
+  color: var(--color-muted);
+  font-size: 13px;
+  text-align: left;
+}
+.distribution-pie__legend button:hover,
+.distribution-pie__legend button[aria-pressed='true'] {
+  border-color: rgb(255 255 255 / 0.1);
+  background: rgb(255 255 255 / 0.04);
+  color: var(--color-foreground);
+}
+.distribution-pie__legend button:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+.distribution-pie__swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+.distribution-pie__name {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.distribution-pie__value {
+  white-space: nowrap;
+}
+@media (max-width: 639px) {
+  .distribution-pie__body {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-4);
+  }
+  .distribution-pie__svg {
+    max-width: min(240px, 100%);
+  }
+}
+@media (max-width: 379px) {
+  .distribution-pie__legend button {
+    grid-template-columns: 12px minmax(0, 1fr);
+  }
+  .distribution-pie__value {
+    grid-column: 2;
+    white-space: normal;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .distribution-pie__slice {
+    transition: none;
+  }
 }
 /* Investimentos: escolha do tipo de gráfico e barras por categoria. */
 .investment-charts {
