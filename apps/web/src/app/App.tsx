@@ -43,6 +43,10 @@ import { useAchievementUnlocks } from '../modules/gamification/achievements/pres
 import { MetricCard } from '../shared/components/MetricCard';
 import { SectionHeading } from '../shared/components/SectionHeading';
 import { Icon } from '../shared/components/Icon';
+import { sessionsInProgress } from '../modules/workouts/advanced/startSession';
+import { WhatsNewDialog } from './whats-new/WhatsNewDialog';
+import { useWhatsNew } from './whats-new/useWhatsNew';
+import { hasPersonalHistory } from './whats-new/presentation';
 
 const titles: Record<View, string> = {
   home: 'Visão geral',
@@ -113,6 +117,22 @@ export function App() {
   // do usuário nesta sessão; abrir, importar ou restaurar não anima.
   const unlocks = useAchievementUnlocks(achievements);
   const openAchievements = () => navigate('profile', 'conquistas');
+  // Novidades da versão: decididas uma vez, com os registros já carregados;
+  // adiadas durante avisos de armazenamento, conquistas e treino em andamento.
+  const advanced = state.records.advancedWorkouts;
+  const whatsNew = useWhatsNew({
+    settled:
+      ready && (persistence.kind === 'saved' || persistence.kind === 'saving'),
+    existingUser: () => hasPersonalHistory(state),
+    blocked:
+      !!legacyChange ||
+      persistence.kind === 'protected' ||
+      persistence.kind === 'conflict' ||
+      unlocks.queue.length > 0 ||
+      (view === 'workouts' &&
+        !!advanced &&
+        sessionsInProgress(advanced).length > 0),
+  });
   const attributes = realAttributes(dedication);
   const currentMetrics = recordMetrics(state.records, today, dedication);
   function changeRecords(command: RecordCommand): string | null {
@@ -441,6 +461,13 @@ export function App() {
             onClose={unlocks.dismissAll}
             {...(view === 'profile' ? {} : { onOpenGallery: openAchievements })}
           />
+          {whatsNew.open && whatsNew.release && (
+            <WhatsNewDialog
+              release={whatsNew.release}
+              onClose={whatsNew.close}
+              returnFocus={() => heading.current}
+            />
+          )}
           <footer className="mt-9 flex flex-wrap items-center justify-between gap-3 border-t border-white/[0.06] pt-5 text-[11px] text-muted">
             <span>{persistenceLabels[persistence.kind]}</span>
           </footer>
