@@ -50,6 +50,9 @@ registros; por isso são restaurados sem serem gravados à parte.
 - `life-rpg:statistics-view` (`localStorage`): preferência visual descartável e
   específica do dispositivo (o que fica visível em Estatísticas). Incluí-la
   exigiria uma segunda gravação fora da transação do IndexedDB.
+- `life-rpg:quick-actions` (`localStorage`): indica apenas se a apresentação
+  inicial das Ações rápidas já foi vista neste navegador. Descartável, pelo
+  mesmo motivo.
 - Revisão de concorrência e metadados de importação legada do snapshot.
 - Nenhum token, credencial, `.env` ou configuração de API existe no estado do
   jogador; o teste de exportação verifica essa ausência.

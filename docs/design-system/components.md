@@ -198,6 +198,35 @@ destrutivas continuam abrindo a confirmação correspondente. Use-o quando um it
 tiver uma ação principal e outras secundárias; não substitui `CustomSelect` para
 escolha de valores.
 
+## Ações rápidas
+
+[QuickActions](../../apps/web/src/app/quick/QuickActions.tsx) é o acesso global
+para registrar Treino, Sono, Leitura e Finanças sem trocar de página. Fica dentro
+da navegação (`Navigation` recebe o conteúdo como `children`):
+
+- Abaixo de 1024 px: botão circular “+” (56 px, gradiente das ações primárias)
+  centralizado logo acima da barra inferior, posicionado em relação à própria
+  barra (sem medidas por largura de tela). Herda a camada da navegação (30):
+  diálogos nativos, ajudas “?” (80) e avisos de conquista (60) ficam acima.
+  Some enquanto houver `.workout-sticky-actions` (edição de ficha), para não
+  cobrir “Salvar”.
+- A partir de 1024 px: botão “+ Ação rápida” abaixo da lista da navegação
+  lateral; o painel abre à direita e sobe se passar da janela.
+- Nome acessível “Abrir ações rápidas” / “Fechar ações rápidas”,
+  `aria-expanded`; o “+” gira para “×” com o menu aberto.
+- Menu (`role="dialog"`, título “Ações rápidas”): grade 2 × 2 com ícone na cor
+  do pilar (`data-area`), etapas internas para Treino e Finanças com “Voltar”.
+  Setas, Home e End percorrem os itens; Esc volta da etapa ou fecha e devolve o
+  foco; clique fora fecha sem roubar o foco.
+- Formulários: modal nativo `.quick-dialog` (top layer), no alto da tela no
+  celular (longe do teclado virtual), com os mesmos componentes das páginas
+  (`SleepForm`, `ReadingForm`, `BookForm`, `MovementForm`). O sucesso só é
+  anunciado (região `aria-live`) depois de `whenSaved()` confirmar a gravação;
+  falhas mantêm o formulário e os dados, sem reaplicar o comando.
+- Apresentação da primeira utilização: balão não modal com “Entendi”, que não
+  rouba o foco nem aparece durante treino em andamento. A preferência fica em
+  `life-rpg:quick-actions` (localStorage), fora do estado do jogador.
+
 ## Finanças: abas, áreas recolhíveis e formulários sob demanda
 
 Componentes locais de [FinanceLayout](../../apps/web/src/modules/finances/FinanceLayout.tsx),
