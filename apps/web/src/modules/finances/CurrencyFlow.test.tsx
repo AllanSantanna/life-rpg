@@ -5,6 +5,7 @@ import {
   investmentCard,
   investmentHistory,
   newInvestmentForm,
+  externalMoney,
 } from '../../test/finances';
 import { selectDate, selectOption } from '../../test/selectOption';
 import {
@@ -70,6 +71,7 @@ describe('Fluxos com moedas formatadas', () => {
         /Valor estimado da quantidade informada: R\$\s520,00/,
       ),
     );
+    externalMoney(form);
     click(form, 'Adicionar investimento');
     await waitFor(() => expect(stored().finance.usdQuotes).toHaveLength(1));
     expect(stored().investmentEntries[0]).toMatchObject({
@@ -141,6 +143,7 @@ describe('Fluxos com moedas formatadas', () => {
     expect(within(form).getByLabelText('Quantidade em BTC')).toHaveValue(
       '0,00100000',
     );
+    externalMoney(form);
     click(form, 'Adicionar investimento');
     await waitFor(() => expect(stored().finance.quotes).toHaveLength(1));
     expect(stored().investmentEntries[0]).toMatchObject({

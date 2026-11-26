@@ -6,6 +6,7 @@ import {
   movementHistory,
   newInvestmentForm,
   newMovementForm,
+  externalMoney,
 } from '../test/finances';
 import {
   cleanup,
@@ -105,6 +106,8 @@ describe('Fluxos reais dos quatro pilares', () => {
     input(form, 'Tipo de registro do investimento', 'Nova compra ou aporte');
     input(form, 'Quantidade (opcional)', '3');
     input(form, 'Preço de compra por unidade (R$, opcional)', '100,50');
+    // Sem receitas cadastradas: compra com dinheiro de fora da Carteira.
+    externalMoney(form);
     click(form, 'Adicionar investimento');
     expect(stored().records.investmentEntries[0].amountCents).toBe(30150);
     expect(stored().records.movements).toEqual([]);
@@ -113,6 +116,7 @@ describe('Fluxos reais dos quatro pilares', () => {
       'Comprar mais Carteira pessoal',
     );
     input(form, 'Valor da operação (R$)', '100');
+    externalMoney(form);
     click(form, 'Registrar operação');
     form = cardAction(
       'Investimento Carteira pessoal',

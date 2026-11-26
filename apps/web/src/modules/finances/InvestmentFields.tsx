@@ -11,6 +11,8 @@ import { MoneyInput } from './MoneyInput';
 import { money } from './calculations';
 import { unitsToDecimal } from './monetary';
 import { isMarketCategory } from './types';
+import { SwitchField } from './FinanceLayout';
+import { movesWallet } from './initialPosition';
 import type {
   BitcoinQuote,
   UsdQuote,
@@ -84,6 +86,13 @@ export function InvestmentFields({
   const [kind, setKind] = useState(
     entry?.kind ?? defaultKind ?? 'contribution',
   );
+  // Registros novos começam ligados (regra histórica: operações reais
+  // movimentam a Carteira); a edição mostra o estado efetivo do registro.
+  const [wallet, setWallet] = useState(() =>
+    entry && !isInitialPosition(entry) ? movesWallet(entry) : true,
+  );
+  const legacyWallet =
+    !!entry && entry.walletLinked === undefined && !isInitialPosition(entry);
   const label =
     positionInitial && kind === 'contribution'
       ? 'Custo de aquisição (R$, se conhecido)'
@@ -131,11 +140,32 @@ export function InvestmentFields({
           />
         </Field>
       )}
-      {kind === 'contribution' && !positionInitial && (
-        <p className="record-hint">
-          Compra/aporte real: desconta o valor da conta selecionada, sem gerar
-          despesa de consumo.
-        </p>
+      {(kind === 'withdrawal' || !positionInitial) && (
+        <>
+          <input type="hidden" name="walletChoice" value="1" />
+          {legacyWallet && (
+            <input type="hidden" name="walletLegacy" value="1" />
+          )}
+          <SwitchField
+            name="wallet"
+            label={
+              kind === 'withdrawal'
+                ? 'Enviar valor para a Carteira'
+                : 'Utilizar saldo da Carteira'
+            }
+            description={
+              kind === 'withdrawal'
+                ? wallet
+                  ? 'O valor recebido entra no saldo disponível, sem contar como receita.'
+                  : 'O valor sai do Life RPG (ex.: outra conta); o saldo disponível não muda.'
+                : wallet
+                  ? 'O valor sai do saldo disponível, sem contar como despesa nem consumir orçamento.'
+                  : 'Dinheiro de fora do Life RPG; o saldo disponível não muda.'
+            }
+            checked={wallet}
+            onChange={setWallet}
+          />
+        </>
       )}
       <Field label={label}>
         <MoneyInput

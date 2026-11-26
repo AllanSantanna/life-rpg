@@ -92,3 +92,15 @@ export function confirmDeletion() {
     }),
   );
 }
+
+/**
+ * Desliga “Utilizar saldo da Carteira” no formulário: aporte com dinheiro de
+ * fora do Life RPG. Usado em fluxos que não cadastram receitas antes da compra,
+ * pois um aporte vinculado sem saldo suficiente é recusado.
+ */
+export function externalMoney(form: HTMLElement) {
+  const toggle = within(form).getByRole('switch', {
+    name: 'Utilizar saldo da Carteira',
+  });
+  if ((toggle as HTMLInputElement).checked) fireEvent.click(toggle);
+}

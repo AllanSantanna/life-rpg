@@ -5,6 +5,7 @@ import {
   investmentCard,
   investmentHistory,
   newInvestmentForm,
+  externalMoney,
 } from '../../test/finances';
 import { selectDate, selectOption } from '../../test/selectOption';
 import { fetchBitcoinQuote } from './bitcoinQuote';
@@ -75,6 +76,7 @@ describe('Finanças pela interface', () => {
     input(form, 'Tipo de registro do investimento', 'Nova compra ou aporte');
     input(form, 'Valor aplicado inicial (R$)', '200');
     input(form, 'Quantidade em BTC', '0.002');
+    externalMoney(form);
     click(form, 'Adicionar investimento');
     await waitFor(() =>
       expect(stored().records.finance.quotes).toHaveLength(1),

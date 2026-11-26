@@ -5,6 +5,7 @@ import {
   cardMenuAction,
   investmentCard,
   newInvestmentForm,
+  externalMoney,
 } from '../../test/finances';
 import { marketClient, type MarketData } from './marketQuote';
 vi.mock('./marketQuote', async (original) => {
@@ -341,6 +342,7 @@ describe('Cotações de ações e FIIs na carteira', () => {
     input(form, 'Tipo de registro do investimento', 'Nova compra ou aporte');
     input(form, 'Quantidade (opcional)', '10');
     input(form, 'Valor aplicado inicial (R$)', '1600,00');
+    externalMoney(form);
     submit(form, 'Adicionar investimento');
     expect(within(form).getByRole('alert')).toHaveTextContent(
       'Ticker inválido',

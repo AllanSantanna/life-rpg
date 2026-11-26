@@ -89,8 +89,10 @@ export function InvestmentsPanel({
     <div className="finance-area">
       <div className="finance-toolbar">
         <p className="record-hint">
-          Aportes e compras saem do saldo disponível; retiradas e vendas voltam
-          para ele, sem criar receitas ou despesas.
+          Com “Utilizar saldo da Carteira”, aportes e compras saem do saldo
+          disponível; com “Enviar valor para a Carteira”, retiradas e vendas
+          voltam para ele. Nenhum dos dois cria receita, despesa ou consumo de
+          orçamento.
         </p>
         <div
           className="finance-quick-actions"
