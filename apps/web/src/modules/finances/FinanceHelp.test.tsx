@@ -217,11 +217,14 @@ describe('Ajuda contextual em Finanças', () => {
     });
     expect(upcoming).toHaveTextContent(/venceu em 05\/11/);
     expect(upcoming).toHaveTextContent('1 ocorrência pendente vencida.');
-    expect(
-      screen.getByRole('searchbox', { name: 'Pesquisar no histórico' }),
-    ).toBeInTheDocument();
-    expect(
+    // A pesquisa fica dentro do histórico, aberto por um clique.
+    fireEvent.click(
       screen.getByRole('button', { name: 'Histórico de movimentações' }),
+    );
+    expect(
+      within(
+        screen.getByRole('region', { name: 'Histórico de movimentações' }),
+      ).getByRole('searchbox', { name: 'Pesquisar no histórico' }),
     ).toBeInTheDocument();
     // Textos conceituais saíram da página principal.
     expect(screen.queryByText(/O período define receitas/)).toBeNull();

@@ -574,7 +574,8 @@ comando ou formato de armazenamento mudou com a reorganização.
    intervalo (Semanal/Mensal/Anual) é próprio e independente do Período.
 4. **Próximas movimentações** (recorrências) e **Orçamento mensal**, descritos
    em “Produtividade, recorrências, orçamento e vínculo com a Carteira”.
-5. **Pesquisar no histórico** e **Histórico de movimentações** recolhido por padrão, aberto por um clique
+5. **Histórico de movimentações** recolhido por padrão, aberto por um clique,
+   com **Pesquisar no histórico** como primeiro campo dentro dele
    (`Disclosure`); filtros e paginação são mantidos ao recolher e reabrir. O Período é o mesmo mês dos
    indicadores (um único seletor, sem duplicação). Tipo fica à vista
    (`Todas | Receitas | Despesas`, `.filter-button` com `aria-pressed`); categoria
@@ -802,7 +803,8 @@ foi preservada e passou a ser uma escolha explícita nos formulários:
   repetição. Tudo é derivado do histórico, sem cache.
 - **Pesquisar no histórico**: descrição e categoria, sem diferenciar acentos e
   maiúsculas, todas as palavras; combina com mês, tipo e categoria. Usa
-  `useDeferredValue` e `useMemo`; abrir uma pesquisa expande o histórico.
+  `useDeferredValue` e `useMemo`. Fica dentro do histórico, acima dos filtros,
+  e o texto é mantido ao recolher e reabrir a seção.
   Escape ou **Limpar** apagam o texto.
 
 ### Recorrências

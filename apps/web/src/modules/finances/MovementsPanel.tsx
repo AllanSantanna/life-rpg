@@ -234,8 +234,8 @@ const kindFilters: readonly { value: KindFilter; label: string }[] = [
 /**
  * Histórico de receitas e despesas na aba Carteira, recolhido por padrão. O período é
  * o mesmo mês dos indicadores mensais; tipo fica à vista e categoria em
- * “Filtros avançados”. A pesquisa rápida fica acima do histórico e o abre ao
- * digitar. “Internas” lista, somente para consulta, os aportes e retiradas que
+ * “Filtros avançados”. A pesquisa rápida é o primeiro campo dentro do
+ * histórico. “Internas” lista, somente para consulta, os aportes e retiradas que
  * movimentaram a Carteira (gerenciados na aba Investimentos), sem misturá-los
  * às receitas e despesas. Reutiliza os comandos de movimentação.
  */
@@ -260,9 +260,8 @@ export function MovementsPanel({
     accountId: ALL,
     category: ALL,
   });
+  // Fica no painel: a pesquisa sobrevive ao recolher e reabrir o histórico.
   const [query, setQuery] = useState('');
-  // Ao começar uma pesquisa, o histórico recolhido é aberto (nova montagem).
-  const [searchOpened, setSearchOpened] = useState(0);
   const deferredQuery = useDeferredValue(query);
   // A paginação recomeça ao trocar de mês ou de filtro.
   const [page, setPage] = useState({ month, limit: HISTORY_PAGE_SIZE });
@@ -272,7 +271,6 @@ export function MovementsPanel({
     setPage({ month, limit: HISTORY_PAGE_SIZE });
   };
   const search = (value: string) => {
-    if (!query.trim() && value.trim()) setSearchOpened((n) => n + 1);
     setQuery(value);
     setPage({ month, limit: HISTORY_PAGE_SIZE });
   };
@@ -323,7 +321,13 @@ export function MovementsPanel({
       },
     });
   return (
-    <div className="finance-history-area">
+    // Começa recolhido; o usuário abre quando quiser. Pesquisa, filtros e
+    // paginação ficam neste componente e sobrevivem ao recolher/expandir.
+    <Disclosure
+      title="Histórico de movimentações"
+      help={<FinanceHelp topic="history" />}
+      className="panel record-section finance-history"
+    >
       <div className="finance-search" role="search">
         <Field label="Pesquisar no histórico">
           <input
@@ -352,161 +356,150 @@ export function MovementsPanel({
           </button>
         )}
       </div>
-      {/* Começa recolhido; o usuário abre quando quiser. Filtros e paginação
-          ficam neste componente e sobrevivem ao recolher/expandir. */}
-      <Disclosure
-        key={searchOpened}
-        defaultOpen={searchOpened > 0}
-        title="Histórico de movimentações"
-        help={<FinanceHelp topic="history" />}
-        className="panel record-section finance-history"
+      <div
+        className="finance-filters finance-filters--compact"
+        role="group"
+        aria-label="Filtros de movimentações"
       >
         <div
-          className="finance-filters finance-filters--compact"
+          className="finance-segmented finance-segmented--four"
           role="group"
-          aria-label="Filtros de movimentações"
+          aria-label="Tipo de movimentação do histórico"
         >
-          <div
-            className="finance-segmented finance-segmented--four"
-            role="group"
-            aria-label="Tipo de movimentação do histórico"
-          >
-            {kindFilters.map((option) => (
-              <button
-                type="button"
-                key={option.value}
-                className={`filter-button${filters.kind === option.value ? ' active' : ''}`}
-                aria-pressed={filters.kind === option.value}
-                onClick={() => update({ kind: option.value })}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
-          <Disclosure
-            title="Filtros avançados"
-            level={3}
-            variant="text"
-            className="finance-advanced-filters"
-          >
-            <Field label="Categoria">
-              <CustomSelect
-                label="Categoria"
-                value={filters.category}
-                onChange={(category) => update({ category })}
-                options={[
-                  { value: ALL, label: 'Todas as categorias' },
-                  ...movementCategories(records.movements).map((category) => ({
-                    value: category,
-                    label: category,
-                  })),
-                ]}
-              />
-            </Field>
-          </Disclosure>
+          {kindFilters.map((option) => (
+            <button
+              type="button"
+              key={option.value}
+              className={`filter-button${filters.kind === option.value ? ' active' : ''}`}
+              aria-pressed={filters.kind === option.value}
+              onClick={() => update({ kind: option.value })}
+            >
+              {option.label}
+            </button>
+          ))}
         </div>
-        <p className="record-hint" aria-live="polite">
-          {internal
-            ? plural(count, 'movimento interno', 'movimentos internos')
-            : plural(count, 'movimentação', 'movimentações')}{' '}
-          em {displayMonth(month)}
-          {filters.category !== ALL ? ` · categoria ${filters.category}` : ''}
-          {searching ? ` · pesquisa “${searching}”` : ''}.
+        <Disclosure
+          title="Filtros avançados"
+          level={3}
+          variant="text"
+          className="finance-advanced-filters"
+        >
+          <Field label="Categoria">
+            <CustomSelect
+              label="Categoria"
+              value={filters.category}
+              onChange={(category) => update({ category })}
+              options={[
+                { value: ALL, label: 'Todas as categorias' },
+                ...movementCategories(records.movements).map((category) => ({
+                  value: category,
+                  label: category,
+                })),
+              ]}
+            />
+          </Field>
+        </Disclosure>
+      </div>
+      <p className="record-hint" aria-live="polite">
+        {internal
+          ? plural(count, 'movimento interno', 'movimentos internos')
+          : plural(count, 'movimentação', 'movimentações')}{' '}
+        em {displayMonth(month)}
+        {filters.category !== ALL ? ` · categoria ${filters.category}` : ''}
+        {searching ? ` · pesquisa “${searching}”` : ''}.
+      </p>
+      {internal && (
+        <p className="record-hint">
+          Movimentos internos: edite ou exclua pela aba Investimentos.
         </p>
-        {internal && (
-          <p className="record-hint">
-            Movimentos internos: edite ou exclua pela aba Investimentos.
-          </p>
-        )}
-        <ul className="record-list">
-          {internal
-            ? operations.slice(0, limit).map((item) => (
-                <li key={item.id}>
-                  <div>
-                    <strong>
-                      {item.kind === 'contribution'
-                        ? `Aporte em ${item.name}`
-                        : `Retirada de ${item.name}`}
-                    </strong>
-                    <p>
-                      {displayDate(item.date)} ·{' '}
-                      {item.kind === 'contribution'
-                        ? 'Saída da Carteira'
-                        : 'Entrada na Carteira'}{' '}
-                      · {money(item.amountCents)}
-                    </p>
-                  </div>
-                </li>
-              ))
-            : items.slice(0, limit).map((item) => (
-                <li key={item.id}>
-                  <div>
-                    <strong>{item.description}</strong>
-                    <p>
-                      {displayDate(item.date)} · {item.category} ·{' '}
-                      {item.kind === 'income' ? 'Receita' : 'Despesa'} ·{' '}
-                      {money(item.amountCents)}
-                      {item.recurrence ? ' · Recorrente' : ''}
-                    </p>
-                  </div>
-                  <div className="record-actions">
-                    <button
-                      type="button"
-                      onClick={() => repeat(item)}
-                      aria-label={`Repetir ${item.description}`}
-                    >
-                      Repetir
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => edit(item.id)}
-                      aria-label={`Editar ${item.description}`}
-                    >
-                      Editar
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        onDelete({
-                          title: 'Excluir movimentação',
-                          description: `${item.description} · ${displayDate(item.date)} · ${money(item.amountCents)}. A exclusão recalcula saldos, resultado mensal, orçamento e progresso.${item.recurrence ? ' A ocorrência da recorrência volta a ficar pendente.' : ''}`,
-                          confirm: 'Confirmar exclusão',
-                          run: () =>
-                            run({ type: 'deleteMovement', id: item.id }),
-                        })
-                      }
-                      aria-label={`Excluir ${item.description}`}
-                    >
-                      Excluir
-                    </button>
-                  </div>
-                </li>
-              ))}
-        </ul>
-        {!count && (
-          <Empty>
-            {searching
-              ? `Nenhuma movimentação encontrada para “${searching}” com os filtros selecionados.`
-              : internal
-                ? 'Nenhum aporte ou retirada vinculado à Carteira neste mês.'
-                : records.movements.some((item) =>
-                      item.date.startsWith(`${month}-`),
-                    )
-                  ? 'Nenhuma movimentação com os filtros selecionados.'
-                  : 'Nenhuma movimentação neste mês. Use “Adicionar receita” ou “Adicionar despesa”.'}
-          </Empty>
-        )}
-        {count > limit && (
-          <button
-            type="button"
-            className="filter-button finance-more"
-            onClick={() => setPage({ month, limit: limit + HISTORY_PAGE_SIZE })}
-          >
-            Mostrar mais movimentações
-          </button>
-        )}
-      </Disclosure>
-    </div>
+      )}
+      <ul className="record-list">
+        {internal
+          ? operations.slice(0, limit).map((item) => (
+              <li key={item.id}>
+                <div>
+                  <strong>
+                    {item.kind === 'contribution'
+                      ? `Aporte em ${item.name}`
+                      : `Retirada de ${item.name}`}
+                  </strong>
+                  <p>
+                    {displayDate(item.date)} ·{' '}
+                    {item.kind === 'contribution'
+                      ? 'Saída da Carteira'
+                      : 'Entrada na Carteira'}{' '}
+                    · {money(item.amountCents)}
+                  </p>
+                </div>
+              </li>
+            ))
+          : items.slice(0, limit).map((item) => (
+              <li key={item.id}>
+                <div>
+                  <strong>{item.description}</strong>
+                  <p>
+                    {displayDate(item.date)} · {item.category} ·{' '}
+                    {item.kind === 'income' ? 'Receita' : 'Despesa'} ·{' '}
+                    {money(item.amountCents)}
+                    {item.recurrence ? ' · Recorrente' : ''}
+                  </p>
+                </div>
+                <div className="record-actions">
+                  <button
+                    type="button"
+                    onClick={() => repeat(item)}
+                    aria-label={`Repetir ${item.description}`}
+                  >
+                    Repetir
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => edit(item.id)}
+                    aria-label={`Editar ${item.description}`}
+                  >
+                    Editar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onDelete({
+                        title: 'Excluir movimentação',
+                        description: `${item.description} · ${displayDate(item.date)} · ${money(item.amountCents)}. A exclusão recalcula saldos, resultado mensal, orçamento e progresso.${item.recurrence ? ' A ocorrência da recorrência volta a ficar pendente.' : ''}`,
+                        confirm: 'Confirmar exclusão',
+                        run: () => run({ type: 'deleteMovement', id: item.id }),
+                      })
+                    }
+                    aria-label={`Excluir ${item.description}`}
+                  >
+                    Excluir
+                  </button>
+                </div>
+              </li>
+            ))}
+      </ul>
+      {!count && (
+        <Empty>
+          {searching
+            ? `Nenhuma movimentação encontrada para “${searching}” com os filtros selecionados.`
+            : internal
+              ? 'Nenhum aporte ou retirada vinculado à Carteira neste mês.'
+              : records.movements.some((item) =>
+                    item.date.startsWith(`${month}-`),
+                  )
+                ? 'Nenhuma movimentação com os filtros selecionados.'
+                : 'Nenhuma movimentação neste mês. Use “Adicionar receita” ou “Adicionar despesa”.'}
+        </Empty>
+      )}
+      {count > limit && (
+        <button
+          type="button"
+          className="filter-button finance-more"
+          onClick={() => setPage({ month, limit: limit + HISTORY_PAGE_SIZE })}
+        >
+          Mostrar mais movimentações
+        </button>
+      )}
+    </Disclosure>
   );
 }
 

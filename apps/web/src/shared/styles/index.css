@@ -2020,14 +2020,10 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
-/* Pesquisa rápida acima do histórico da Carteira. */
-.finance-history-area {
-  display: grid;
-  gap: var(--space-3);
-  min-width: 0;
-}
+/* Pesquisa rápida: primeiro campo dentro do histórico da Carteira. */
 .finance-search {
   display: flex;
+  margin-top: var(--space-3);
   flex-wrap: wrap;
   align-items: flex-end;
   gap: var(--space-2);

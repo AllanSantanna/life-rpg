@@ -246,40 +246,51 @@ describe('Categorias recentes', () => {
 });
 
 describe('Pesquisa rápida', () => {
-  it('encontra sem diferenciar acentos e maiúsculas e abre o histórico', () => {
+  it('pesquisa dentro do histórico sem diferenciar acentos e maiúsculas', () => {
     seed({ movements: history });
     financeTab('Carteira');
-    const search = screen.getByRole('searchbox', {
+    // A pesquisa fica dentro do histórico: recolhido, o campo não aparece.
+    expect(
+      screen.queryByRole('searchbox', { name: 'Pesquisar no histórico' }),
+    ).toBeNull();
+    const list = movementHistory();
+    const search = within(list).getByRole('searchbox', {
       name: 'Pesquisar no histórico',
     });
     expect(search).toHaveAttribute('placeholder', 'Buscar movimentações...');
     fireEvent.change(search, { target: { value: 'SAO joao' } });
-    const list = screen.getByRole('region', {
-      name: 'Histórico de movimentações',
-    });
     expect(within(list).getByText('Padaria São João')).toBeInTheDocument();
     expect(within(list).queryByText('Mercado')).toBeNull();
     // Categoria também é pesquisável.
     fireEvent.change(search, { target: { value: 'alimentacao' } });
     expect(within(list).getByText('Padaria São João')).toBeInTheDocument();
     expect(within(list).getByText('Mercado')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Limpar pesquisa' }));
+    fireEvent.click(
+      within(list).getByRole('button', { name: 'Limpar pesquisa' }),
+    );
     expect(search).toHaveValue('');
     expect(within(list).getByText('Uber centro')).toBeInTheDocument();
+    // A pesquisa sobrevive a recolher e reabrir o histórico.
+    fireEvent.change(search, { target: { value: 'uber' } });
+    const toggle = screen.getByRole('button', {
+      name: 'Histórico de movimentações',
+    });
+    fireEvent.click(toggle);
+    fireEvent.click(toggle);
+    expect(
+      screen.getByRole('searchbox', { name: 'Pesquisar no histórico' }),
+    ).toHaveValue('uber');
     // A pesquisa não altera registros.
     expect(stored().records.movements).toEqual(history);
   });
 
   it('combina pesquisa com tipo, mês e filtros avançados', () => {
     seed({ movements: history });
-    financeTab('Carteira');
-    const search = screen.getByRole('searchbox', {
+    const list = movementHistory();
+    const search = within(list).getByRole('searchbox', {
       name: 'Pesquisar no histórico',
     });
     fireEvent.change(search, { target: { value: 'a' } });
-    const list = screen.getByRole('region', {
-      name: 'Histórico de movimentações',
-    });
     fireEvent.click(within(list).getByRole('button', { name: 'Receitas' }));
     expect(within(list).getByText('Salário novembro')).toBeInTheDocument();
     expect(within(list).queryByText('Mercado')).toBeNull();
@@ -315,7 +326,7 @@ describe('Pesquisa rápida', () => {
       within(list).getByText(/Nenhuma movimentação neste mês/),
     ).toBeInTheDocument();
     fireEvent.change(
-      screen.getByRole('searchbox', { name: 'Pesquisar no histórico' }),
+      within(list).getByRole('searchbox', { name: 'Pesquisar no histórico' }),
       { target: { value: 'xyz' } },
     );
     expect(
