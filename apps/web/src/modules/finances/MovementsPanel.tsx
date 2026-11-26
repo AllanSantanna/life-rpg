@@ -15,6 +15,7 @@ import { money } from './calculations';
 import type { PendingDeletion } from './DeleteConfirmation';
 import { Disclosure } from '../../shared/components/Disclosure';
 import { CategoryField } from './CategoryField';
+import { FinanceHelp } from './FinanceHelp';
 import { InlineForm, SwitchField } from './FinanceLayout';
 import { movementFromForm } from './financeForms';
 import {
@@ -181,16 +182,14 @@ export function MovementForm({
         </div>
         {occurrence && (
           <p className="record-hint">
-            Ocorrência prevista para {displayDate(occurrence.date)}. Ao
-            confirmar, a movimentação real entra no saldo, no histórico e no
-            orçamento; confirmar de novo não a duplica.
+            Ocorrência prevista para {displayDate(occurrence.date)}.
           </p>
         )}
         {!movement && !occurrence && (
           <div className="finance-repeat">
             <SwitchField
               label="Repetir periodicamente"
-              description="Registra esta movimentação e prevê as próximas, sem alterar o saldo até a confirmação."
+              help={<FinanceHelp topic="repeat" />}
               checked={repeat}
               onChange={setRepeat}
             />
@@ -359,6 +358,7 @@ export function MovementsPanel({
         key={searchOpened}
         defaultOpen={searchOpened > 0}
         title="Histórico de movimentações"
+        help={<FinanceHelp topic="history" />}
         className="panel record-section finance-history"
       >
         <div
@@ -415,9 +415,7 @@ export function MovementsPanel({
         </p>
         {internal && (
           <p className="record-hint">
-            Aportes e retiradas vinculados à Carteira: não são receitas nem
-            despesas e não entram no orçamento. Edite ou exclua pela aba
-            Investimentos, que atualiza os dois lados juntos.
+            Movimentos internos: edite ou exclua pela aba Investimentos.
           </p>
         )}
         <ul className="record-list">

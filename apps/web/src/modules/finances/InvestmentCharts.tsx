@@ -1,3 +1,4 @@
+import { FinanceHelp } from './FinanceHelp';
 import { useId, useState } from 'react';
 import { Empty } from '../records/RecordUI';
 import type { LifeRecords } from '../records/types';
@@ -35,7 +36,10 @@ export function InvestmentCharts({
   return (
     <section className="investment-charts" aria-labelledby={`${id}-title`}>
       <div className="investment-charts__head">
-        <h2 id={`${id}-title`}>Gráficos de investimentos</h2>
+        <div className="help-heading">
+          <h2 id={`${id}-title`}>Gráficos de investimentos</h2>
+          <FinanceHelp topic="investmentCharts" />
+        </div>
         <div
           className="finance-segmented"
           role="group"
@@ -166,8 +170,7 @@ function CostValue({ rows }: { rows: CategoryBreakdown[] }) {
         })}
       </ul>
       <p className="record-hint">
-        Barra cinza: custo; barra verde: valor atual. A diferença compara o
-        valor registrado com o custo e não representa rentabilidade.
+        Barra cinza: custo · barra verde: valor atual.
       </p>
       <Notes rows={rows} />
     </div>

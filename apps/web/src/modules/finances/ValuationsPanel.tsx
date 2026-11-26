@@ -1,3 +1,4 @@
+import { FinanceHelp } from './FinanceHelp';
 import { Disclosure } from '../../shared/components/Disclosure';
 import { CustomSelect } from '../../shared/components/CustomSelect';
 import { MoneyInput } from './MoneyInput';
@@ -32,12 +33,11 @@ export function ValuationsPanel({
   );
   if (!eligible && !ledger.valuations.length) return null;
   return (
-    <Disclosure title="Avaliações manuais" className="panel record-section">
-      <p className="record-hint">
-        Informe o valor atual de investimentos sem cotação automática.
-        Avaliações não alteram o saldo disponível nem geram receitas ou
-        despesas.
-      </p>
+    <Disclosure
+      title="Avaliações manuais"
+      className="panel record-section"
+      help={<FinanceHelp topic="valuations" />}
+    >
       {eligible && (
         <RecordForm
           key={`valuation:${valuationId}:${revision}`}

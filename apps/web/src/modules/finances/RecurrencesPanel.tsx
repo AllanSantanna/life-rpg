@@ -1,5 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { ActionButton } from '../../shared/components/ActionButton';
+import { HelpHeading } from '../../shared/components/ContextHelp';
+import { FinanceHelp, FormHelp } from './FinanceHelp';
 import { CustomDatePicker } from '../../shared/components/CustomDatePicker';
 import { CustomSelect } from '../../shared/components/CustomSelect';
 import { Disclosure } from '../../shared/components/Disclosure';
@@ -20,7 +22,6 @@ import {
   confirmedOccurrences,
   frequencyLabels,
   nextOccurrence,
-  RECURRENCE_HORIZON_DAYS,
   upcomingOccurrences,
   type Occurrence,
 } from './recurrence';
@@ -96,7 +97,11 @@ export function RecurrencesPanel({
       aria-labelledby="finance-upcoming-title"
     >
       <div className="finance-section-head">
-        <h2 id="finance-upcoming-title">Próximas movimentações</h2>
+        <HelpHeading
+          id="finance-upcoming-title"
+          title="Próximas movimentações"
+          help={<FinanceHelp topic="upcoming" />}
+        />
         <ActionButton
           icon="plus"
           onClick={() => {
@@ -107,13 +112,16 @@ export function RecurrencesPanel({
           Nova recorrência
         </ActionButton>
       </div>
-      <p className="record-hint">
-        Previsões das recorrências (vencidas e próximos{' '}
-        {RECURRENCE_HORIZON_DAYS} dias). Só entram no saldo e no orçamento
-        depois de confirmadas.
-        {overdue > 0 &&
-          ` ${plural(overdue, 'ocorrência pendente vencida', 'ocorrências pendentes vencidas')}.`}
-      </p>
+      {overdue > 0 && (
+        <p className="record-hint" role="status">
+          {plural(
+            overdue,
+            'ocorrência pendente vencida',
+            'ocorrências pendentes vencidas',
+          )}
+          .
+        </p>
+      )}
       {ruleForm && (
         <RecurrenceForm
           key={ruleForm.id ?? 'new'}
@@ -429,13 +437,7 @@ function RecurrenceForm({
             />
           </Field>
         </div>
-        <p className="record-hint">
-          Mensal no dia 29, 30 ou 31: em meses mais curtos a ocorrência cai no
-          último dia do mês.
-          {rule
-            ? ' Alterações valem para as ocorrências ainda não confirmadas; as movimentações já confirmadas não mudam.'
-            : ' Cadastrar a regra não altera o saldo.'}
-        </p>
+        <FormHelp topic="recurrenceForm" />
         <Actions
           submit={rule ? 'Salvar recorrência' : 'Adicionar recorrência'}
           cancel={rule ? 'Cancelar edição' : 'Cancelar'}

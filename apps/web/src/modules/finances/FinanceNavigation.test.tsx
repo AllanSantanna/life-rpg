@@ -284,7 +284,14 @@ describe('Finanças em duas abas', () => {
     // Diferença só com valor avaliado; sem chamar de rentabilidade.
     expect(charts.textContent).toContain(`+${money(3000)}`);
     expect(charts).toHaveTextContent('Diferença indisponível');
-    expect(charts).toHaveTextContent('não representa rentabilidade');
+    fireEvent.click(
+      within(charts).getByRole('button', {
+        name: 'Ajuda sobre gráficos de investimentos',
+      }),
+    );
+    expect(
+      screen.getByRole('dialog', { name: 'Gráficos de investimentos' }),
+    ).toHaveTextContent('não é rentabilidade');
     expect(stored().records).toEqual(state.records);
   });
 });

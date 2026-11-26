@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { CustomSelect } from '../../shared/components/CustomSelect';
 import { Field } from '../records/RecordUI';
+import { FinanceHelp } from './FinanceHelp';
 import {
   DEFAULT_CATEGORY,
   otherCategories,
@@ -41,25 +42,28 @@ export function CategoryField({
         />
       </Field>
       {recent.length > 0 && (
-        <div
-          className="finance-category__recent"
-          role="group"
-          aria-label={`Categorias recentes de ${kind === 'income' ? 'receitas' : 'despesas'}`}
-        >
+        <div className="finance-category__recent">
           <span className="finance-category__title" aria-hidden="true">
             Recentes
           </span>
-          {recent.map((category) => (
-            <button
-              type="button"
-              key={category}
-              className={`filter-button${current === category ? ' active' : ''}`}
-              aria-pressed={current === category}
-              onClick={() => setValue(category)}
-            >
-              {category}
-            </button>
-          ))}
+          <FinanceHelp topic="categories" />
+          <div
+            className="finance-category__chips"
+            role="group"
+            aria-label={`Categorias recentes de ${kind === 'income' ? 'receitas' : 'despesas'}`}
+          >
+            {recent.map((category) => (
+              <button
+                type="button"
+                key={category}
+                className={`filter-button${current === category ? ' active' : ''}`}
+                aria-pressed={current === category}
+                onClick={() => setValue(category)}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
         </div>
       )}
       {others.length > 0 && (

@@ -1,3 +1,4 @@
+import { FinanceHelp } from './FinanceHelp';
 import { Disclosure } from '../../shared/components/Disclosure';
 import { useState } from 'react';
 import type { RecordPageProps } from '../records/types';
@@ -20,6 +21,7 @@ export function FinancialSettings({
     <Disclosure
       title="Configurações financeiras"
       className="panel record-section financial-settings"
+      help={<FinanceHelp topic="settings" />}
     >
       <h3>Redefinir dados financeiros</h3>
       <p>

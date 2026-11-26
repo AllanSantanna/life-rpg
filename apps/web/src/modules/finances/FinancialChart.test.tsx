@@ -74,9 +74,14 @@ describe('Evolução financeira automática', () => {
     expect(screen.getByRole('img')).toHaveAccessibleName(/2 pontos/);
     fireEvent.click(screen.getByRole('button', { name: 'Anual' }));
     expect(screen.getByRole('img')).toHaveAccessibleName(/4 pontos/);
+    // A explicação saiu da área do gráfico e continua na ajuda contextual.
+    expect(screen.queryByText(/não representa rentabilidade/)).toBeNull();
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Ajuda sobre evolução financeira' }),
+    );
     expect(
-      screen.getByText(/Não representa rentabilidade/),
-    ).toBeInTheDocument();
+      screen.getByRole('dialog', { name: 'Evolução financeira' }),
+    ).toHaveTextContent('não representa rentabilidade');
   });
   it('mostra estado vazio sem inventar pontos ou valores', () => {
     render(<FinancialChart records={emptyRecords()} today={today} />);

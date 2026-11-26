@@ -1,4 +1,6 @@
 import { useRef, useState, type ReactNode } from 'react';
+import { HelpHeading } from '../../shared/components/ContextHelp';
+import { FinanceHelp, FormHelp } from './FinanceHelp';
 import { ActionButton } from '../../shared/components/ActionButton';
 import { CustomDatePicker } from '../../shared/components/CustomDatePicker';
 import { CustomSelect } from '../../shared/components/CustomSelect';
@@ -88,12 +90,6 @@ export function InvestmentsPanel({
   return (
     <div className="finance-area">
       <div className="finance-toolbar">
-        <p className="record-hint">
-          Com “Utilizar saldo da Carteira”, aportes e compras saem do saldo
-          disponível; com “Enviar valor para a Carteira”, retiradas e vendas
-          voltam para ele. Nenhum dos dois cria receita, despesa ou consumo de
-          orçamento.
-        </p>
         <div
           className="finance-quick-actions"
           role="group"
@@ -165,7 +161,11 @@ export function InvestmentsPanel({
         className="panel record-section"
         aria-labelledby="finance-assets-title"
       >
-        <h2 id="finance-assets-title">Meus investimentos</h2>
+        <HelpHeading
+          id="finance-assets-title"
+          title="Meus investimentos"
+          help={<FinanceHelp topic="assets" />}
+        />
         {!records.investments.length && (
           <Empty>
             Nenhum investimento cadastrado. Use “Novo investimento” para
@@ -261,7 +261,10 @@ export function InvestmentsPanel({
         </div>
       </section>
       {records.investmentEntries.length > 0 && (
-        <Disclosure title="Histórico de investimentos">
+        <Disclosure
+          title="Histórico de investimentos"
+          help={<FinanceHelp topic="investmentHistory" />}
+        >
           <InvestmentHistory
             records={records}
             today={today}
@@ -341,14 +344,7 @@ function InvestmentForm({
           <SavingsBoxFields investment={investment} today={today} />
         )}
       </div>
-      {!investment && (
-        <p className="record-hint">
-          Se informar quantidade e preço, o valor aplicado será calculado pelo
-          produto dos dois. Para Bitcoin, informe o valor em reais e a
-          quantidade em BTC ou sats; em vendas, informe o valor recebido e a
-          quantidade vendida. O preço opcional é ignorado para BTC.
-        </p>
-      )}
+      {!investment && <FormHelp topic="newInvestment" />}
       <Actions
         submit={investment ? 'Salvar investimento' : 'Adicionar investimento'}
         cancel={investment ? 'Cancelar edição' : 'Cancelar'}
@@ -357,9 +353,6 @@ function InvestmentForm({
     </RecordForm>
   );
 }
-
-const OPERATION_HINT =
-  'Para retiradas de ativos sem cotação, informe o custo de aquisição da parcela resgatada se diferente do valor recebido. Sem esse dado, o custo retirado é igual ao valor da operação. BTC usa custo médio automaticamente.';
 
 /**
  * Formulário existente de aportes e retiradas. Aberto pelo cartão, chega com
@@ -457,7 +450,7 @@ function OperationForm({
           lockKind={!!action}
         />
       </div>
-      <p className="record-hint">{OPERATION_HINT}</p>
+      <FormHelp topic="operation" />
       <Actions
         submit={entry ? 'Salvar operação' : 'Registrar operação'}
         cancel={entry ? 'Cancelar edição' : 'Cancelar'}

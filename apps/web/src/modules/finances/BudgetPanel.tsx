@@ -1,5 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { ActionButton } from '../../shared/components/ActionButton';
+import { HelpHeading } from '../../shared/components/ContextHelp';
+import { FinanceHelp } from './FinanceHelp';
 import { ProgressBar } from '../../shared/components/ProgressBar';
 import { formCents, formText, newId } from '../records/form';
 import { Actions, Empty, Field, RecordForm } from '../records/RecordUI';
@@ -59,9 +61,11 @@ export function BudgetPanel({
       aria-labelledby="finance-budget-title"
     >
       <div className="finance-section-head">
-        <h2 id="finance-budget-title">
-          Orçamento mensal · {displayMonth(month)}
-        </h2>
+        <HelpHeading
+          id="finance-budget-title"
+          title={`Orçamento mensal · ${displayMonth(month)}`}
+          help={<FinanceHelp topic="budget" />}
+        />
         {editable && (
           <ActionButton
             icon="plus"
@@ -71,13 +75,12 @@ export function BudgetPanel({
           </ActionButton>
         )}
       </div>
-      <p className="record-hint">
-        Considera somente despesas registradas no mês. Recorrências previstas,
-        receitas e aportes em investimentos não consomem o limite.
-        {editable
-          ? ' Um limite vale deste mês em diante, até ser alterado ou removido.'
-          : ' Mês anterior: limites exibidos como estavam configurados.'}
-      </p>
+      {!editable && (
+        <p className="record-hint">
+          Mês anterior: limites exibidos como estavam configurados, somente
+          leitura.
+        </p>
+      )}
       {editing && editable && (
         <BudgetForm
           key={editing.category ?? 'new'}

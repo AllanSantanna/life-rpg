@@ -19,6 +19,7 @@ import {
 } from './MovementsPanel';
 import { ValuationsPanel } from './ValuationsPanel';
 import { BudgetPanel } from './BudgetPanel';
+import { FinanceHelp } from './FinanceHelp';
 import { RecurrencesPanel } from './RecurrencesPanel';
 import type { MarketTracker } from './useMarketQuotes';
 
@@ -90,22 +91,29 @@ export function FinancesPage({
           values={[
             {
               label: 'Saldo disponível',
+              help: <FinanceHelp topic="cash" />,
               value:
                 financial.cash === null
                   ? 'Saldo pendente'
                   : money(financial.cash),
             },
-            { label: 'Receitas do mês', value: money(monthly.income) },
-            { label: 'Despesas do mês', value: money(monthly.expense) },
-            { label: 'Resultado mensal', value: money(monthly.balance) },
+            {
+              label: 'Receitas do mês',
+              value: money(monthly.income),
+              help: <FinanceHelp topic="income" />,
+            },
+            {
+              label: 'Despesas do mês',
+              value: money(monthly.expense),
+              help: <FinanceHelp topic="expense" />,
+            },
+            {
+              label: 'Resultado mensal',
+              value: money(monthly.balance),
+              help: <FinanceHelp topic="result" />,
+            },
           ]}
         />
-        <p className="record-hint">
-          O período define receitas, despesas, resultado mensal, orçamento e o
-          histórico. O saldo disponível acumula todo o histórico (aportes
-          vinculados saem, retiradas vinculadas voltam); o gráfico usa seu
-          próprio intervalo.
-        </p>
         <div
           className="finance-quick-actions"
           role="group"
@@ -171,12 +179,14 @@ export function FinancesPage({
           values={[
             {
               label: 'Valor dos investimentos',
+              help: <FinanceHelp topic="investmentsValue" />,
               value: financial.unpriced
                 ? 'Cotação pendente'
                 : money(financial.investments),
             },
             {
               label: 'Patrimônio financeiro total',
+              help: <FinanceHelp topic="wealth" />,
               value:
                 financial.wealth === null
                   ? 'Patrimônio pendente'
@@ -184,30 +194,27 @@ export function FinancesPage({
             },
             {
               label: 'Custo de aquisição atual',
+              help: <FinanceHelp topic="cost" />,
               value: financial.costKnown
                 ? money(financial.cost)
                 : 'Custo parcialmente desconhecido',
             },
             {
               label: 'Total aportado conhecido',
+              help: <FinanceHelp topic="contributed" />,
               value: money(financial.contributed),
             },
             {
               label: 'Resgates e retiradas',
+              help: <FinanceHelp topic="withdrawn" />,
               value: money(financial.withdrawn),
             },
           ]}
         />
-        <p className="record-hint">
-          Patrimônio total = saldo disponível + valor dos investimentos. Aportes
-          vinculados à Carteira já saíram do saldo, então nada é contado duas
-          vezes; aportes com dinheiro externo aumentam o patrimônio.
-        </p>
         {!financial.known && (
           <p className="record-hint">
             Há investimentos sem avaliação atual: o total usa o custo de
-            aquisição como referência. Atualize os valores manuais; operações
-            posteriores exigem nova avaliação.
+            aquisição como referência. Atualize em Avaliações manuais.
           </p>
         )}
       </section>

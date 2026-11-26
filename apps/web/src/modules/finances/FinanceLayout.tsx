@@ -114,14 +114,17 @@ export function SwitchField({
   name,
   checked,
   onChange,
+  help,
 }: {
   label: string;
   description?: string;
   name?: string;
   checked: boolean;
   onChange: (checked: boolean) => void;
+  /** Ajuda contextual ao lado, fora do rótulo (não aninha botões no label). */
+  help?: ReactNode;
 }) {
-  return (
+  const field = (
     <label className="strength-switch finance-switch">
       <span>
         <strong>{label}</strong>
@@ -137,5 +140,13 @@ export function SwitchField({
       />
       <span aria-hidden="true" className="strength-switch-track" />
     </label>
+  );
+  return help ? (
+    <div className="finance-switch-row">
+      {field}
+      {help}
+    </div>
+  ) : (
+    field
   );
 }

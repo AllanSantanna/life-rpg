@@ -1,3 +1,4 @@
+import { FinanceHelp } from './FinanceHelp';
 import { useEffect, useId, useRef, useState } from 'react';
 import type { LifeRecords } from '../records/types';
 import { daysBetween, displayDate } from '../records/dates';
@@ -124,7 +125,10 @@ export function FinancialChart({
           <span className="wealth-chart__eyebrow">
             EVOLUÇÃO DOS SEUS SALDOS
           </span>
-          <h2>Evolução financeira</h2>
+          <div className="help-heading">
+            <h2>Evolução financeira</h2>
+            <FinanceHelp topic="chart" />
+          </div>
         </div>
         <div
           className="wealth-chart__periods"
@@ -205,11 +209,6 @@ export function FinancialChart({
           </span>
         </div>
       </div>
-      <p className="wealth-chart__context">
-        {view === 'cash'
-          ? 'Saldo da carteira com receitas, despesas, aportes e resgates reais. Posições iniciais e oscilações dos investimentos não alteram o saldo disponível.'
-          : 'Mudança do patrimônio total, incluindo entradas e saídas de dinheiro. Não representa rentabilidade.'}
-      </p>
       <div
         className="wealth-chart__plot"
         ref={container}
@@ -453,7 +452,7 @@ export function FinancialChart({
       {points.length > 1 && first && last && (
         <p className="wealth-chart__note">
           Comparação entre os registros de {displayDate(first.date)} e{' '}
-          {displayDate(last.date)}. Toque ou passe o mouse para ver os detalhes.
+          {displayDate(last.date)}.
         </p>
       )}
       {view === 'wealth' && !current.known && (

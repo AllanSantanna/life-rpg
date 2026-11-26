@@ -12,6 +12,7 @@ import { money } from './calculations';
 import { unitsToDecimal } from './monetary';
 import { isMarketCategory } from './types';
 import { SwitchField } from './FinanceLayout';
+import { FinanceHelp } from './FinanceHelp';
 import { movesWallet } from './initialPosition';
 import type {
   BitcoinQuote,
@@ -153,14 +154,14 @@ export function InvestmentFields({
                 ? 'Enviar valor para a Carteira'
                 : 'Utilizar saldo da Carteira'
             }
-            description={
-              kind === 'withdrawal'
-                ? wallet
-                  ? 'O valor recebido entra no saldo disponível, sem contar como receita.'
-                  : 'O valor sai do Life RPG (ex.: outra conta); o saldo disponível não muda.'
-                : wallet
-                  ? 'O valor sai do saldo disponível, sem contar como despesa nem consumir orçamento.'
-                  : 'Dinheiro de fora do Life RPG; o saldo disponível não muda.'
+            help={
+              <FinanceHelp
+                topic={
+                  kind === 'withdrawal'
+                    ? 'walletWithdrawal'
+                    : 'walletContribution'
+                }
+              />
             }
             checked={wallet}
             onChange={setWallet}
@@ -182,13 +183,6 @@ export function InvestmentFields({
           }
         />
       </Field>
-      {positionInitial && kind === 'contribution' && (
-        <p className="record-hint">
-          Posição inicial: não desconta de nenhuma conta e não gera XP de
-          compra. Informe o custo original quando conhecido; sem ele, preço
-          médio e valorização ficam pendentes.
-        </p>
-      )}
       {bitcoin ? (
         <BitcoinQuantity quantity={entry?.quantity} onUnitsChange={setUnits} />
       ) : usd ? (
