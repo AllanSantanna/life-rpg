@@ -39,6 +39,11 @@ export function FinancialChart({
   const id = useId();
   const model = wealthChartModel(records, today, period, view);
   const { points, current, currentValue, change, percent, trend } = model;
+  // Sem nenhum registro, a carteira interna começa em zero: ainda não há histórico.
+  const fresh =
+    !records.movements.length &&
+    !records.investmentEntries.length &&
+    !records.finance?.accounts.length;
   const active = points.find((point) => point.date === activeDate);
   useEffect(() => {
     const element = container.current;
@@ -175,7 +180,7 @@ export function FinancialChart({
             {currentValue === null
               ? view === 'wealth' && current.unpriced
                 ? 'Cotação pendente'
-                : 'Saldo inicial pendente'
+                : 'Saldo pendente'
               : money(currentValue)}
           </strong>
         </p>
@@ -199,7 +204,7 @@ export function FinancialChart({
       </div>
       <p className="wealth-chart__context">
         {view === 'cash'
-          ? 'Saldo das contas e transferências reais. Posições iniciais e oscilações dos investimentos não alteram o dinheiro disponível.'
+          ? 'Saldo da carteira com receitas, despesas, aportes e resgates reais. Posições iniciais e oscilações dos investimentos não alteram o dinheiro disponível.'
           : 'Mudança do patrimônio total, incluindo entradas e saídas de dinheiro. Não representa rentabilidade.'}
       </p>
       <div
@@ -222,15 +227,15 @@ export function FinancialChart({
           <div className="wealth-chart__empty">
             <Icon name="chart" size={32} />
             <h3>
-              {currentValue === null
-                ? current.unpriced
-                  ? 'Aguardando referência USD/BRL'
-                  : 'Seu histórico começa aqui'
-                : 'Nenhum registro neste período'}
+              {currentValue === null && current.unpriced
+                ? 'Aguardando referência USD/BRL'
+                : currentValue === null || fresh
+                  ? 'Seu histórico começa aqui'
+                  : 'Nenhum registro neste período'}
             </h3>
             <p>
-              {currentValue === null
-                ? 'Cadastre o saldo inicial da sua conta e a primeira movimentação para acompanhar seu patrimônio.'
+              {currentValue === null || fresh
+                ? 'Registre a primeira receita ou despesa para acompanhar seu patrimônio.'
                 : 'Selecione outro período ou registre uma nova movimentação.'}
             </p>
           </div>

@@ -81,9 +81,13 @@ describe('Evolução financeira automática', () => {
   it('mostra estado vazio sem inventar pontos ou valores', () => {
     render(<FinancialChart records={emptyRecords()} today={today} />);
     expect(screen.getByText('Seu histórico começa aqui')).toBeInTheDocument();
-    expect(screen.getByText(/Cadastre o saldo inicial/)).toBeInTheDocument();
+    // A carteira interna começa em zero; não se exige saldo inicial.
+    expect(
+      screen.getByText(/Registre a primeira receita ou despesa/),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/saldo inicial/i)).not.toBeInTheDocument();
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
-    expect(screen.getByText('Saldo inicial pendente')).toBeInTheDocument();
+    expect(screen.getByText('R$ 0,00')).toBeInTheDocument();
   });
   it('centraliza um único ponto sem desenhar linha ou área fictícias', () => {
     const state = records();

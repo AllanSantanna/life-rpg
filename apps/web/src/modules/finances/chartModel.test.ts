@@ -61,15 +61,18 @@ describe('Projeção do gráfico de patrimônio', () => {
     expect(wealthChartModel(records, today, 365).points).toHaveLength(4);
     expect(wealthChartModel(records, today, 365).change).toBe(20000);
   });
-  it('não cria pontos quando faltam saldos de abertura', () => {
+  it('usa a carteira interna com saldo zero quando não há abertura gravada', () => {
     const records = chartRecords();
     delete records.finance;
-    expect(wealthChartModel(records, today, 30)).toMatchObject({
-      points: [],
-      change: null,
-      percent: null,
-      current: { wealth: null },
-    });
+    // Sem abertura, receitas e despesas partem de zero; nada é inventado.
+    const model = wealthChartModel(records, today, 30, 'cash');
+    expect(model.points.map((p) => [p.date, p.value])).toEqual([
+      ['2026-10-20', 10000],
+      ['2026-11-10', 5000],
+      [today, 20000],
+    ]);
+    expect(model.current).toMatchObject({ cash: 20000, wealth: 20000 });
+    expect(model.change).toBe(10000);
   });
   it('não usa transferências para investimentos como queda ou aumento artificial', () => {
     const records = chartRecords();

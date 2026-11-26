@@ -185,9 +185,10 @@ describe('Exclusão de contas e redefinição financeira', () => {
       valuations: [],
       quotes: [],
     });
+    // A carteira interna volta a zero, sem abertura nem registros.
     expect(financialSummary(next, today)).toMatchObject({
-      cash: null,
-      wealth: null,
+      cash: 0,
+      wealth: 0,
       investments: 0,
     });
     expect(financialHistory(next, today)).toEqual([]);

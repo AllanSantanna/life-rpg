@@ -1,7 +1,12 @@
 import { projectBoxBalance } from './savingsBox';
 import { isInitialPosition } from './initialPosition';
 import type { LifeRecords } from '../records/types';
-import { emptyLedger, type InvestmentEntry } from './types';
+import {
+  emptyLedger,
+  type CashAccount,
+  type FinanceLedger,
+  type InvestmentEntry,
+} from './types';
 import { monthlyBalance } from './calculations';
 
 import { position, positionMode } from './position';
@@ -127,18 +132,35 @@ export function localQuoteDate(timestamp: number) {
   const d = new Date(timestamp);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
+/** Carteira interna única: recebe os registros sem `accountId`. */
+export const WALLET_ID = 'principal';
+/**
+ * Contas consideradas nas projeções de saldo. A carteira interna existe
+ * implicitamente, com saldo inicial zero desde o primeiro registro, enquanto não
+ * houver uma abertura `principal` gravada por versões anteriores; essa abertura,
+ * quando existe, continua valendo sem alteração. Nada é gravado aqui: a lista
+ * persistida, seus IDs e as demais contas legadas permanecem como estão.
+ */
+export function cashAccounts(ledger: FinanceLedger): CashAccount[] {
+  return ledger.accounts.some((item) => item.id === WALLET_ID)
+    ? ledger.accounts
+    : [
+        ...ledger.accounts,
+        { id: WALLET_ID, name: 'Carteira', initialCents: 0, date: '' },
+      ];
+}
 export function accountBalance(
   records: LifeRecords,
   accountId: string,
   date: string,
 ) {
   const ledger = records.finance ?? emptyLedger();
-  const account = ledger.accounts.find(
+  const account = cashAccounts(ledger).find(
     (item) => item.id === accountId && item.date <= date,
   );
   if (!account) return null;
   const applies = (item: { date: string; accountId?: string }) =>
-    (item.accountId ?? 'principal') === accountId &&
+    (item.accountId ?? WALLET_ID) === accountId &&
     item.date >= account.date &&
     item.date <= date;
   return (
@@ -173,7 +195,7 @@ export function accountBalance(
   );
 }
 export function financialSummary(records: LifeRecords, date: string) {
-  const accounts = records.finance?.accounts ?? [];
+  const accounts = cashAccounts(records.finance ?? emptyLedger());
   const missingAccount = [
     ...records.movements,
     ...records.investmentEntries,
@@ -183,8 +205,7 @@ export function financialSummary(records: LifeRecords, date: string) {
       item.date <= date &&
       !accounts.some(
         (account) =>
-          account.id === (item.accountId ?? 'principal') &&
-          account.date <= date,
+          account.id === (item.accountId ?? WALLET_ID) && account.date <= date,
       ),
   );
   const activeAccounts = accounts.filter((item) => item.date <= date);
